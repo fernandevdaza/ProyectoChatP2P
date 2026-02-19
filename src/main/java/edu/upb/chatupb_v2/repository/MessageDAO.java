@@ -1,0 +1,168 @@
+package edu.upb.chatupb_v2.repository;
+
+import java.net.ConnectException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.List;
+
+public class MessageDAO {
+    private DAOHelper<Message> helper;
+    private final static MessageDAO messageDao = new MessageDAO();
+
+    public static MessageDAO getInstance(){
+        return messageDao;
+    }
+
+    private MessageDAO(){
+        this.helper = new DAOHelper<>();
+    }
+
+    ResultReader<Message> resultReader = result ->{
+        Message message = new Message();
+            if (existColumn(result, Message.Column.ID)) {
+                message.setId(result.getString(Message.Column.ID));
+            }
+            if (existColumn(result, Message.Column.CONVERSATION_ID)){
+                message.setConversation_id(result.getString(Message.Column.CONVERSATION_ID));
+            }
+            if (existColumn(result, Message.Column.SENDER_PEER_ID)) {
+                message.setSender_peer_id(result.getString(Message.Column.SENDER_PEER_ID));
+            }
+            if (existColumn(result, Message.Column.TYPE)) {
+                message.setType(MessageType.values()[result.getInt(Message.Column.TYPE)]);
+            }
+            if (existColumn(result, Message.Column.TEXT_CONTENT)) {
+                message.setText_content(result.getString(Message.Column.TEXT_CONTENT));
+            }
+            if (existColumn(result, Message.Column.SENT_AT)) {
+                message.setSent_at(LocalDateTime.parse(result.getString(Message.Column.SENT_AT)));
+            }
+            if (existColumn(result, Message.Column.IS_EPHEMERAL)) {
+                message.set_ephemeral(result.getBoolean(Message.Column.IS_EPHEMERAL));
+            }
+            if (existColumn(result, Message.Column.EXPIRES_AT)) {
+                message.setExpires_at(LocalDateTime.parse(result.getString(Message.Column.EXPIRES_AT)));
+            }
+            if (existColumn(result, Message.Column.STATUS)) {
+                message.setStatus(MessageStatusType.values()[result.getInt(Message.Column.STATUS)]);
+            }
+            if (existColumn(result, Message.Column.RECEIVED_AT)) {
+                message.setReceived_at(LocalDateTime.parse(result.getString(Message.Column.RECEIVED_AT)));
+            }
+            if (existColumn(result, Message.Column.CREATED_AT)) {
+                message.setCreated_at(LocalDateTime.parse(result.getString(Message.Column.CREATED_AT)));
+            }
+            if (existColumn(result, Message.Column.UPDATED_AT)) {
+                message.setUpdated_at(LocalDateTime.parse(result.getString(Message.Column.UPDATED_AT)));
+            }
+            return message;
+    };
+
+    public static boolean existColumn(ResultSet result, String columnName){
+        try{
+            result.findColumn(columnName);
+            return true;
+        }catch (SQLException e){
+            System.out.println("No se encontró la columna: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public List<Message> findAll() throws ConnectException, SQLException {
+        String query = "SELECT * FROM messages";
+        return helper.executeQuery(query, resultReader);
+    }
+
+    public boolean exist(String argument) throws ConnectException, SQLException {
+        String query = "SELECT count(*) FROM messages WHERE " + argument;
+        return helper.executeQueryCount(query, null) == 1;
+    }
+
+    public List<Message> findMessagesByConversationId(String conversationId) throws ConnectException, SQLException {
+        String query = "SELECT * FROM messages WHERE conversation_id ='" + conversationId + "'";
+        System.out.println(query);
+        List<Message> list = helper.executeQuery(query, resultReader);
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list;
+    }
+
+    public Message findMessagesById(String id) throws ConnectException, SQLException {
+        String query = "SELECT * FROM messages WHERE id ='" + id + "'";
+        System.out.println(query);
+        List<Message> list = helper.executeQuery(query, resultReader);
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.getFirst();
+    }
+
+    public List<Message> findMessagesBySenderPeerId(String senderPeerId) throws ConnectException, SQLException {
+        String query = "SELECT * FROM messages WHERE sender_peer_id ='" + senderPeerId + "'";
+        System.out.println(query);
+        List<Message> list = helper.executeQuery(query, resultReader);
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list;
+    }
+
+
+    public boolean existById(String id) throws ConnectException, SQLException {
+        String query = "SELECT count(*) FROM peers WHERE id='" + id + "'";
+        return helper.executeQueryCount(query, null) == 1;
+    }
+
+    public void update(String query) throws Exception {
+        helper.update(query, null);
+    }
+
+    public void save(Message message) throws Exception {
+        String query = "INSERT INTO messages(id, conversation_id, sender_peer_id, type, text_content, sent_at, received_at, is_ephemeral, expires_at, status, created_at, updated_at) values (?,?,?,?,?,?,?,?,?,?,?,?)";
+        QueryParameters params = new QueryParameters() {
+            @Override
+            public void setParameters(PreparedStatement pst) throws SQLException {
+                pst.setString(1, message.getId());
+                pst.setString(2, message.getConversation_id());
+                pst.setString(3, message.getSender_peer_id());
+                pst.setString(4, message.getType().toString());
+                pst.setString(5, message.getText_content());
+                pst.setString(6, message.getSent_at().toString());
+                pst.setString(7, message.getReceived_at().toString());
+                pst.setString(8, String.valueOf(message.getIsEphemeral()));
+                pst.setString(9, message.getExpires_at().toString());
+                pst.setString(10, message.getStatus().toString());
+                pst.setString(11, message.getCreated_at().toString());
+                pst.setString(12, message.getUpdated_at().toString());
+            }
+        };
+        helper.insert(query, params, message);
+    }
+
+//    public void update(Peer peer) throws Exception {
+//        String query = "UPDATE message SET last_ip_addr=? WHERE id=?";
+//        QueryParameters params = new QueryParameters() {
+//            @Override
+//            public void setParameters(PreparedStatement pst) throws SQLException {
+//                pst.setString(1, peer.getLastIpAddr());
+//                pst.setString(2, peer.getId());
+//            }
+//        };
+//        helper.update(query, params);
+//    }
+
+    public void update(String query, String conditionWhere) throws Exception {
+        if (query.trim().endsWith("%s")) {
+            query = String.format(query, conditionWhere);
+        } else {
+            query = String.format("%s %s", query, conditionWhere);
+        }
+        helper.update(query, null);
+    }
+
+
+}
+
