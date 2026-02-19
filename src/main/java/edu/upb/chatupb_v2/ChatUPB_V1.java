@@ -13,14 +13,14 @@ public class ChatUPB_V1 {
 
     public static void main(String[] args) {
         /* Create and display the form */
-        int port = 1901;
-        ConnectionMediator.getInstance().setPort(1900);
-        final ChatUI chatUI = new ChatUI();
-        java.awt.EventQueue.invokeLater(() -> chatUI.setVisible(true));
+        int port = 1900;
+        ConnectionMediator.getInstance().setPort(1901);
+        final ChatUI2 chatUI2 = new ChatUI2();
+        java.awt.EventQueue.invokeLater(() -> chatUI2.setVisible(true));
         try {
             ChatServer chatServer = new ChatServer(port);
             chatServer.start();
-            chatServer.addListener(chatUI);
+            chatServer.addListener(chatUI2);
         }catch (Exception e){
             e.printStackTrace();
         }

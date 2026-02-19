@@ -2,7 +2,7 @@ package edu.upb.chatupb_v2.bl.message;
 
 import java.util.regex.Pattern;
 
-public class Invitacion extends Message{
+public class Invitacion extends MessageProtocol {
 
     private String idUsuario;
     private String nombre;

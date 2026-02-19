@@ -1,6 +1,6 @@
 package edu.upb.chatupb_v2.bl.message;
 
-public class Rechazar extends Message {
+public class Rechazar extends MessageProtocol {
 
     public Rechazar(){
         super("003");

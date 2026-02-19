@@ -6,15 +6,13 @@ package edu.upb.chatupb_v2;
 
 import edu.upb.chatupb_v2.bl.message.Aceptar;
 import edu.upb.chatupb_v2.bl.message.Invitacion;
-import edu.upb.chatupb_v2.bl.message.Message;
+import edu.upb.chatupb_v2.bl.message.MessageProtocol;
 import edu.upb.chatupb_v2.bl.message.Rechazar;
-import edu.upb.chatupb_v2.bl.server.ChatServer;
 import edu.upb.chatupb_v2.bl.server.SocketClient;
 import edu.upb.chatupb_v2.bl.server.SocketListener;
 import edu.upb.chatupb_v2.mediator.ConnectionMediator;
 
 import javax.swing.*;
-import java.util.regex.Pattern;
 
 /**
  *
@@ -99,7 +97,7 @@ public class ChatUI extends javax.swing.JFrame implements SocketListener {
         jBtnConectar.setEnabled(false);
         new Thread(() -> {try{
             SocketClient socketClient = connectionMediator.connectToPeer(jtIp.getText(), this);
-            connectionMediator.sendMessage(jtIp.getText(), new Invitacion("0000001", "Fernando"), socketClient);
+            connectionMediator.sendMessage(new Invitacion("0000001", "Fernando"), socketClient);
         }catch (Exception e) {
             e.printStackTrace();
             // Opcional: Mostrar error en un JOptionPane usando invokeLater
@@ -162,27 +160,27 @@ public class ChatUI extends javax.swing.JFrame implements SocketListener {
     private javax.swing.JTextField jtMensaje;
 
     @Override
-    public void onMessage(SocketClient socketClient, Message message) {
-        if(message instanceof Invitacion){
-            Invitacion invitacion = (Invitacion) message;
+    public void onMessage(SocketClient socketClient, MessageProtocol messageProtocol) {
+        if(messageProtocol instanceof Invitacion){
+            Invitacion invitacion = (Invitacion) messageProtocol;
             int respuesta = JOptionPane.showConfirmDialog(this, "Llego la invitacion: "+ invitacion.getNombre());
             if (respuesta == JOptionPane.YES_OPTION){
-                Message aceptar = new Aceptar("0000001", "Fernando");
-                connectionMediator.sendMessage(invitacion.getIp(), aceptar, socketClient);
+                MessageProtocol aceptar = new Aceptar("0000001", "Fernando");
+                connectionMediator.sendMessage(aceptar, socketClient);
             }
             if (respuesta == JOptionPane.NO_OPTION){
-                Message rechazar = new Rechazar();
-                connectionMediator.sendMessage(invitacion.getIp(), rechazar, socketClient);
+                MessageProtocol rechazar = new Rechazar();
+                connectionMediator.sendMessage(rechazar, socketClient);
             }
         }
 
-        if(message instanceof Aceptar){
-            JOptionPane.showMessageDialog(this,  ((Aceptar) message).getNombre() + " aceptó la conexión.");
-            connectionMediator.addConnections(message.getIp(), socketClient);
+        if(messageProtocol instanceof Aceptar){
+            JOptionPane.showMessageDialog(this,  ((Aceptar) messageProtocol).getNombre() + " aceptó la conexión.");
+            connectionMediator.addConnections(messageProtocol.getIp(), socketClient);
         }
 
-        if(message instanceof Rechazar){
-            JOptionPane.showMessageDialog(this, ((Rechazar) message).getIp() + " rechazó la conexión.");
+        if(messageProtocol instanceof Rechazar){
+            JOptionPane.showMessageDialog(this, ((Rechazar) messageProtocol).getIp() + " rechazó la conexión.");
         }
 
         System.out.println("Llego la invitacion");

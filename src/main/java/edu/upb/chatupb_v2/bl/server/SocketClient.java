@@ -4,10 +4,7 @@
  */
 package edu.upb.chatupb_v2.bl.server;
 
-import edu.upb.chatupb_v2.bl.message.Aceptar;
-import edu.upb.chatupb_v2.bl.message.Invitacion;
-import edu.upb.chatupb_v2.bl.message.Message;
-import edu.upb.chatupb_v2.bl.message.Rechazar;
+import edu.upb.chatupb_v2.bl.message.*;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -83,6 +80,34 @@ public class SocketClient extends Thread {
                         notificar(this, rechazar);
                         break;
                     }
+                    case "004": {
+                        System.out.println("Hello Recibido!");
+                        Hello hello = Hello.parse(message);
+                        hello.setIp(this.getIp());
+                        notificar(this, hello);
+                        break;
+                    }
+                    case "005": {
+                        System.out.println("Hello Aceptado!");
+                        HelloAccept helloAccept = HelloAccept.parse(message);
+                        helloAccept.setIp(this.getIp());
+                        notificar(this, helloAccept);
+                        break;
+                    }
+                    case "006": {
+                        System.out.println("Hello Rechazado!");
+                        HelloReject helloReject = HelloReject.parse(message);
+                        helloReject.setIp(this.getIp());
+                        notificar(this, helloReject);
+                        break;
+                    }
+                    case "007": {
+                        System.out.println("Nuevo Mensaje!");
+                        Mensaje mensaje = Mensaje.parse(message);
+                        mensaje.setIp(this.getIp());
+                        notificar(this, mensaje);
+                        break;
+                    }
                 }
             }
 
@@ -91,15 +116,15 @@ public class SocketClient extends Thread {
         }
     }
 
-    public void notificar(SocketClient socketClient, Message message) {
+    public void notificar(SocketClient socketClient, MessageProtocol messageProtocol) {
         for (SocketListener listener : socketListener) {
-            java.awt.EventQueue.invokeLater(() -> listener.onMessage(socketClient, message));
+            java.awt.EventQueue.invokeLater(() -> listener.onMessage(socketClient, messageProtocol));
         }
     }
 
-    public void send(Message message) throws IOException {
+    public void send(MessageProtocol messageProtocol) throws IOException {
         try {
-            dout.write(message.generarTrama().getBytes("UTF-8"));
+            dout.write(messageProtocol.generarTrama().getBytes("UTF-8"));
             dout.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -110,6 +135,9 @@ public class SocketClient extends Thread {
         return this.socket.getInetAddress().toString().replace("/", "");
     }
 
+    public String getHostIp(){
+        return this.socket.getLocalAddress().toString().replace("/", "");
+    }
 
     public void close() {
         try {
