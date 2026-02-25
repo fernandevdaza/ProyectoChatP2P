@@ -21,43 +21,68 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-/**
- *
- * @author rlaredo
- */
-public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
+
+public class ChatUI2 extends javax.swing.JFrame {
+
     SocketClient client;
 
-    private static final Color COLOR_HEADER = new Color(0, 168, 132); // Verde oscurito
-    private static final Color COLOR_BG_CHAT = new Color(236, 229, 221); // Beige fondo
-    private static final Color COLOR_MY_BUBBLE = new Color(220, 248, 198); // Verde claro (Mío)
-    private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255); // Blanco (Ellos)
+    private static final Color COLOR_HEADER = new Color(0, 168, 132);
+    private static final Color COLOR_BG_CHAT = new Color(236, 229, 221);
+    private static final Color COLOR_MY_BUBBLE = new Color(220, 248, 198);
+    private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255);
 
     private JPanel chatPanel;
     private JTextField messageInput;
     private JScrollPane scrollPane;
+    private JPanel leftPanel;
+    private JPanel rightPanel;
+    private JPanel inputPanel;
+    private JButton buttonSend;
     DefaultListModel<Contact> listModel = new DefaultListModel<>();
     private Map<String, java.util.List<BubbleData>> chatHistory = new HashMap<>();
     private String currentChatIp = null;
+    private boolean isContactSelected = false;
+    private boolean isContactConnected = false;
+    private final ImageIcon iconOnline = new ImageIcon(new ImageIcon("/home/fernandev/Coding/Cliente2/src/main/java/edu/upb/chatupb_v2/resources/online.png")
+            .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+
+    private final ImageIcon iconOffline = new ImageIcon(new ImageIcon("/home/fernandev/Coding/Cliente2/src/main/java/edu/upb/chatupb_v2/resources/offline.png")
+            .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+
 
     public ChatUI2() {
         setTitle("Chat P2P");
         setSize(1000, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        JPanel leftPanel = createLeftPanel();
+        this.leftPanel = createLeftPanel();
         add(leftPanel, BorderLayout.WEST);
 
-        JPanel rightPanel = createRightPanel();
+        this.rightPanel = createRightPanel();
         add(rightPanel, BorderLayout.CENTER);
         cargarContactosGuardados();
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+
+                try {
+                    new Thread(() -> {
+                        ConnectionMediator.getInstance().shutdown();
+                    }).start();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                dispose();
+                System.exit(0);
+            }
+        });
+
     }
 
     private JPanel createLeftPanel() {
@@ -78,47 +103,53 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
         contactList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         contactList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        contactList.setCellRenderer(new DefaultListCellRenderer() {
+        contactList.setCellRenderer(new ListCellRenderer<Contact>() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            public Component getListCellRendererComponent(JList<? extends Contact> list, Contact c, int index, boolean isSelected, boolean cellHasFocus) {
+                JPanel panel = new JPanel(new BorderLayout(10, 0));
+                panel.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+                        BorderFactory.createEmptyBorder(5, 10, 5, 10)
+                ));
 
-                if (value instanceof Contact) {
-                    Contact c = (Contact) value;
-                    setText("<html><b>" + c.getName() + "</b> <br><span style='color:gray; font-size:9px'>" + c.getIp() + "</span></html>");
-
-                    setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+                if (isSelected) {
+                    panel.setBackground(list.getSelectionBackground());
+                } else {
+                    panel.setBackground(list.getBackground());
                 }
-                return this;
+
+                JLabel lblIcon = new JLabel(c.getOnline() ? iconOnline : iconOffline);
+                panel.add(lblIcon, BorderLayout.WEST);
+
+                JLabel lblText = new JLabel();
+                lblText.setText("<html><div style='margin-left:5px;'>" +
+                        "<b>" + c.getName() + "</b><br>" +
+                        "<span style='color:gray; font-size:9px'>" + c.getIp() + "</span>" +
+                        "</div></html>");
+
+                if (isSelected) lblText.setForeground(list.getSelectionForeground());
+
+                panel.add(lblText, BorderLayout.CENTER);
+
+                return panel;
             }
         });
+
 
         contactList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()){
                 Contact selection = contactList.getSelectedValue();
-                if (selection != null){
+                if (selection != null) {
                     String ip = selection.getIp();
-                    if(ConnectionMediator.getInstance().getConnection(ip) == null){
-                        new Thread (() -> {
-                            try {
-                                Peer me = ConnectionMediator.getInstance().getMyself();
-                                String peerId = ConnectionMediator.getInstance().getPeerIdByIp(ip);
-                                SocketClient socketClient = ConnectionMediator.getInstance().connectToPeer(ip, this);
-                                MessageProtocol hello = new Hello(me.getId());
-                                ConnectionMediator.getInstance().sendMessage(hello, socketClient);
-                            } catch (IOException error) {
-                                throw new RuntimeException(error);
-                            } catch (SQLException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        }).start();
-                    }
+
+                    this.isContactConnected = selection.getOnline();
+
+                    setContactSelected(true, ip);
                     cargarChat(ip);
                 }
             }
         });
 
-        panel.add(header, BorderLayout.NORTH);
         panel.add(new JScrollPane(contactList), BorderLayout.CENTER);
 
         JButton connectButton = new JButton("Nueva conexión (+)");
@@ -129,19 +160,50 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
             String ip = JOptionPane.showInputDialog(this, "Ingresa IP:");
             if (ip != null && !ip.isEmpty()) {
                 new Thread(() -> {
-                   try{
-                       Peer me = ConnectionMediator.getInstance().getMyself();
+                    try{
+                        Peer me = ConnectionMediator.getInstance().getMyself();
 
-                       SocketClient socketClient = ConnectionMediator.getInstance().connectToPeer(ip, this);
-                       ConnectionMediator.getInstance().sendMessage(new Invitacion(me.getId(), me.getDisplayName()), socketClient);
-                   }catch (Exception error){
-                       System.out.println(error.getMessage());
-                   }finally {
-                       javax.swing.SwingUtilities.invokeLater(() -> connectButton.setEnabled(true));
-                   }
+                        SocketClient socketClient = ConnectionMediator.getInstance().connectToPeer(ip);
+                        ConnectionMediator.getInstance().sendMessage(new Invitacion(me.getId(), me.getDisplayName()), socketClient);
+                    }catch (Exception error){
+                        System.out.println(error.getMessage());
+                    }finally {
+                        javax.swing.SwingUtilities.invokeLater(() -> connectButton.setEnabled(true));
+                    }
                 }).start();
             }
         });
+        JButton offlineModeButton = new JButton("Modo offline");
+        offlineModeButton.setBackground(Color.RED);
+        offlineModeButton.setForeground(Color.WHITE);
+        offlineModeButton.addActionListener(e -> {
+            offlineModeButton.setEnabled(false);
+            new Thread(() -> {
+                try{
+                    ConnectionMediator.getInstance().onModeOffline();
+                }catch (Exception error){
+                    System.out.println(error.getMessage());
+                }finally {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        offlineModeButton.setText("Modo Online");
+                        offlineModeButton.setBackground(Color.GREEN);
+                        offlineModeButton.setEnabled(true);
+                    });
+                }
+            }).start();
+            boolean isOffline = ConnectionMediator.getInstance().getOffline();
+            if(!isOffline){
+                JOptionPane.showMessageDialog(this, "Modo Offline Activado");
+            }else{
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    offlineModeButton.setText("Modo Offline");
+                    offlineModeButton.setBackground(Color.RED);
+                });
+                JOptionPane.showMessageDialog(this, "Modo Offline desactivado");
+            }
+        });
+
+        panel.add(offlineModeButton, BorderLayout.NORTH);
         panel.add(connectButton, BorderLayout.SOUTH);
         return panel;
     }
@@ -149,11 +211,16 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
     private JPanel createRightPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
+        if (!isContactSelected){
+            return  panel;
+        }
+
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
         header.setBackground(new Color(240, 242, 245));
         header.setPreferredSize(new Dimension(0, 60));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY));
-        JLabel labelContact = new JLabel("Chat actual");
+        String labelContactString = ConnectionMediator.getInstance().getPeerDisplayNameByIp(currentChatIp);
+        JLabel labelContact = new JLabel(labelContactString);
         labelContact.setFont(new Font("Segoe UI", Font.BOLD, 16));
         header.add(labelContact);
         panel.add(header, BorderLayout.NORTH);
@@ -171,7 +238,7 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         panel.add(scrollPane, BorderLayout.CENTER);
 
-        JPanel inputPanel = new JPanel(new BorderLayout());
+        inputPanel = new JPanel(new BorderLayout());
         inputPanel.setBackground(new Color(240, 242, 245));
         inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
@@ -181,10 +248,9 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
                 BorderFactory.createLineBorder(Color.WHITE, 0),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
-
         messageInput.addActionListener(e -> enviarMensaje());
 
-        JButton buttonSend = new JButton("➤");
+        buttonSend = new JButton("➤");
         buttonSend.setBackground(COLOR_HEADER);
         buttonSend.setForeground(Color.WHITE);
         buttonSend.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -195,44 +261,113 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
 
         inputPanel.add(messageInput, BorderLayout.CENTER);
         inputPanel.add(buttonSend, BorderLayout.EAST);
+
         panel.add(inputPanel, BorderLayout.SOUTH);
+
+        setInputEnabled(isContactConnected);
+
+
 
         return panel;
     }
 
-    private void cargarChat(String ip) {
-        this.currentChatIp = ip; // Actualizamos el estado
+    private void setInputEnabled(boolean enabled) {
+        this.isContactConnected = enabled;
 
-        // 1. Limpiar el panel visualmente
+        if (inputPanel != null) {
+            inputPanel.setVisible(enabled);
+        }
+        if (messageInput != null) {
+            messageInput.setEnabled(enabled);
+        }
+        if (buttonSend != null) {
+            buttonSend.setEnabled(enabled);
+        }
+
+        if (rightPanel != null) {
+            rightPanel.revalidate();
+            rightPanel.repaint();
+        }
+    }
+
+    private void setContactSelected(boolean selected, String ip) {
+        this.isContactSelected = selected;
+        this.currentChatIp = ip;
+
+        this.remove(this.rightPanel);
+
+        this.rightPanel = createRightPanel();
+
+        this.add(this.rightPanel, BorderLayout.CENTER);
+
+        this.revalidate();
+        this.repaint();
+    }
+
+    private void setContactSelectedConnected(boolean connected, String ip){
+        if (!Objects.equals(this.currentChatIp, ip)) return;
+        SwingUtilities.invokeLater(() -> setInputEnabled(connected));
+    }
+
+
+
+    private void cargarChat(String ip) {
+        this.currentChatIp = ip;
+
         chatPanel.removeAll();
-        // (Volvemos a poner el pegamento invisible para empujar arriba)
+
         JPanel verticalGlue = new JPanel();
         verticalGlue.setOpaque(false);
         chatPanel.add(verticalGlue);
 
-        // 2. Recuperar historial de la memoria
-        java.util.List<BubbleData> historial = chatHistory.getOrDefault(ip, new java.util.ArrayList<>());
+        String peerId = ConnectionMediator.getInstance().getPeerIdByIp(ip);
+        String conversationId = ConnectionMediator.getInstance().getConversationIdByPeerId(peerId);
+        java.util.List<Message> messages = ConnectionMediator.getInstance().getConversationMessagesWithConversationId(conversationId);
 
-        // 3. Pintar de nuevo las burbujas guardadas
-        for (BubbleData msg : historial) {
-            // Usamos una versión interna de addMessage que solo pinta, no guarda
-            pintarBurbuja(msg.text, msg.isMe);
+
+        java.util.List<BubbleData> historial = new java.util.ArrayList<>();
+
+
+
+        if (messages != null){
+            for (Message message: messages){
+                String meId = PeerDao.getInstance().findMe().getId();
+                boolean isMe = Objects.equals(meId, message.getSender_peer_id());
+                historial.add(new BubbleData(message.getText_content(), isMe));
+            }
+
+
+            for (BubbleData msg : historial) {
+                pintarBurbuja(msg.text, msg.isMe);
+            }
         }
 
-        // 4. Refrescar UI
         chatPanel.revalidate();
         chatPanel.repaint();
 
-        // Actualizar título del header derecho
-        // (Necesitarás convertir tu JLabel del header derecho en variable de clase para acceder aquí)
-        // lblContact.setText("Chat con: " + ip);
+    }
+
+    public void actualizarEstadoContacto(String idUser, boolean online) {
+        SwingUtilities.invokeLater(() -> {
+            for (int i = 0; i < listModel.getSize(); i++) {
+                Contact c = listModel.getElementAt(i);
+                if (Objects.equals(c.getId(), idUser)) {
+                    c.setOnline(online);
+                    listModel.set(i, c);
+                    if (Objects.equals(currentChatIp, c.getIp())){
+                        setContactSelectedConnected(true, c.getIp());
+                        cargarChat(currentChatIp);
+                    }
+                    break;
+                }
+            }
+        });
     }
 
     private void enviarMensaje() {
         String texto = messageInput.getText().trim();
         if (texto.isEmpty()) return;
 
-        // 1. Mostrar visualmente (Lado derecho - true)
         addMessage(texto, true, currentChatIp);
 
         new Thread(() -> {
@@ -252,58 +387,32 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
             }
         }).start();
 
-        // 3. Limpiar
         messageInput.setText("");
         messageInput.requestFocus();
     }
 
 
     public void addMessage(String text, boolean isMe, String targetIp) {
-        // 1. GUARDAR EN MEMORIA (Siempre, aunque no esté viendo el chat)
         chatHistory.putIfAbsent(targetIp, new java.util.ArrayList<>());
         chatHistory.get(targetIp).add(new BubbleData(text, isMe));
 
-        // 2. PINTAR SOLO SI ESTOY VIENDO ESE CHAT
         if (targetIp.equals(currentChatIp)) {
             pintarBurbuja(text, isMe);
         } else {
-            // Opcional: Aquí podrías poner un contador de "mensajes no leídos" en la lista izquierda
             System.out.println("Mensaje recibido de " + targetIp + " (en segundo plano)");
         }
     }
 
-    // Mueve tu lógica visual antigua a este método privado
     private void pintarBurbuja(String text, boolean isMe) {
-        // 1. Creamos un panel horizontal para la fila completa
-        JPanel rowPanel = new JPanel();
-        rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
-        rowPanel.setOpaque(false); // Transparente para ver el fondo
-        rowPanel.setBorder(new EmptyBorder(2, 10, 2, 10)); // Margen externo
-
-        // 2. Instanciamos tu diseño de burbuja (Clase interna BubbleBubble)
+        JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
+        rowPanel.setOpaque(false);
         BubbleBubble bubble = new BubbleBubble(text, isMe);
 
-        // 3. Magia de Alineación: Usamos "Glue" (Pegamento elástico)
-        if (isMe) {
-            // Si soy yo: Ponemos pegamento a la izquierda para empujar la burbuja a la DERECHA
-            rowPanel.add(Box.createHorizontalGlue());
-            rowPanel.add(bubble);
-        } else {
-            // Si es el otro: Ponemos la burbuja y luego pegamento para empujar a la IZQUIERDA
-            rowPanel.add(bubble);
-            rowPanel.add(Box.createHorizontalGlue());
-        }
-
-        // 4. Aseguramos que la fila ocupe el ancho disponible pero su propia altura
+        rowPanel.add(bubble);
         rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowPanel.getPreferredSize().height));
-
-        // 5. Agregamos al panel vertical del chat
         chatPanel.add(rowPanel);
-        chatPanel.add(Box.createVerticalStrut(5)); // Espacio vertical entre mensajes
-
-        // 6. Refrescamos para que aparezca
         chatPanel.revalidate();
-        chatPanel.repaint(); // A veces necesario para asegurar el dibujado
+        chatPanel.repaint();
         scrollToBottom();
     }
 
@@ -314,6 +423,7 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
         });
     }
 
+
     private class BubbleBubble extends JPanel {
         private final String text;
         private final boolean isMe;
@@ -321,9 +431,10 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
         public BubbleBubble(String text, boolean isMe) {
             this.text = text;
             this.isMe = isMe;
-            setLayout(new BorderLayout());
-            setOpaque(false); // Importante para dibujar nosotros el fondo
-            setBorder(new EmptyBorder(10, 15, 10, 12)); // Padding interno del texto
+
+            setLayout(new BorderLayout(0, 2));
+            setOpaque(false);
+            setBorder(new EmptyBorder(8, 12, 8, 12));
 
             JTextArea textArea = new JTextArea(text);
             textArea.setOpaque(false);
@@ -332,22 +443,30 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
             textArea.setWrapStyleWord(true);
             textArea.setFont(new Font("Segoe UI", Font.PLAIN, 16));
 
-            // Calculamos ancho máximo de burbuja
-            int maxWidth = 400;
-            textArea.setSize(new Dimension(maxWidth, Short.MAX_VALUE));
-            Dimension preferredSize = textArea.getPreferredSize();
-            if (preferredSize.width > maxWidth) {
-                preferredSize.width = maxWidth;
+            //Esto es para lo del tamanio said soy adri
+            FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
+            int textWidth = fm.stringWidth(text);
+            int maxWidth = 350;
+
+            if (textWidth > maxWidth) {
+                // Mensaje largo
+                textArea.setSize(new Dimension(maxWidth, Short.MAX_VALUE));
+                Dimension d = textArea.getPreferredSize();
+                textArea.setPreferredSize(new Dimension(maxWidth, d.height));
+            } else {
+                // Mensaje corto
+                textArea.setSize(new Dimension(textWidth + 10, Short.MAX_VALUE));
+                Dimension d = textArea.getPreferredSize();
+                textArea.setPreferredSize(new Dimension(textWidth + 10, d.height));
             }
-            textArea.setPreferredSize(preferredSize);
 
             add(textArea, BorderLayout.CENTER);
 
-            // Hora pequeña
             JLabel timeLbl = new JLabel(new SimpleDateFormat("HH:mm").format(new Date()));
             timeLbl.setFont(new Font("SansSerif", Font.PLAIN, 10));
             timeLbl.setForeground(Color.GRAY);
-            timeLbl.setBorder(new EmptyBorder(5, 0, 0, 0));
+            timeLbl.setHorizontalAlignment(SwingConstants.RIGHT);
+
             add(timeLbl, BorderLayout.SOUTH);
         }
 
@@ -358,7 +477,6 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
 
             g2.setColor(isMe ? COLOR_MY_BUBBLE : COLOR_THEIR_BUBBLE);
 
-            // Dibujar rectángulo redondeado
             g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
 
             g2.dispose();
@@ -366,29 +484,73 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
         }
     }
 
+//    private void sendHellosToPeers(){
+//        new Thread(() -> {
+//            try {
+//                java.util.List<Peer> peersGuardados = PeerDao.getInstance().findAll();
+//                for (Peer p: peersGuardados){
+//                }
+//            } catch (ConnectException | SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//        }).start();
+//    }
+
     private void cargarContactosGuardados() {
-        new Thread(() -> { // Hilo secundario para no congelar mientras carga
+        new Thread(() -> {
+            final java.util.List<Peer> peersGuardados;
             try {
-                // 1. Consultar a la base de datos
-                java.util.List<Peer> peersGuardados = PeerDao.getInstance().findAll();
-
-                // 2. Actualizar la UI en el hilo correcto
-                SwingUtilities.invokeLater(() -> {
-                    for (Peer p : peersGuardados) {
-                        if (p.getIsSelf() == 0) {
-                            Contact contacto = new Contact(p.getId(), p.getLastIpAddr(), p.getDisplayName());
-                            listModel.addElement(contacto);
-                        }
-                    }
-                });
-
+                peersGuardados = PeerDao.getInstance().findAll();
+                System.out.println("[DB] Peers encontrados: " + peersGuardados.size());
             } catch (Exception e) {
-                System.err.println("Error cargando contactos: " + e.getMessage());
+                System.err.println("Error cargando contactos (DB): " + e.getMessage());
+                e.printStackTrace();
+                return;
             }
-        }).start();
+
+            SwingUtilities.invokeLater(() -> {
+                listModel.clear();
+
+                for (Peer p : peersGuardados) {
+                    if (p.getIsSelf() == 0) {
+                        String ip = p.getLastIpAddr();
+                        if (ip == null || ip.isBlank()) {
+                            System.out.println("[DB] Peer sin IP válida: " + p.getId());
+                            continue;
+                        }
+
+                        Contact contacto = new Contact(p.getId(), ip, p.getDisplayName(), false);
+                        listModel.addElement(contacto);
+                    }
+                }
+            });
+
+            for (Peer p : peersGuardados) {
+                if (p.getIsSelf() == 0) {
+                    String ip = p.getLastIpAddr();
+                    if (ip == null || ip.isBlank()) continue;
+
+                    try {
+                        ConnectionMediator.getInstance().sendHelloToPeer(ip);
+                    } catch (Exception ex) {
+                        System.out.println("[HELLO] No se pudo enviar hello a " + ip + ": " + ex.getMessage());
+                    }
+                }
+            }
+
+        }, "load-contacts-thread").start();
     }
 
-    @Override
+    public void onDisconnect(String id){
+        actualizarEstadoContacto(id, false);
+        String ip = ConnectionMediator.getInstance().getPeerIpById(id);
+        if (Objects.equals(ip, currentChatIp)){
+            setContactSelectedConnected(false, ip);
+            cargarChat(ip);
+        }
+    }
+
     public void onMessage(SocketClient socketClient, MessageProtocol messageProtocol) {
         SwingUtilities.invokeLater(() -> {
             if(messageProtocol instanceof Invitacion){
@@ -407,7 +569,7 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
                         String conversationId = ConnectionMediator.getInstance().createConversation();
                         ConnectionMediator.getInstance().setPeerToConversation(conversationId, ((Invitacion) messageProtocol).getIdUsuario());
 
-                        listModel.addElement(new Contact(((Invitacion) messageProtocol).getIdUsuario(), messageProtocol.getIp(), ((Invitacion) messageProtocol).getNombre()));
+                        listModel.addElement(new Contact(((Invitacion) messageProtocol).getIdUsuario(), messageProtocol.getIp(), ((Invitacion) messageProtocol).getNombre(), true));
 
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -425,7 +587,7 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
                     ConnectionMediator.getInstance().savePeer(messageProtocol.getIp(), ((Aceptar) messageProtocol).getIdUsuario(), ((Aceptar) messageProtocol).getNombre());
                     String conversationId = ConnectionMediator.getInstance().createConversation();
                     ConnectionMediator.getInstance().setPeerToConversation(conversationId, ((Aceptar) messageProtocol).getIdUsuario());
-                    listModel.addElement(new Contact(((Aceptar) messageProtocol).getIdUsuario(), messageProtocol.getIp(), ((Aceptar) messageProtocol).getNombre()));
+                    listModel.addElement(new Contact(((Aceptar) messageProtocol).getIdUsuario(), messageProtocol.getIp(), ((Aceptar) messageProtocol).getNombre(), true));
                     JOptionPane.showMessageDialog(this,  ((Aceptar) messageProtocol).getNombre() + " aceptó la conexión.");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -449,10 +611,11 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
             if (messageProtocol instanceof Hello){
                 try {
                     if(ConnectionMediator.getInstance().getPeerIdByIp(messageProtocol.getIp()) != null){
-
-                        HelloAccept helloAccept = new HelloAccept();
+                        Peer me = ConnectionMediator.getInstance().getMyself();
+                        HelloAccept helloAccept = new HelloAccept(me.getId());
                         ConnectionMediator.getInstance().sendMessage(helloAccept, socketClient);
                         ConnectionMediator.getInstance().addConnections(messageProtocol.getIp(), socketClient);
+                        actualizarEstadoContacto(((Hello) messageProtocol).idUser, true);
                     }else{
                         HelloReject helloReject = new HelloReject();
                         ConnectionMediator.getInstance().sendMessage(helloReject, socketClient);
@@ -463,13 +626,23 @@ public class ChatUI2 extends javax.swing.JFrame implements SocketListener {
             }
             if (messageProtocol instanceof HelloAccept){
                 ConnectionMediator.getInstance().addConnections(messageProtocol.getIp(), socketClient);
+                actualizarEstadoContacto(((HelloAccept) messageProtocol).idUser, true);
             }
             if (messageProtocol instanceof HelloReject){
                 JOptionPane.showMessageDialog(this, ((HelloReject) messageProtocol).getIp() + " rechazó la conexión.");
                 socketClient.close();
             }
+            if (messageProtocol instanceof Offline){
+                try {
+                    String userName = ConnectionMediator.getInstance().getPeerNameByIp(messageProtocol.getIp());
+                    JOptionPane.showMessageDialog(this, userName + " está en modo Offline!");
+                } catch (SQLException | ConnectException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         });
 
     }
+
 
 }

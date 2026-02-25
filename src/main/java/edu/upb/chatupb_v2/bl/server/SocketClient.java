@@ -5,12 +5,16 @@
 package edu.upb.chatupb_v2.bl.server;
 
 import edu.upb.chatupb_v2.bl.message.*;
+import edu.upb.chatupb_v2.mediator.ConnectionMediator;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -39,13 +43,13 @@ public class SocketClient extends Thread {
         br = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
     }
 
-    public void addListener(SocketListener listener) {
-        this.socketListener.add(listener);
-    }
+//    public void addListener(SocketListener listener) {
+//        this.socketListener.add(listener);
+//    }
 
-    public void removeListener(SocketListener listener){
-        this.socketListener.remove(listener);
-    }
+//    public void removeListener(SocketListener listener){
+//        this.socketListener.remove(listener);
+//    }
 
     @Override
     public void run() {
@@ -108,18 +112,36 @@ public class SocketClient extends Thread {
                         notificar(this, mensaje);
                         break;
                     }
+                    case "0018": {
+                        System.out.println("Cliente " + this.getIp() + "está en modo Offline");
+                        Offline offline = Offline.parse(message);
+                        offline.setIp(this.getIp());
+                        notificar(this, offline);
+                        break;
+                    }
                 }
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+        onDisconnect(this);
+        close();
     }
 
     public void notificar(SocketClient socketClient, MessageProtocol messageProtocol) {
-        for (SocketListener listener : socketListener) {
-            java.awt.EventQueue.invokeLater(() -> listener.onMessage(socketClient, messageProtocol));
+//        for (SocketListener listener : socketListener) {
+//            java.awt.EventQueue.invokeLater(() -> listener.onMessage(socketClient, messageProtocol));
+//        }
+        try {
+            ConnectionMediator.getInstance().receiveMessage(messageProtocol, socketClient);
+        } catch (SQLException | ConnectException e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    public void onDisconnect(SocketClient socketClient){
+        ConnectionMediator.getInstance().onDisconnectClient(socketClient);
     }
 
     public void send(MessageProtocol messageProtocol) throws IOException {

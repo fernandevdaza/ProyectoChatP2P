@@ -59,14 +59,18 @@ public class DirectParticipantsDAO {
         return list;
     }
 
-    public DirectParticipants findConversationByPeerId(String id) throws ConnectException, SQLException {
-        String query = "SELECT * FROM direct_participants WHERE peer_id ='" + id + "'";
-        System.out.println(query);
-        List<DirectParticipants> list = helper.executeQuery(query, resultReader);
-        if (list.isEmpty()) {
-            return null;
+    public DirectParticipants findConversationByPeerId(String id) {
+        try {
+            String query = "SELECT * FROM direct_participants WHERE peer_id ='" + id + "'";
+            System.out.println(query);
+            List<DirectParticipants> list = helper.executeQuery(query, resultReader);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list.getFirst();
+        } catch (ConnectException | SQLException e) {
+            throw new RuntimeException(e);
         }
-        return list.getFirst();
     }
 
     public List<DirectParticipants> findConversationsByPeerId(String peerId) throws ConnectException, SQLException {

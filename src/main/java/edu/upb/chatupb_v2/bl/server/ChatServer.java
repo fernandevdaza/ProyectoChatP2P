@@ -17,10 +17,10 @@ public class ChatServer extends Thread {
 
     private final ServerSocket server;
     private SocketListener socketListener;
-    private ConnectionMediator connectionMediator;
+//    private ConnectionMediator connectionMediator;
     public ChatServer(int port) throws IOException {
         this.server = new ServerSocket(port);
-        this.connectionMediator = ConnectionMediator.getInstance();
+//        this.connectionMediator = ConnectionMediator.getInstance();
     }
 
     public void addListener(SocketListener listener) {
@@ -34,7 +34,7 @@ public class ChatServer extends Thread {
         while (true) {
             try {
                 SocketClient socketClient = new SocketClient(this.server.accept());
-                socketClient.addListener(this.socketListener);
+//                socketClient.addListener(this.socketListener);
 //                connectionMediator.addConnections(socketClient.getIp(), socketClient);
                 socketClient.start();
                 System.out.println();

@@ -84,24 +84,34 @@ public class PeerDao {
         return list.getFirst();
     }
 
-    public Peer findByIp(String ip) throws ConnectException, SQLException {
-        String query = "SELECT * FROM peers WHERE last_ip_addr ='" + ip + "'" + " AND is_self = 0";
-        System.out.println(query);
-        List<Peer> list = helper.executeQuery(query, resultReader);
-        if (list.isEmpty()) {
+    public Peer findByIp(String ip){
+        try {
+            String query = "SELECT * FROM peers WHERE last_ip_addr ='" + ip + "'" + " AND is_self = 0";
+            System.out.println(query);
+            List<Peer> list = helper.executeQuery(query, resultReader);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list.getFirst();
+        }catch (ConnectException | SQLException e){
+            e.printStackTrace();
             return null;
         }
-        return list.getFirst();
     }
 
-    public Peer findMe() throws ConnectException, SQLException {
-        String query = "SELECT * FROM peers WHERE is_self=1";
-        System.out.println(query);
-        List<Peer> list = helper.executeQuery(query, resultReader);
-        if (list.isEmpty()) {
+    public Peer findMe() {
+        try {
+            String query = "SELECT * FROM peers WHERE is_self=1";
+            System.out.println(query);
+            List<Peer> list = helper.executeQuery(query, resultReader);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list.getFirst();
+        }catch (ConnectException | SQLException e){
+            e.printStackTrace();
             return null;
         }
-        return list.getFirst();
     }
 
     public boolean existById(String id) throws ConnectException, SQLException {
@@ -109,14 +119,19 @@ public class PeerDao {
         return helper.executeQueryCount(query, null) == 1;
     }
 
-    public Peer findById(String id) throws ConnectException, SQLException {
-        String query = "SELECT * FROM peers WHERE id ='" + id + "'";
-        System.out.println(query);
-        List<Peer> list = helper.executeQuery(query, resultReader);
-        if (list.isEmpty()) {
+    public Peer findById(String id)  {
+        try {
+            String query = "SELECT * FROM peers WHERE id ='" + id + "'";
+            System.out.println(query);
+            List<Peer> list = helper.executeQuery(query, resultReader);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list.getFirst();
+        }catch (ConnectException | SQLException e){
+            e.printStackTrace();
             return null;
         }
-        return list.getFirst();
     }
 
     public void update(String query) throws Exception {

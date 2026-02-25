@@ -4,15 +4,26 @@ public class Contact {
     String id;
     String ip;
     String name;
+    boolean isOnline;
 
-    public Contact(String id, String ip, String name){
+    public Contact(String id, String ip, String name, boolean isOnline){
         this.id = id;
         this.ip = ip;
         this.name = name;
+        this.isOnline = isOnline;
+
     }
 
     public String getIp() {
         return ip;
+    }
+
+    public boolean getOnline(){
+        return this.isOnline;
+    }
+
+    public void setOnline(boolean isOnline){
+        this.isOnline = isOnline;
     }
 
     public void setIp(String ip) {

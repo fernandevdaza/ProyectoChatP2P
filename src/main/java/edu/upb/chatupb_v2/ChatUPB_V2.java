@@ -20,7 +20,7 @@ public class ChatUPB_V2 {
         try {
             ChatServer chatServer = new ChatServer(port);
             chatServer.start();
-            chatServer.addListener(chatUI2);
+//            chatServer.addListener(chatUI2);
         }catch (Exception e){
             e.printStackTrace();
         }

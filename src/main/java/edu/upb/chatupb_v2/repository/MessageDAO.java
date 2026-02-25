@@ -80,34 +80,49 @@ public class MessageDAO {
         return helper.executeQueryCount(query, null) == 1;
     }
 
-    public List<Message> findMessagesByConversationId(String conversationId) throws ConnectException, SQLException {
-        String query = "SELECT * FROM messages WHERE conversation_id ='" + conversationId + "'";
-        System.out.println(query);
-        List<Message> list = helper.executeQuery(query, resultReader);
-        if (list.isEmpty()) {
+    public List<Message> findMessagesByConversationId(String conversationId) {
+        try{
+            String query = "SELECT * FROM messages WHERE conversation_id ='" + conversationId + "'";
+            System.out.println(query);
+            List<Message> list = helper.executeQuery(query, resultReader);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list;
+        }catch (ConnectException | SQLException e){
+            e.printStackTrace();
             return null;
         }
-        return list;
     }
 
-    public Message findMessagesById(String id) throws ConnectException, SQLException {
-        String query = "SELECT * FROM messages WHERE id ='" + id + "'";
-        System.out.println(query);
-        List<Message> list = helper.executeQuery(query, resultReader);
-        if (list.isEmpty()) {
+    public Message findMessagesById(String id) {
+        try {
+            String query = "SELECT * FROM messages WHERE id ='" + id + "'";
+            System.out.println(query);
+            List<Message> list = helper.executeQuery(query, resultReader);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list.getFirst();
+        }catch (ConnectException | SQLException e){
+            e.printStackTrace();
             return null;
         }
-        return list.getFirst();
     }
 
-    public List<Message> findMessagesBySenderPeerId(String senderPeerId) throws ConnectException, SQLException {
-        String query = "SELECT * FROM messages WHERE sender_peer_id ='" + senderPeerId + "'";
-        System.out.println(query);
-        List<Message> list = helper.executeQuery(query, resultReader);
-        if (list.isEmpty()) {
+    public List<Message> findMessagesBySenderPeerId(String senderPeerId) {
+        try{
+            String query = "SELECT * FROM messages WHERE sender_peer_id ='" + senderPeerId + "'";
+            System.out.println(query);
+            List<Message> list = helper.executeQuery(query, resultReader);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list;
+        } catch (ConnectException | SQLException e) {
+            e.printStackTrace();
             return null;
         }
-        return list;
     }
 
 
