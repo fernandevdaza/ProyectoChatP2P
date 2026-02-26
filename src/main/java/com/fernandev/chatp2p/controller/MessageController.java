@@ -1,0 +1,96 @@
+package com.fernandev.chatp2p.controller;
+
+import com.fernandev.chatp2p.model.entities.db.*;
+import com.fernandev.chatp2p.model.repository.ConversationDao;
+import com.fernandev.chatp2p.model.repository.DirectParticipantsDAO;
+import com.fernandev.chatp2p.model.repository.MessageDAO;
+import com.fernandev.chatp2p.model.repository.PeerDao;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+public class MessageController {
+    private static final MessageController instance = new MessageController();
+
+    private final ConversationDao conversationDao;
+    private final DirectParticipantsDAO directParticipantsDAO;
+    private final MessageDAO messageDAO;
+    private final PeerDao peerDao;
+
+    private MessageController() {
+        this.conversationDao = ConversationDao.getInstance();
+        this.directParticipantsDAO = DirectParticipantsDAO.getInstance();
+        this.messageDAO = MessageDAO.getInstance();
+        this.peerDao = PeerDao.getInstance();
+    }
+
+    public static MessageController getInstance() {
+        return instance;
+    }
+
+    public String createConversation() throws Exception {
+        String uuid = UUID.randomUUID().toString();
+        Conversation conversation = Conversation.builder()
+                .id(uuid)
+                .type(ConversationType.values()[1])
+                .title(null)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        conversationDao.save(conversation);
+        return conversation.getId();
+    }
+
+    public void setPeerToConversation(String conversationId, String peerId) throws Exception {
+        DirectParticipants directParticipants = DirectParticipants.builder()
+                .conversation_id(conversationId)
+                .peer_id(peerId)
+                .build();
+
+        directParticipantsDAO.save(directParticipants);
+    }
+
+
+    public String getConversationIdByPeerId(String peerId) {
+        DirectParticipants dp = directParticipantsDAO.findConversationByPeerId(peerId);
+        if (dp != null)
+            return dp.getConversation_id();
+        return null;
+    }
+
+    public String getConversationIdByIp(String ip) {
+        Peer peer = peerDao.findByIp(ip);
+        if (peer == null)
+            return null;
+        DirectParticipants dp = directParticipantsDAO.findConversationByPeerId(peer.getId());
+        if (dp == null)
+            return null;
+        return dp.getConversation_id();
+    }
+
+    public void saveMessage(String id, String conversationId, String senderPeerId, String message) throws Exception {
+        if (id == null && conversationId == null && senderPeerId == null && message == null)
+            return;
+        Message mensaje = Message.builder()
+                .id(id)
+                .conversation_id(conversationId)
+                .sender_peer_id(senderPeerId)
+                .type(MessageType.values()[2])
+                .text_content(message)
+                .sent_at(LocalDateTime.now())
+                .received_at(LocalDateTime.now())
+                .is_ephemeral(false)
+                .expires_at(LocalDateTime.now())
+                .status(MessageStatusType.SENT)
+                .created_at(LocalDateTime.now())
+                .updated_at(LocalDateTime.now())
+                .build();
+        messageDAO.save(mensaje);
+    }
+
+    public List<Message> getConversationMessagesWithConversationId(String conversationId) {
+        return messageDAO.findMessagesByConversationId(conversationId);
+    }
+}

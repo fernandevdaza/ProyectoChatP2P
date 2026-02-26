@@ -4,8 +4,7 @@
  */
 package com.fernandev.chatp2p.model.network;
 
-import com.fernandev.chatp2p.controller.ConnectionMediator;
-import com.fernandev.chatp2p.model.entities.command.*;
+import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.model.entities.command.*;
 
 import java.io.BufferedReader;
@@ -15,8 +14,6 @@ import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -27,7 +24,6 @@ public class SocketClient extends Thread {
     private final String ip;
     private final DataOutputStream dout;
     private final BufferedReader br;
-    private List<SocketListener> socketListener = new ArrayList<>();
 
     public SocketClient(Socket socket) throws IOException {
         this.socket = socket;
@@ -42,14 +38,6 @@ public class SocketClient extends Thread {
         dout = new DataOutputStream(socket.getOutputStream());
         br = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
     }
-
-//    public void addListener(SocketListener listener) {
-//        this.socketListener.add(listener);
-//    }
-
-//    public void removeListener(SocketListener listener){
-//        this.socketListener.remove(listener);
-//    }
 
     @Override
     public void run() {
@@ -130,18 +118,15 @@ public class SocketClient extends Thread {
     }
 
     public void notificar(SocketClient socketClient, MessageProtocol messageProtocol) {
-//        for (SocketListener listener : socketListener) {
-//            java.awt.EventQueue.invokeLater(() -> listener.onMessage(socketClient, messageProtocol));
-//        }
         try {
-            ConnectionMediator.getInstance().receiveMessage(messageProtocol, socketClient);
+            ConnectionController.getInstance().receiveMessage(messageProtocol, socketClient);
         } catch (SQLException | ConnectException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onDisconnect(SocketClient socketClient){
-        ConnectionMediator.getInstance().onDisconnectClient(socketClient);
+    public void onDisconnect(SocketClient socketClient) {
+        ConnectionController.getInstance().onDisconnectClient(socketClient);
     }
 
     public void send(MessageProtocol messageProtocol) throws IOException {
@@ -153,15 +138,15 @@ public class SocketClient extends Thread {
         }
     }
 
-    public String getIp(){
+    public String getIp() {
         return this.socket.getInetAddress().toString().replace("/", "");
     }
 
-    public String getHostIp(){
+    public String getHostIp() {
         return this.socket.getLocalAddress().toString().replace("/", "");
     }
 
-    public int getPort(){
+    public int getPort() {
         return this.socket.getPort();
     }
 

@@ -4,13 +4,13 @@
  */
 package com.fernandev.chatp2p.view;
 
+import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.command.*;
 import com.fernandev.chatp2p.model.network.SocketClient;
-import com.fernandev.chatp2p.controller.ConnectionMediator;
 import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.Peer;
-import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.interfaces.IView;
 import com.fernandev.chatp2p.view.panel.LeftPanel;
 import com.fernandev.chatp2p.view.panel.RightPanel;
@@ -26,18 +26,16 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
-
 public class ChatUI extends javax.swing.JFrame implements IView {
 
     private PeerController peerController;
+    private MessageController messageController;
     private boolean isContactSelected = false;
     private boolean isContactSelectedConnected = false;
     private String currentChatId = null;
     private LeftPanel leftPanel;
     private RightPanel rightPanel;
     DefaultListModel<Peer> listModel = new DefaultListModel<>();
-
-
 
     public ChatUI() {
         setTitle("Chat P2P");
@@ -49,7 +47,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.leftPanel = new LeftPanel(this, listModel);
         add(leftPanel, BorderLayout.WEST);
 
-
         this.rightPanel = new RightPanel(this);
         add(rightPanel, BorderLayout.CENTER);
 
@@ -58,7 +55,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
             public void windowClosing(java.awt.event.WindowEvent e) {
                 try {
                     new Thread(() -> {
-                        ConnectionMediator.getInstance().shutdown();
+                        ConnectionController.getInstance().shutdown();
                     }).start();
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -71,7 +68,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     }
 
-    public void repaintRightPanel(){
+    public void repaintRightPanel() {
 
         this.remove(this.rightPanel);
 
@@ -85,17 +82,18 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     }
 
     @Override
-    public RightPanel getRightPanel(){
+    public RightPanel getRightPanel() {
         return this.rightPanel;
     }
 
     @Override
-    public void setRightPanel(RightPanel rightPanel){
+    public void setRightPanel(RightPanel rightPanel) {
         this.rightPanel = rightPanel;
 
     }
+
     @Override
-    public LeftPanel getLeftPanel(){
+    public LeftPanel getLeftPanel() {
         return this.leftPanel;
     }
 
@@ -103,43 +101,54 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     public void setLeftPanel(LeftPanel leftPanel) {
 
     }
-    public String getCurrentChatId(){
+
+    public String getCurrentChatId() {
         return this.currentChatId;
     }
 
-    public void setCurrentChatId(String id){
+    public void setCurrentChatId(String id) {
         this.currentChatId = id;
     }
 
-    public boolean getContactSelected(){
+    public boolean getContactSelected() {
         return this.isContactSelected;
     }
 
-    public void setContactSelected(boolean selected){
+    public void setContactSelected(boolean selected) {
         this.isContactSelected = selected;
     }
-    public boolean getContactSelectedConected(){
+
+    public boolean getContactSelectedConected() {
         return this.isContactSelectedConnected;
     }
 
-    public void setContactSelectedConnected(boolean connected){
+    public void setContactSelectedConnected(boolean connected) {
         this.isContactSelectedConnected = connected;
     }
-
 
     public void setPeerController(PeerController peerController) {
         this.peerController = peerController;
     }
 
+    public PeerController getPeerController() {
+        return this.peerController;
+    }
 
-    public void paintBubbleInRightPanel(String text, boolean isMe){
+    public void setMessageController(MessageController messageController) {
+        this.messageController = messageController;
+    }
+
+    public MessageController getMessageController() {
+        return this.messageController;
+    }
+
+    public void paintBubbleInRightPanel(String text, boolean isMe) {
         this.rightPanel.paintBubble(text, isMe);
     }
 
-    public void setInputEnabledInRightPanel(boolean enabled){
+    public void setInputEnabledInRightPanel(boolean enabled) {
         this.rightPanel.setInputEnabled(enabled);
     }
-
 
     @Override
     public void onLoad(List<Peer> peers) {
@@ -164,10 +173,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
             for (Peer p : peers) {
                 if (p.getIsSelf() == 0) {
                     String ip = p.getLastIpAddr();
-                    if (ip == null || ip.isBlank()) continue;
+                    if (ip == null || ip.isBlank())
+                        continue;
 
                     try {
-                        ConnectionMediator.getInstance().sendHelloToPeer(ip);
+                        ConnectionController.getInstance().sendHelloToPeer(ip);
                     } catch (Exception ex) {
                         System.out.println("[HELLO] No se pudo enviar hello a " + ip + ": " + ex.getMessage());
                     }
@@ -178,28 +188,31 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     }
 
-
-    public void onDisconnect(String id){
+    public void onDisconnect(String id) {
         this.leftPanel.updatePeerStatus(id, false);
     }
 
     public void onMessage(SocketClient socketClient, MessageProtocol messageProtocol) {
         SwingUtilities.invokeLater(() -> {
-            if(messageProtocol instanceof Invitacion){
+            if (messageProtocol instanceof Invitacion) {
                 Invitacion invitacion = (Invitacion) messageProtocol;
-                int respuesta = JOptionPane.showConfirmDialog(this, "Llego la invitacion: "+ invitacion.getNombre());
-                if (respuesta == JOptionPane.YES_OPTION){
+                int respuesta = JOptionPane.showConfirmDialog(this, "Llego la invitacion: " + invitacion.getNombre());
+                if (respuesta == JOptionPane.YES_OPTION) {
                     try {
-                        Peer me = ConnectionMediator.getInstance().getMyself();
+                        Peer me = peerController.getMyself();
 
                         MessageProtocol aceptar = new Aceptar(me.getId(), me.getDisplayName());
-                        ConnectionMediator.getInstance().sendMessage(aceptar, socketClient);
+                        ConnectionController.getInstance().sendMessage(aceptar, socketClient);
 
-                        ConnectionMediator.getInstance().addConnections(((Invitacion) messageProtocol).getIp(), socketClient);
-                        ConnectionMediator.getInstance().savePeer(messageProtocol.getIp(), ((Invitacion) messageProtocol).getIdUsuario(), ((Invitacion) messageProtocol).getNombre());
+                        ConnectionController.getInstance().addConnection(((Invitacion) messageProtocol).getIp(),
+                                socketClient);
+                        peerController.savePeer(messageProtocol.getIp(), ((Invitacion) messageProtocol).getIdUsuario(),
+                                ((Invitacion) messageProtocol).getNombre(),
+                                ConnectionController.getInstance().getPort());
 
-                        String conversationId = ConnectionMediator.getInstance().createConversation();
-                        ConnectionMediator.getInstance().setPeerToConversation(conversationId, ((Invitacion) messageProtocol).getIdUsuario());
+                        String conversationId = messageController.createConversation();
+                        messageController.setPeerToConversation(conversationId,
+                                ((Invitacion) messageProtocol).getIdUsuario());
 
                         Peer peer = Peer.builder()
                                 .id(((Invitacion) messageProtocol).getIdUsuario())
@@ -219,18 +232,19 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                         throw new RuntimeException(e);
                     }
                 }
-                if (respuesta == JOptionPane.NO_OPTION){
+                if (respuesta == JOptionPane.NO_OPTION) {
                     MessageProtocol rechazar = new Rechazar();
-                    ConnectionMediator.getInstance().sendMessage(rechazar, socketClient);
+                    ConnectionController.getInstance().sendMessage(rechazar, socketClient);
                 }
             }
 
-            if(messageProtocol instanceof Aceptar){
+            if (messageProtocol instanceof Aceptar) {
                 try {
-                    ConnectionMediator.getInstance().addConnections(messageProtocol.getIp(), socketClient);
-                    ConnectionMediator.getInstance().savePeer(messageProtocol.getIp(), ((Aceptar) messageProtocol).getIdUsuario(), ((Aceptar) messageProtocol).getNombre());
-                    String conversationId = ConnectionMediator.getInstance().createConversation();
-                    ConnectionMediator.getInstance().setPeerToConversation(conversationId, ((Aceptar) messageProtocol).getIdUsuario());
+                    ConnectionController.getInstance().addConnection(messageProtocol.getIp(), socketClient);
+                    peerController.savePeer(messageProtocol.getIp(), ((Aceptar) messageProtocol).getIdUsuario(),
+                            ((Aceptar) messageProtocol).getNombre(), ConnectionController.getInstance().getPort());
+                    String conversationId = messageController.createConversation();
+                    messageController.setPeerToConversation(conversationId, ((Aceptar) messageProtocol).getIdUsuario());
 
                     Peer peer = Peer.builder()
                             .id(((Aceptar) messageProtocol).getIdUsuario())
@@ -246,63 +260,60 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                     peer.setConnected(true);
                     listModel.addElement(peer);
 
-                    JOptionPane.showMessageDialog(this,  ((Aceptar) messageProtocol).getNombre() + " aceptó la conexión.");
+                    JOptionPane.showMessageDialog(this,
+                            ((Aceptar) messageProtocol).getNombre() + " aceptó la conexión.");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
 
-            if(messageProtocol instanceof Rechazar){
+            if (messageProtocol instanceof Rechazar) {
                 JOptionPane.showMessageDialog(this, ((Rechazar) messageProtocol).getIp() + " rechazó la conexión.");
                 socketClient.close();
             }
 
-            if (messageProtocol instanceof Mensaje){
+            if (messageProtocol instanceof Mensaje) {
                 try {
                     Mensaje msg = (Mensaje) messageProtocol;
-                    String conversationId = ConnectionMediator.getInstance().getConversationIdByPeerId(msg.getIdUser());
-                    ConnectionMediator.getInstance().saveMessage(msg.getIdMessage(), conversationId, msg.getIdUser(), msg.getMessage());
+                    String conversationId = messageController.getConversationIdByPeerId(msg.getIdUser());
+                    messageController.saveMessage(msg.getIdMessage(), conversationId, msg.getIdUser(),
+                            msg.getMessage());
 
                     this.rightPanel.addMessage(msg.getMessage(), false, msg.getIdUser());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
-            if (messageProtocol instanceof Hello){
+            if (messageProtocol instanceof Hello) {
                 try {
-                    if(ConnectionMediator.getInstance().getPeerIdByIp(messageProtocol.getIp()) != null){
-                        Peer me = ConnectionMediator.getInstance().getMyself();
+                    if (peerController.getPeerIdByIp(messageProtocol.getIp()) != null) {
+                        Peer me = peerController.getMyself();
                         HelloAccept helloAccept = new HelloAccept(me.getId());
-                        ConnectionMediator.getInstance().sendMessage(helloAccept, socketClient);
-                        ConnectionMediator.getInstance().addConnections(messageProtocol.getIp(), socketClient);
+                        ConnectionController.getInstance().sendMessage(helloAccept, socketClient);
+                        ConnectionController.getInstance().addConnection(messageProtocol.getIp(), socketClient);
                         this.leftPanel.updatePeerStatus(((Hello) messageProtocol).idUser, true);
-                    }else{
+                    } else {
                         HelloReject helloReject = new HelloReject();
-                        ConnectionMediator.getInstance().sendMessage(helloReject, socketClient);
+                        ConnectionController.getInstance().sendMessage(helloReject, socketClient);
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
-            if (messageProtocol instanceof HelloAccept){
-                ConnectionMediator.getInstance().addConnections(messageProtocol.getIp(), socketClient);
+            if (messageProtocol instanceof HelloAccept) {
+                ConnectionController.getInstance().addConnection(messageProtocol.getIp(), socketClient);
                 this.leftPanel.updatePeerStatus(((HelloAccept) messageProtocol).idUser, true);
             }
-            if (messageProtocol instanceof HelloReject){
+            if (messageProtocol instanceof HelloReject) {
                 JOptionPane.showMessageDialog(this, ((HelloReject) messageProtocol).getIp() + " rechazó la conexión.");
                 socketClient.close();
             }
-            if (messageProtocol instanceof Offline){
-                try {
-                    String userName = ConnectionMediator.getInstance().getPeerNameByIp(messageProtocol.getIp());
-                    JOptionPane.showMessageDialog(this, userName + " está en modo Offline!");
-                } catch (SQLException | ConnectException e) {
-                    throw new RuntimeException(e);
-                }
+            if (messageProtocol instanceof Offline) {
+                String userName = peerController.getPeerNameByIp(messageProtocol.getIp());
+                JOptionPane.showMessageDialog(this, userName + " está en modo Offline!");
             }
         });
 
     }
-
 
 }

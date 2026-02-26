@@ -1,11 +1,11 @@
 package com.fernandev.chatp2p.view.panel;
 
-import com.fernandev.chatp2p.controller.ConnectionMediator;
+import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.command.Invitacion;
 import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
-import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -26,21 +26,19 @@ public class LeftPanel extends JPanel {
     private BubbleBubble bubbleBubble;
     private java.util.List<BubbleData> messageHistory = new java.util.ArrayList<>();
 
-
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
     private final ImageIcon iconOnline = new ImageIcon(
-            new ImageIcon("/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/online.png")
-            .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH)
-    );
+            new ImageIcon(
+                    "/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/online.png")
+                    .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
     private final ImageIcon iconOffline = new ImageIcon(
-            new ImageIcon("/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/offline.png")
-            .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH)
-    );
+            new ImageIcon(
+                    "/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/offline.png")
+                    .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
-
-    public LeftPanel(ChatUI ui, DefaultListModel<Peer> list){
+    public LeftPanel(ChatUI ui, DefaultListModel<Peer> list) {
         this.listModel = list;
         this.mainView = ui;
         this.setLayout(new BorderLayout());
@@ -52,15 +50,12 @@ public class LeftPanel extends JPanel {
 
         this.setPreferredSize(new Dimension(300, 0));
         this.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY));
-//        this.add(header, BorderLayout)
         this.add(new JScrollPane(contactList), BorderLayout.CENTER);
         this.add(offlineModeButton, BorderLayout.NORTH);
         this.add(connectButton, BorderLayout.SOUTH);
     }
 
-
-
-    private void buildHeader(){
+    private void buildHeader() {
         header.setBackground(new Color(240, 242, 245));
         header.setPreferredSize(new Dimension(300, 60));
 
@@ -69,7 +64,7 @@ public class LeftPanel extends JPanel {
         header.add(labelUser);
     }
 
-    private void buildPeerList(){
+    private void buildPeerList() {
         contactList = new JList<>(listModel);
         contactList.setFixedCellHeight(50);
         contactList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -79,8 +74,7 @@ public class LeftPanel extends JPanel {
             JPanel panel1 = new JPanel(new BorderLayout(10, 0));
             panel1.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-                    BorderFactory.createEmptyBorder(5, 10, 5, 10)
-            ));
+                    BorderFactory.createEmptyBorder(5, 10, 5, 10)));
 
             if (isSelected) {
                 panel1.setBackground(list.getSelectionBackground());
@@ -97,16 +91,16 @@ public class LeftPanel extends JPanel {
                     "<span style='color:gray; font-size:9px'>" + c.getLastIpAddr() + "</span>" +
                     "</div></html>");
 
-            if (isSelected) lblText.setForeground(list.getSelectionForeground());
+            if (isSelected)
+                lblText.setForeground(list.getSelectionForeground());
 
             panel1.add(lblText, BorderLayout.CENTER);
 
             return panel1;
         });
 
-
         contactList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()){
+            if (!e.getValueIsAdjusting()) {
                 Peer selection = contactList.getSelectedValue();
                 if (selection != null) {
                     String id = selection.getId();
@@ -120,7 +114,7 @@ public class LeftPanel extends JPanel {
         });
     }
 
-    private void buildConnectButton(){
+    private void buildConnectButton() {
         connectButton.setBackground(COLOR_HEADER);
         connectButton.setForeground(Color.WHITE);
         connectButton.addActionListener(e -> {
@@ -128,14 +122,15 @@ public class LeftPanel extends JPanel {
             String ip = JOptionPane.showInputDialog(this, "Ingresa IP:");
             if (ip != null && !ip.isEmpty()) {
                 new Thread(() -> {
-                    try{
-                        Peer me = ConnectionMediator.getInstance().getMyself();
+                    try {
+                        Peer me = mainView.getPeerController().getMyself();
 
-                        SocketClient socketClient = ConnectionMediator.getInstance().connectToPeer(ip);
-                        ConnectionMediator.getInstance().sendMessage(new Invitacion(me.getId(), me.getDisplayName()), socketClient);
-                    }catch (Exception error){
+                        SocketClient socketClient = ConnectionController.getInstance().connectToPeer(ip);
+                        ConnectionController.getInstance().sendMessage(new Invitacion(me.getId(), me.getDisplayName()),
+                                socketClient);
+                    } catch (Exception error) {
                         System.out.println(error.getMessage());
-                    }finally {
+                    } finally {
                         javax.swing.SwingUtilities.invokeLater(() -> connectButton.setEnabled(true));
                     }
                 }).start();
@@ -143,17 +138,17 @@ public class LeftPanel extends JPanel {
         });
     }
 
-    private void buildOfflineModeButton(){
+    private void buildOfflineModeButton() {
         offlineModeButton.setBackground(Color.RED);
         offlineModeButton.setForeground(Color.WHITE);
         offlineModeButton.addActionListener(e -> {
             offlineModeButton.setEnabled(false);
             new Thread(() -> {
-                try{
-                    ConnectionMediator.getInstance().onModeOffline();
-                }catch (Exception error){
+                try {
+                    ConnectionController.getInstance().onModeOffline();
+                } catch (Exception error) {
                     System.out.println(error.getMessage());
-                }finally {
+                } finally {
                     javax.swing.SwingUtilities.invokeLater(() -> {
                         offlineModeButton.setText("Modo Online");
                         offlineModeButton.setBackground(Color.GREEN);
@@ -161,10 +156,10 @@ public class LeftPanel extends JPanel {
                     });
                 }
             }).start();
-            boolean isOffline = ConnectionMediator.getInstance().getOffline();
-            if(!isOffline){
+            boolean isOffline = ConnectionController.getInstance().getOffline();
+            if (!isOffline) {
                 JOptionPane.showMessageDialog(mainView, "Modo Offline Activado");
-            }else{
+            } else {
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     offlineModeButton.setText("Modo Offline");
                     offlineModeButton.setBackground(Color.RED);
@@ -181,25 +176,26 @@ public class LeftPanel extends JPanel {
 
     }
 
-    private void setContactSelectedConnected(boolean connected, String id){
-        if (!Objects.equals(mainView.getCurrentChatId(), id)) return;
+    private void setContactSelectedConnected(boolean connected, String id) {
+        if (!Objects.equals(mainView.getCurrentChatId(), id))
+            return;
         SwingUtilities.invokeLater(() -> {
             mainView.setContactSelectedConnected(connected);
             mainView.setInputEnabledInRightPanel(connected);
         });
     }
 
-
     public void loadSelectedChat(String id) {
         mainView.setCurrentChatId(id);
-        String conversationId = ConnectionMediator.getInstance().getConversationIdByPeerId(id);
-        java.util.List<Message> messages = ConnectionMediator.getInstance().getConversationMessagesWithConversationId(conversationId);
+        String conversationId = MessageController.getInstance().getConversationIdByPeerId(id);
+        java.util.List<Message> messages = MessageController.getInstance()
+                .getConversationMessagesWithConversationId(conversationId);
 
         messageHistory.clear();
 
-        if (messages != null){
-            for (Message message: messages){
-                String meId = PeerDao.getInstance().findMe().getId();
+        if (messages != null) {
+            for (Message message : messages) {
+                String meId = mainView.getPeerController().getMyself().getId();
                 boolean isMe = Objects.equals(meId, message.getSender_peer_id());
                 messageHistory.add(new BubbleData(message.getText_content(), isMe));
             }
@@ -218,7 +214,7 @@ public class LeftPanel extends JPanel {
                 if (Objects.equals(p.getId(), idUser)) {
                     p.setConnected(online);
                     listModel.set(i, p);
-                    if (Objects.equals(mainView.getCurrentChatId(), p.getId())){
+                    if (Objects.equals(mainView.getCurrentChatId(), p.getId())) {
                         setContactSelectedConnected(online, p.getId());
                     }
                     break;
@@ -227,7 +223,7 @@ public class LeftPanel extends JPanel {
         });
     }
 
-    public void setListModel(DefaultListModel<Peer> listModel){
+    public void setListModel(DefaultListModel<Peer> listModel) {
         this.listModel = listModel;
     }
 

@@ -1,12 +1,10 @@
 package com.fernandev.chatp2p.view.panel;
 
-import com.fernandev.chatp2p.controller.ConnectionMediator;
-import com.fernandev.chatp2p.model.entities.command.Invitacion;
+import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.command.Mensaje;
-import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
-import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -22,26 +20,22 @@ public class RightPanel extends JPanel {
     private JPanel chatPanel = new JPanel();
     private JScrollPane scrollPane = new JScrollPane(chatPanel);
     private JPanel inputPanel;
-    private JButton buttonSend  = new JButton("➤");
-    private JTextField messageInput  = new JTextField();
+    private JButton buttonSend = new JButton("➤");
+    private JTextField messageInput = new JTextField();
 
     private BubbleBubble bubbleBubble;
     private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
-
-
 
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
     private static final Color COLOR_BG_CHAT = new Color(236, 229, 221);
 
-
-
-    public RightPanel(ChatUI ui){
+    public RightPanel(ChatUI ui) {
         this.setLayout(new BorderLayout());
 
         this.mainView = ui;
 
-        if (!mainView.getContactSelected()){
+        if (!mainView.getContactSelected()) {
             return;
         }
 
@@ -62,7 +56,6 @@ public class RightPanel extends JPanel {
 
     }
 
-
     public void addMessage(String text, boolean isMe, String targetId) {
         chatHistory.putIfAbsent(targetId, new java.util.ArrayList<>());
         chatHistory.get(targetId).add(new BubbleData(text, isMe));
@@ -76,24 +69,26 @@ public class RightPanel extends JPanel {
 
     private void enviarMensaje() {
         String texto = messageInput.getText().trim();
-        if (texto.isEmpty()) return;
+        if (texto.isEmpty())
+            return;
 
         addMessage(texto, true, mainView.getCurrentChatId());
 
         new Thread(() -> {
             try {
-                Peer me = ConnectionMediator.getInstance().getMyself();
+                Peer me = mainView.getPeerController().getMyself();
                 String targetId = mainView.getCurrentChatId();
-                String conversationId = ConnectionMediator.getInstance().getConversationIdByPeerId(mainView.getCurrentChatId());
+                String conversationId = MessageController.getInstance()
+                        .getConversationIdByPeerId(mainView.getCurrentChatId());
 
                 String uuid = UUID.randomUUID().toString();
-                String targetIp = ConnectionMediator.getInstance().getPeerIpById(targetId);
-                SocketClient socketClient = ConnectionMediator.getInstance().getConnection(targetIp);
+                String targetIp = mainView.getPeerController().getPeerIpById(targetId);
+                SocketClient socketClient = ConnectionController.getInstance().getConnection(targetIp);
                 Mensaje mensaje = new Mensaje(me.getId(), uuid, texto);
 
                 mensaje.setIp(socketClient.getHostIp());
-                ConnectionMediator.getInstance().saveMessage(uuid, conversationId, me.getId(), texto);
-                ConnectionMediator.getInstance().sendMessage(mensaje, socketClient);
+                MessageController.getInstance().saveMessage(uuid, conversationId, me.getId(), texto);
+                ConnectionController.getInstance().sendMessage(mensaje, socketClient);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -103,19 +98,17 @@ public class RightPanel extends JPanel {
         messageInput.requestFocus();
     }
 
-
-
-    private void buildHeader(){
+    private void buildHeader() {
         header.setBackground(new Color(240, 242, 245));
         header.setPreferredSize(new Dimension(0, 60));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY));
-        String labelContactString = ConnectionMediator.getInstance().getPeerDisplayNameById(mainView.getCurrentChatId());
+        String labelContactString = mainView.getPeerController().getPeerDisplayNameById(mainView.getCurrentChatId());
         JLabel labelContact = new JLabel(labelContactString);
         labelContact.setFont(new Font("Segoe UI", Font.BOLD, 16));
         header.add(labelContact);
     }
 
-    private void buildChatPanel(){
+    private void buildChatPanel() {
         chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
         chatPanel.setBackground(COLOR_BG_CHAT);
 
@@ -124,21 +117,20 @@ public class RightPanel extends JPanel {
         chatPanel.add(verticalGlue);
     }
 
-    private void buildScrollPane(){
+    private void buildScrollPane() {
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
     }
 
-    private void buildMessageInput(){
+    private void buildMessageInput() {
         messageInput.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         messageInput.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.WHITE, 0),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
         messageInput.addActionListener(e -> enviarMensaje());
     }
 
-    private void buildSendButton(){
+    private void buildSendButton() {
         buttonSend.setBackground(COLOR_HEADER);
         buttonSend.setForeground(Color.WHITE);
         buttonSend.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -148,8 +140,7 @@ public class RightPanel extends JPanel {
         buttonSend.addActionListener(e -> enviarMensaje());
     }
 
-
-    private void buildInputPanel(){
+    private void buildInputPanel() {
         inputPanel = new JPanel(new BorderLayout());
         inputPanel.setBackground(new Color(240, 242, 245));
         inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -174,9 +165,9 @@ public class RightPanel extends JPanel {
         this.repaint();
     }
 
-    public void repaintChatPanel(JPanel rowPanel){
+    public void repaintChatPanel(JPanel rowPanel) {
 
-        if (rowPanel != null){
+        if (rowPanel != null) {
             chatPanel.add(rowPanel);
         }
 
@@ -192,8 +183,6 @@ public class RightPanel extends JPanel {
         });
     }
 
-
-
     public void paintBubble(String text, boolean isMe) {
         JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
         rowPanel.setOpaque(false);
@@ -204,9 +193,7 @@ public class RightPanel extends JPanel {
         repaintChatPanel(rowPanel);
     }
 
-
-
-    public void setMainView(ChatUI mainView){
+    public void setMainView(ChatUI mainView) {
         this.mainView = mainView;
     }
 }
