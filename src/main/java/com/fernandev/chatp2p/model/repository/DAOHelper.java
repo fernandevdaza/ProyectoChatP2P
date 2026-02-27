@@ -61,16 +61,16 @@ public class DAOHelper<T> {
              PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
         ){
 
-
             if (params != null){
                 params.setParameters(ps);
             }
 
-
             if( ps.executeUpdate() > 0 ){
                 try (ResultSet result = ps.getGeneratedKeys()){
                     if(result.next()){
-                        model.setId(String.valueOf(Long.parseLong(result.getString(1))));
+                        if (model.getId() == null || model.getId().trim().isEmpty()) {
+                            model.setId(String.valueOf(Long.parseLong(result.getString(1))));
+                        }
                     }
                 }
             }
@@ -82,7 +82,6 @@ public class DAOHelper<T> {
             System.out.println("Error inesperado en query: "+ e.getMessage());
             throw new SQLException(e);
         }
-
     }
 
     public void update(String query, QueryParameters params) throws Exception {

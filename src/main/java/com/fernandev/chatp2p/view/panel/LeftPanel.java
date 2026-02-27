@@ -9,7 +9,6 @@ import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
-import com.fernandev.chatp2p.view.Contact;
 
 import javax.swing.*;
 import java.awt.*;
@@ -196,8 +195,8 @@ public class LeftPanel extends JPanel {
         if (messages != null) {
             for (Message message : messages) {
                 String meId = mainView.getPeerController().getMyself().getId();
-                boolean isMe = Objects.equals(meId, message.getSender_peer_id());
-                messageHistory.add(new BubbleData(message.getText_content(), isMe));
+                boolean isMe = Objects.equals(meId, message.getSenderPeerId());
+                messageHistory.add(new BubbleData(message.getTextContent(), isMe));
             }
 
             for (BubbleData msg : messageHistory) {

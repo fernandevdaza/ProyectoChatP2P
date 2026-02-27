@@ -40,22 +40,22 @@ public class Message implements Serializable, Model {
     }
 
     public boolean getIsEphemeral(){
-        return this.is_ephemeral;
+        return this.isEphemeral;
     }
 
     private String id;
-    private String conversation_id;
-    private String sender_peer_id;
+    private String conversationId;
+    private String senderPeerId;
     private MessageType type;
-    private String text_content;
+    private String textContent;
     //    @Builder.Default
-    private LocalDateTime sent_at = LocalDateTime.now();
-    private LocalDateTime received_at;
-    private boolean is_ephemeral = false;
-    private LocalDateTime expires_at;
+    private LocalDateTime sentAt = LocalDateTime.now();
+    private LocalDateTime receivedAt;
+    private boolean isEphemeral = false;
+    private LocalDateTime expiresAt;
     private MessageStatusType status = MessageStatusType.RECEIVED;
     //    @Builder.Default
-    private LocalDateTime created_at = LocalDateTime.now();
-    private LocalDateTime updated_at;
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 }
 

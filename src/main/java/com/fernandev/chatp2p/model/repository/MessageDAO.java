@@ -29,37 +29,37 @@ public class MessageDAO {
                 message.setId(result.getString(Message.Column.ID));
             }
             if (existColumn(result, Message.Column.CONVERSATION_ID)){
-                message.setConversation_id(result.getString(Message.Column.CONVERSATION_ID));
+                message.setConversationId(result.getString(Message.Column.CONVERSATION_ID));
             }
             if (existColumn(result, Message.Column.SENDER_PEER_ID)) {
-                message.setSender_peer_id(result.getString(Message.Column.SENDER_PEER_ID));
+                message.setSenderPeerId(result.getString(Message.Column.SENDER_PEER_ID));
             }
             if (existColumn(result, Message.Column.TYPE)) {
                 message.setType(MessageType.values()[result.getInt(Message.Column.TYPE)]);
             }
             if (existColumn(result, Message.Column.TEXT_CONTENT)) {
-                message.setText_content(result.getString(Message.Column.TEXT_CONTENT));
+                message.setTextContent(result.getString(Message.Column.TEXT_CONTENT));
             }
             if (existColumn(result, Message.Column.SENT_AT)) {
-                message.setSent_at(LocalDateTime.parse(result.getString(Message.Column.SENT_AT)));
+                message.setSentAt(LocalDateTime.parse(result.getString(Message.Column.SENT_AT)));
             }
             if (existColumn(result, Message.Column.IS_EPHEMERAL)) {
-                message.set_ephemeral(result.getBoolean(Message.Column.IS_EPHEMERAL));
+                message.setEphemeral(result.getBoolean(Message.Column.IS_EPHEMERAL));
             }
             if (existColumn(result, Message.Column.EXPIRES_AT)) {
-                message.setExpires_at(LocalDateTime.parse(result.getString(Message.Column.EXPIRES_AT)));
+                message.setExpiresAt(LocalDateTime.parse(result.getString(Message.Column.EXPIRES_AT)));
             }
             if (existColumn(result, Message.Column.STATUS)) {
                 message.setStatus(MessageStatusType.values()[result.getInt(Message.Column.STATUS)]);
             }
             if (existColumn(result, Message.Column.RECEIVED_AT)) {
-                message.setReceived_at(LocalDateTime.parse(result.getString(Message.Column.RECEIVED_AT)));
+                message.setReceivedAt(LocalDateTime.parse(result.getString(Message.Column.RECEIVED_AT)));
             }
             if (existColumn(result, Message.Column.CREATED_AT)) {
-                message.setCreated_at(LocalDateTime.parse(result.getString(Message.Column.CREATED_AT)));
+                message.setCreatedAt(LocalDateTime.parse(result.getString(Message.Column.CREATED_AT)));
             }
             if (existColumn(result, Message.Column.UPDATED_AT)) {
-                message.setUpdated_at(LocalDateTime.parse(result.getString(Message.Column.UPDATED_AT)));
+                message.setUpdatedAt(LocalDateTime.parse(result.getString(Message.Column.UPDATED_AT)));
             }
             return message;
     };
@@ -145,17 +145,17 @@ public class MessageDAO {
             @Override
             public void setParameters(PreparedStatement pst) throws SQLException {
                 pst.setString(1, message.getId());
-                pst.setString(2, message.getConversation_id());
-                pst.setString(3, message.getSender_peer_id());
+                pst.setString(2, message.getConversationId());
+                pst.setString(3, message.getSenderPeerId());
                 pst.setString(4, message.getType().toString());
-                pst.setString(5, message.getText_content());
-                pst.setString(6, message.getSent_at().toString());
-                pst.setString(7, message.getReceived_at().toString());
+                pst.setString(5, message.getTextContent());
+                pst.setString(6, message.getSentAt().toString());
+                pst.setString(7, message.getReceivedAt().toString());
                 pst.setString(8, String.valueOf(message.getIsEphemeral()));
-                pst.setString(9, message.getExpires_at().toString());
+                pst.setString(9, message.getExpiresAt().toString());
                 pst.setString(10, message.getStatus().toString());
-                pst.setString(11, message.getCreated_at().toString());
-                pst.setString(12, message.getUpdated_at().toString());
+                pst.setString(11, message.getCreatedAt().toString());
+                pst.setString(12, message.getUpdatedAt().toString());
             }
         };
         helper.insert(query, params, message);

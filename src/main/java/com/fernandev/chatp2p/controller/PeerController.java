@@ -53,6 +53,11 @@ public class PeerController {
         return peer.getId();
     }
 
+    public Peer getPeerById(String id){
+        Peer peer = peerDao.findById(id);
+        return peer;
+    }
+
     public String getPeerIpById(String id) {
         Peer peer = peerDao.findById(id);
         if (peer == null)

@@ -16,17 +16,17 @@ public class DirectParticipants implements Serializable, Model {
         public static final String PEER_ID = "peer_id";
     }
 
-    private String conversation_id;
-    private String peer_id;
+    private String conversationId;
+    private String peerId;
 
     @Override
     public void setId(String id) {
-        this.conversation_id = id;
+        this.conversationId = id;
     }
 
     @Override
     public String getId() {
-        return this.conversation_id;
+        return this.conversationId;
     }
 
 }

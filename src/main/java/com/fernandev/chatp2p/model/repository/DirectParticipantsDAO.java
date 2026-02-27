@@ -26,7 +26,7 @@ public class DirectParticipantsDAO {
             directParticipants.setId(result.getString(DirectParticipants.Column.CONVERSATION_ID));
         }
         if (existColumn(result, DirectParticipants.Column.PEER_ID)) {
-            directParticipants.setPeer_id(result.getString(DirectParticipants.Column.PEER_ID));
+            directParticipants.setPeerId(result.getString(DirectParticipants.Column.PEER_ID));
         }
         return directParticipants;
     };
@@ -95,8 +95,8 @@ public class DirectParticipantsDAO {
         QueryParameters params = new QueryParameters() {
             @Override
             public void setParameters(PreparedStatement pst) throws SQLException {
-                pst.setString(1, directParticipants.getConversation_id());
-                pst.setString(2, directParticipants.getPeer_id());
+                pst.setString(1, directParticipants.getConversationId());
+                pst.setString(2, directParticipants.getPeerId());
             }
         };
         helper.insert(query, params, directParticipants);

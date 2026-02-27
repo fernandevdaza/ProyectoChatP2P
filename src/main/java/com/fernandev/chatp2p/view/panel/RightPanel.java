@@ -82,8 +82,7 @@ public class RightPanel extends JPanel {
                         .getConversationIdByPeerId(mainView.getCurrentChatId());
 
                 String uuid = UUID.randomUUID().toString();
-                String targetIp = mainView.getPeerController().getPeerIpById(targetId);
-                SocketClient socketClient = ConnectionController.getInstance().getConnection(targetIp);
+                SocketClient socketClient = ConnectionController.getInstance().getConnection(targetId);
                 Mensaje mensaje = new Mensaje(me.getId(), uuid, texto);
 
                 mensaje.setIp(socketClient.getHostIp());

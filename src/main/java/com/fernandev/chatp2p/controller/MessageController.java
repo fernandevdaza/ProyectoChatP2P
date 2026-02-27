@@ -45,8 +45,8 @@ public class MessageController {
 
     public void setPeerToConversation(String conversationId, String peerId) throws Exception {
         DirectParticipants directParticipants = DirectParticipants.builder()
-                .conversation_id(conversationId)
-                .peer_id(peerId)
+                .conversationId(conversationId)
+                .peerId(peerId)
                 .build();
 
         directParticipantsDAO.save(directParticipants);
@@ -56,7 +56,7 @@ public class MessageController {
     public String getConversationIdByPeerId(String peerId) {
         DirectParticipants dp = directParticipantsDAO.findConversationByPeerId(peerId);
         if (dp != null)
-            return dp.getConversation_id();
+            return dp.getConversationId();
         return null;
     }
 
@@ -67,7 +67,7 @@ public class MessageController {
         DirectParticipants dp = directParticipantsDAO.findConversationByPeerId(peer.getId());
         if (dp == null)
             return null;
-        return dp.getConversation_id();
+        return dp.getConversationId();
     }
 
     public void saveMessage(String id, String conversationId, String senderPeerId, String message) throws Exception {
@@ -75,17 +75,17 @@ public class MessageController {
             return;
         Message mensaje = Message.builder()
                 .id(id)
-                .conversation_id(conversationId)
-                .sender_peer_id(senderPeerId)
+                .conversationId(conversationId)
+                .senderPeerId(senderPeerId)
                 .type(MessageType.values()[2])
-                .text_content(message)
-                .sent_at(LocalDateTime.now())
-                .received_at(LocalDateTime.now())
-                .is_ephemeral(false)
-                .expires_at(LocalDateTime.now())
+                .textContent(message)
+                .sentAt(LocalDateTime.now())
+                .receivedAt(LocalDateTime.now())
+                .isEphemeral(false)
+                .expiresAt(LocalDateTime.now())
                 .status(MessageStatusType.SENT)
-                .created_at(LocalDateTime.now())
-                .updated_at(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
         messageDAO.save(mensaje);
     }

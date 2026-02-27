@@ -204,7 +204,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                         MessageProtocol aceptar = new Aceptar(me.getId(), me.getDisplayName());
                         ConnectionController.getInstance().sendMessage(aceptar, socketClient);
 
-                        ConnectionController.getInstance().addConnection(((Invitacion) messageProtocol).getIp(),
+                        ConnectionController.getInstance().addConnection(((Invitacion) messageProtocol).getIdUsuario(),
                                 socketClient);
                         peerController.savePeer(messageProtocol.getIp(), ((Invitacion) messageProtocol).getIdUsuario(),
                                 ((Invitacion) messageProtocol).getNombre(),
@@ -240,7 +240,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
             if (messageProtocol instanceof Aceptar) {
                 try {
-                    ConnectionController.getInstance().addConnection(messageProtocol.getIp(), socketClient);
+                    ConnectionController.getInstance().addConnection(((Aceptar) messageProtocol).getIdUsuario(), socketClient);
                     peerController.savePeer(messageProtocol.getIp(), ((Aceptar) messageProtocol).getIdUsuario(),
                             ((Aceptar) messageProtocol).getNombre(), ConnectionController.getInstance().getPort());
                     String conversationId = messageController.createConversation();
@@ -286,11 +286,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
             }
             if (messageProtocol instanceof Hello) {
                 try {
-                    if (peerController.getPeerIdByIp(messageProtocol.getIp()) != null) {
+                    if (peerController.getPeerById(((Hello) messageProtocol).getIdUser()) != null) {
                         Peer me = peerController.getMyself();
                         HelloAccept helloAccept = new HelloAccept(me.getId());
                         ConnectionController.getInstance().sendMessage(helloAccept, socketClient);
-                        ConnectionController.getInstance().addConnection(messageProtocol.getIp(), socketClient);
+                        ConnectionController.getInstance().addConnection(((Hello) messageProtocol).getIdUser(), socketClient);
                         this.leftPanel.updatePeerStatus(((Hello) messageProtocol).idUser, true);
                     } else {
                         HelloReject helloReject = new HelloReject();
@@ -301,7 +301,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                 }
             }
             if (messageProtocol instanceof HelloAccept) {
-                ConnectionController.getInstance().addConnection(messageProtocol.getIp(), socketClient);
+                ConnectionController.getInstance().addConnection(((HelloAccept) messageProtocol).getIdUser(), socketClient);
                 this.leftPanel.updatePeerStatus(((HelloAccept) messageProtocol).idUser, true);
             }
             if (messageProtocol instanceof HelloReject) {
