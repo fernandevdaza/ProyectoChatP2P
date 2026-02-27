@@ -142,6 +142,7 @@ public class ConnectionController implements SocketListener {
 
     @Override
     public void onClientDisconnected(SocketClient socketClient) {
-
+        Peer peer = PeerDao.getInstance().findByIp(socketClient.getIp());
+        ui.onDisconnect(peer.getId());
     }
 }
