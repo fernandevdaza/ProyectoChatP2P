@@ -7,6 +7,7 @@ package com.fernandev.chatp2p.model.network;
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.model.entities.command.*;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class SocketClient extends Thread {
     private final String ip;
     private final DataOutputStream dout;
     private final BufferedReader br;
+    private SocketListener listener;
 
     public SocketClient(Socket socket) throws IOException {
         this.socket = socket;
@@ -38,6 +40,11 @@ public class SocketClient extends Thread {
         dout = new DataOutputStream(socket.getOutputStream());
         br = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
     }
+
+    public void addListener(SocketListener listener) {
+        this.listener = listener;
+    }
+
 
     @Override
     public void run() {
@@ -118,15 +125,11 @@ public class SocketClient extends Thread {
     }
 
     public void notificar(SocketClient socketClient, MessageProtocol messageProtocol) {
-        try {
-            ConnectionController.getInstance().receiveMessage(messageProtocol, socketClient);
-        } catch (SQLException | ConnectException e) {
-            throw new RuntimeException(e);
-        }
+        SwingUtilities.invokeLater(() -> ConnectionController.getInstance().onMessageReceived(socketClient, messageProtocol));
     }
 
     public void onDisconnect(SocketClient socketClient) {
-        ConnectionController.getInstance().onDisconnectClient(socketClient);
+        SwingUtilities.invokeLater(() -> ConnectionController.getInstance().onClientDisconnected(socketClient));
     }
 
     public void send(MessageProtocol messageProtocol) throws IOException {

@@ -5,6 +5,7 @@ import com.fernandev.chatp2p.model.entities.command.MessageProtocol;
 import com.fernandev.chatp2p.model.entities.command.Offline;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
+import com.fernandev.chatp2p.model.network.SocketListener;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.ChatUI;
 
@@ -14,7 +15,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ConnectionController {
+public class ConnectionController implements SocketListener {
     private static final ConnectionController instance = new ConnectionController();
     private final Map<String, SocketClient> connections = new HashMap<>();
     private ChatUI ui;
@@ -40,6 +41,7 @@ public class ConnectionController {
     public SocketClient connectToPeer(String ip) {
         try {
             SocketClient connection = new SocketClient(ip, port);
+            connection.addListener(this);
             connection.start();
             return connection;
         } catch (IOException e) {
@@ -63,16 +65,6 @@ public class ConnectionController {
         }
     }
 
-    public void receiveMessage(MessageProtocol messageProtocol, SocketClient socketClient)
-            throws SQLException, ConnectException {
-        if (this.isOffline) {
-            Peer me = PeerDao.getInstance().findMe();
-            Offline offline = new Offline(me.getId());
-            this.sendMessage(offline, socketClient);
-        } else {
-            ui.onMessage(socketClient, messageProtocol);
-        }
-    }
 
     public void sendHelloToPeer(String ip) {
         try {
@@ -112,13 +104,6 @@ public class ConnectionController {
         this.isOffline = isOffline;
     }
 
-    public void onDisconnectClient(SocketClient socketClient) {
-        String ip = socketClient.getHostIp();
-        this.removeConnection(ip, true);
-
-        String id = PeerDao.getInstance().findByIp(ip) != null ? PeerDao.getInstance().findByIp(ip).getId() : null;
-        ui.onDisconnect(id);
-    }
 
     public void closeConnectionWithPeer(String id) {
         SocketClient socketClient = connections.get(id);
@@ -141,5 +126,22 @@ public class ConnectionController {
 
     public void shutdown() {
         this.removeAllConnections();
+    }
+
+    @Override
+    public void onMessageReceived(SocketClient socketClient, MessageProtocol messageProtocol) {
+        if (this.isOffline) {
+            Peer me = PeerDao.getInstance().findMe();
+            Offline offline = new Offline(me.getId());
+            this.sendMessage(offline, socketClient);
+        } else {
+            ui.onMessage(socketClient, messageProtocol);
+        }
+
+    }
+
+    @Override
+    public void onClientDisconnected(SocketClient socketClient) {
+
     }
 }

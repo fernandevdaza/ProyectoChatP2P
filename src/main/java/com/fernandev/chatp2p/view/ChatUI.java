@@ -193,7 +193,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     }
 
     public void onMessage(SocketClient socketClient, MessageProtocol messageProtocol) {
-        SwingUtilities.invokeLater(() -> {
             if (messageProtocol instanceof Invitacion) {
                 Invitacion invitacion = (Invitacion) messageProtocol;
                 int respuesta = JOptionPane.showConfirmDialog(this, "Llego la invitacion: " + invitacion.getNombre());
@@ -312,7 +311,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                 String userName = peerController.getPeerNameByIp(messageProtocol.getIp());
                 JOptionPane.showMessageDialog(this, userName + " está en modo Offline!");
             }
-        });
 
     }
 
