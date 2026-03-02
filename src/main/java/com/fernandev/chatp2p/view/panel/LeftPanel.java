@@ -2,6 +2,7 @@ package com.fernandev.chatp2p.view.panel;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
+import com.fernandev.chatp2p.controller.exception.UnreachableException;
 import com.fernandev.chatp2p.model.entities.command.Invitacion;
 import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.Peer;
@@ -127,7 +128,10 @@ public class LeftPanel extends JPanel {
                         SocketClient socketClient = ConnectionController.getInstance().connectToPeer(ip);
                         ConnectionController.getInstance().sendMessage(new Invitacion(me.getId(), me.getDisplayName()),
                                 socketClient);
-                    } catch (Exception error) {
+                    }catch (UnreachableException ue){
+                        javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ue.getMessage()));
+                    }
+                    catch (Exception error) {
                         System.out.println(error.getMessage());
                     } finally {
                         javax.swing.SwingUtilities.invokeLater(() -> connectButton.setEnabled(true));

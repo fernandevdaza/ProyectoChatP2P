@@ -1,5 +1,7 @@
 package com.fernandev.chatp2p.controller;
 
+import com.fernandev.chatp2p.controller.exception.MessageNotSend;
+import com.fernandev.chatp2p.controller.exception.UnreachableException;
 import com.fernandev.chatp2p.model.entities.command.Hello;
 import com.fernandev.chatp2p.model.entities.command.MessageProtocol;
 import com.fernandev.chatp2p.model.entities.command.Offline;
@@ -38,14 +40,15 @@ public class ConnectionController implements SocketListener {
         this.ui = ui;
     }
 
-    public SocketClient connectToPeer(String ip) {
+    public SocketClient connectToPeer(String ip) throws UnreachableException {
         try {
             SocketClient connection = new SocketClient(ip, port);
             connection.addListener(this);
             connection.start();
             return connection;
         } catch (IOException e) {
-            return null;
+            e.printStackTrace();
+            throw new UnreachableException("El cliente con ip: " + ip + " no está conectado.");
         }
     }
 
@@ -61,7 +64,7 @@ public class ConnectionController implements SocketListener {
         try {
             socketClient.send(messageProtocol);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -78,7 +81,10 @@ public class ConnectionController implements SocketListener {
             }
             MessageProtocol hello = new Hello(me.getId());
             this.sendMessage(hello, socketClient);
-        } catch (Exception e) {
+        } catch (UnreachableException ue){
+            ue.printStackTrace();
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -143,6 +149,10 @@ public class ConnectionController implements SocketListener {
     @Override
     public void onClientDisconnected(SocketClient socketClient) {
         Peer peer = PeerDao.getInstance().findByIp(socketClient.getIp());
-        ui.onDisconnect(peer.getId());
+        if (peer == null) {
+            ui.onDisconnect(socketClient.getIp());
+            return;
+        }
+        ui.onUpdatePeerStatus(peer.getId());
     }
 }

@@ -9,19 +9,13 @@ import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.command.*;
 import com.fernandev.chatp2p.model.network.SocketClient;
-import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.view.interfaces.IView;
 import com.fernandev.chatp2p.view.panel.LeftPanel;
 import com.fernandev.chatp2p.view.panel.RightPanel;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
-import java.net.ConnectException;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
@@ -153,43 +147,51 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     @Override
     public void onLoad(List<Peer> peers) {
 
+        List<Peer> validPeers = new ArrayList<>();
+
+        for (Peer p : peers) {
+            if (p.getIsSelf() == 0) {
+                String ip = p.getLastIpAddr();
+                if (ip == null || ip.isBlank()) {
+                    System.out.println("[DB] Peer sin IP válida: " + p.getId());
+                    continue;
+                }
+                p.setConnected(false);
+                validPeers.add(p);
+            }
+        }
+
         new Thread(() -> {
             SwingUtilities.invokeLater(() -> {
                 listModel.clear();
-                for (Peer p : peers) {
-                    if (p.getIsSelf() == 0) {
-                        String ip = p.getLastIpAddr();
-                        if (ip == null || ip.isBlank()) {
-                            System.out.println("[DB] Peer sin IP válida: " + p.getId());
-                            continue;
-                        }
-                        p.setConnected(false);
-                        listModel.addElement(p);
-                    }
-                }
+
+                listModel.addAll(validPeers);
+
                 leftPanel.setListModel(listModel);
             });
 
-            for (Peer p : peers) {
-                if (p.getIsSelf() == 0) {
+            for (Peer p : validPeers) {
                     String ip = p.getLastIpAddr();
                     if (ip == null || ip.isBlank())
                         continue;
-
                     try {
                         ConnectionController.getInstance().sendHelloToPeer(ip);
                     } catch (Exception ex) {
                         System.out.println("[HELLO] No se pudo enviar hello a " + ip + ": " + ex.getMessage());
                     }
-                }
             }
 
         }, "load-contacts-thread").start();
 
     }
 
-    public void onDisconnect(String id) {
+    public void onUpdatePeerStatus(String id) {
         this.leftPanel.updatePeerStatus(id, false);
+    }
+
+    public void onDisconnect(String ip){
+        String message = "Cliente con ip: " + ip + " se desconectó";
+        javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message));
     }
 
     public void onMessage(SocketClient socketClient, MessageProtocol messageProtocol) {
