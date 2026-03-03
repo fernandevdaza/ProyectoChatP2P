@@ -27,13 +27,11 @@ public class LeftPanel extends JPanel {
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
     private final ImageIcon iconOnline = new ImageIcon(
-            new ImageIcon(
-                    "/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/online.png")
+            new ImageIcon(getClass().getResource("/com/fernandev/chatp2p/view/resources/online.png"))
                     .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
     private final ImageIcon iconOffline = new ImageIcon(
-            new ImageIcon(
-                    "/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/offline.png")
+            new ImageIcon(getClass().getResource("/com/fernandev/chatp2p/view/resources/offline.png"))
                     .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
     public LeftPanel(ChatUI ui, DefaultListModel<Peer> list) {
