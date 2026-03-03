@@ -220,11 +220,14 @@ public class LeftPanel extends JPanel {
             for (Message message : messages) {
                 String meId = mainView.getPeerController().getMyself().getId();
                 boolean isMe = Objects.equals(meId, message.getSenderPeerId());
-                messageHistory.add(new BubbleData(message.getTextContent(), isMe));
+                String messageId = isMe ? message.getId() : null;
+                messageHistory.add(new BubbleData(message.getTextContent(), isMe, messageId));
             }
 
             for (BubbleData msg : messageHistory) {
-                mainView.paintBubbleInRightPanel(msg.text, msg.isMe);
+                boolean received = msg.isMe && msg.messageId != null
+                        && MessageController.getInstance().hasReceipt(msg.messageId);
+                mainView.paintBubbleInRightPanel(msg.text, msg.isMe, msg.messageId, received);
             }
         }
 

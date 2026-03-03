@@ -47,7 +47,6 @@ public class ConnectionController implements SocketListener {
         this.messageController = messageController;
     }
 
-
     private SocketClient connectToPeer(String ip) throws UnreachableException {
         try {
             SocketClient connection = new SocketClient(ip, port);
@@ -61,14 +60,12 @@ public class ConnectionController implements SocketListener {
         }
     }
 
-
     public void connectAndSendInvitation(String ip, String myId, String myName) throws UnreachableException {
         SocketClient socketClient = connectToPeer(ip);
         connections.put(ip, socketClient);
         Invitacion invitacion = new Invitacion(myId, myName);
         sendMessageInternal(invitacion, socketClient);
     }
-
 
     public void sendMessageById(String peerId, MessageProtocol messageProtocol) {
         SocketClient socketClient = connections.get(peerId);
@@ -86,7 +83,6 @@ public class ConnectionController implements SocketListener {
         }
         return null;
     }
-
 
     public int getPortByPeerId(String peerId) {
         SocketClient socketClient = connections.get(peerId);
@@ -169,7 +165,6 @@ public class ConnectionController implements SocketListener {
         this.removeAllConnections();
     }
 
-
     @Override
     public void onMessageReceived(SocketClient socketClient, MessageProtocol messageProtocol) {
         if (this.isOffline) {
@@ -193,6 +188,8 @@ public class ConnectionController implements SocketListener {
             handleHelloAccept(socketClient, (HelloAccept) messageProtocol);
         } else if (messageProtocol instanceof HelloReject) {
             handleHelloReject((HelloReject) messageProtocol);
+        } else if (messageProtocol instanceof Recibido) {
+            handleRecibido((Recibido) messageProtocol);
         } else if (messageProtocol instanceof Offline) {
             handleOffline((Offline) messageProtocol);
         }
@@ -266,9 +263,23 @@ public class ConnectionController implements SocketListener {
             messageController.saveMessage(msg.getIdMessage(), conversationId, msg.getIdUser(),
                     msg.getMessage());
             ui.onChatMessage(msg.getIdUser(), msg.getIdMessage(), msg.getMessage());
+
+            Recibido recibido = new Recibido(msg.getIdMessage());
+            sendMessageById(msg.getIdUser(), recibido);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void handleRecibido(Recibido recibido) {
+        String messageId = recibido.getIdMessage();
+        String peerId = recibido.getIp() != null
+                ? peerController.getPeerIdByIp(recibido.getIp())
+                : null;
+        if (peerId != null) {
+            messageController.saveReceipt(messageId, peerId);
+        }
+        ui.onMessageReceived(messageId);
     }
 
     private void handleHello(SocketClient socketClient, Hello hello) {

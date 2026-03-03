@@ -45,7 +45,6 @@ public class SocketClient extends Thread {
         this.listener = listener;
     }
 
-
     @Override
     public void run() {
         try {
@@ -107,8 +106,16 @@ public class SocketClient extends Thread {
                         notificar(this, mensaje);
                         break;
                     }
+                    case "008": {
+                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Recibido (ACK)!");
+                        Recibido recibido = Recibido.parse(message);
+                        recibido.setIp(this.getIp());
+                        notificar(this, recibido);
+                        break;
+                    }
                     case "0018": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Cliente " + this.getIp() + "está en modo Offline");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Cliente " + this.getIp()
+                                + "está en modo Offline");
                         Offline offline = Offline.parse(message);
                         offline.setIp(this.getIp());
                         notificar(this, offline);
@@ -125,7 +132,8 @@ public class SocketClient extends Thread {
     }
 
     public void notificar(SocketClient socketClient, MessageProtocol messageProtocol) {
-        SwingUtilities.invokeLater(() -> ConnectionController.getInstance().onMessageReceived(socketClient, messageProtocol));
+        SwingUtilities
+                .invokeLater(() -> ConnectionController.getInstance().onMessageReceived(socketClient, messageProtocol));
     }
 
     public void onDisconnect(SocketClient socketClient) {

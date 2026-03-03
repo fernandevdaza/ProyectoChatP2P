@@ -138,6 +138,10 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.rightPanel.paintBubble(text, isMe);
     }
 
+    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received) {
+        this.rightPanel.paintBubble(text, isMe, messageId, received);
+    }
+
     public void setInputEnabledInRightPanel(boolean enabled) {
         this.rightPanel.setInputEnabled(enabled);
     }
@@ -197,7 +201,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         return respuesta == JOptionPane.YES_OPTION;
     }
 
-
     public void onInvitationAccepted(String peerId, String nombre, String ip, int peerPort) {
         Peer peer = Peer.builder()
                 .id(peerId)
@@ -214,26 +217,21 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         SwingUtilities.invokeLater(() -> listModel.addElement(peer));
     }
 
-
     public void onInvitationRejected(String ip) {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ip + " rechazó la conexión."));
     }
-
 
     public void onChatMessage(String peerId, String idMessage, String message) {
         SwingUtilities.invokeLater(() -> this.rightPanel.addMessage(message, false, peerId));
     }
 
-
     public void onHelloAccepted(String peerId) {
         this.leftPanel.updatePeerStatus(peerId, true);
     }
 
-
     public void onHelloRejected(String ip) {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ip + " rechazó la conexión."));
     }
-
 
     public void onOfflineReceived(String peerId, String userName) {
         javax.swing.SwingUtilities
@@ -241,6 +239,10 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                     JOptionPane.showMessageDialog(this, userName + " está en modo Offline!");
                 });
         this.leftPanel.updatePeerStatus(peerId, false);
+    }
+
+    public void onMessageReceived(String messageId) {
+        SwingUtilities.invokeLater(() -> this.rightPanel.markMessageReceived(messageId));
     }
 
 }

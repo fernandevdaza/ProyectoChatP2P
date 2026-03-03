@@ -12,8 +12,8 @@ import com.fernandev.chatp2p.view.ChatUI;
 public class Main {
 
     public static void main(String[] args) {
-        int port = 1900;
-        ConnectionController.getInstance().setPort(1901);
+        int port = 1901;
+        ConnectionController.getInstance().setPort(1900);
 
         final ChatUI chatUI = new ChatUI();
         ConnectionController.getInstance().setUI(chatUI);

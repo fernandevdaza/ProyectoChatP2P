@@ -25,6 +25,9 @@ public class RightPanel extends JPanel {
     private BubbleBubble bubbleBubble;
     private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
 
+    // Mapa de messageId → BubbleBubble para poder marcar el check al recibir 008
+    private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
+
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
     private static final Color COLOR_BG_CHAT = new Color(236, 229, 221);
@@ -56,13 +59,27 @@ public class RightPanel extends JPanel {
     }
 
     public void addMessage(String text, boolean isMe, String targetId) {
+        addMessage(text, isMe, targetId, null);
+    }
+
+    public void addMessage(String text, boolean isMe, String targetId, String messageId) {
         chatHistory.putIfAbsent(targetId, new java.util.ArrayList<>());
-        chatHistory.get(targetId).add(new BubbleData(text, isMe));
+        chatHistory.get(targetId).add(new BubbleData(text, isMe, messageId));
 
         if (targetId.equals(mainView.getCurrentChatId())) {
-            paintBubble(text, isMe);
+            paintBubble(text, isMe, messageId);
         } else {
             System.out.println("Mensaje recibido de " + targetId + " (en segundo plano)");
+        }
+    }
+
+    /**
+     * Marca un mensaje como recibido (check azul) por su messageId.
+     */
+    public void markMessageReceived(String messageId) {
+        BubbleBubble bubble = bubblesByMessageId.get(messageId);
+        if (bubble != null) {
+            SwingUtilities.invokeLater(() -> bubble.setReceived(true));
         }
     }
 
@@ -71,7 +88,9 @@ public class RightPanel extends JPanel {
         if (texto.isEmpty())
             return;
 
-        addMessage(texto, true, mainView.getCurrentChatId());
+        String uuid = UUID.randomUUID().toString();
+
+        addMessage(texto, true, mainView.getCurrentChatId(), uuid);
 
         new Thread(() -> {
             try {
@@ -80,7 +99,6 @@ public class RightPanel extends JPanel {
                 String conversationId = MessageController.getInstance()
                         .getConversationIdByPeerId(mainView.getCurrentChatId());
 
-                String uuid = UUID.randomUUID().toString();
                 Mensaje mensaje = new Mensaje(me.getId(), uuid, texto);
 
                 String hostIp = ConnectionController.getInstance().getHostIpByPeerId(targetId);
@@ -183,9 +201,25 @@ public class RightPanel extends JPanel {
     }
 
     public void paintBubble(String text, boolean isMe) {
+        paintBubble(text, isMe, null);
+    }
+
+    public void paintBubble(String text, boolean isMe, String messageId) {
+        paintBubble(text, isMe, messageId, false);
+    }
+
+    public void paintBubble(String text, boolean isMe, String messageId, boolean received) {
         JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
         rowPanel.setOpaque(false);
         bubbleBubble = new BubbleBubble(text, isMe);
+
+        if (received && isMe) {
+            bubbleBubble.setReceived(true);
+        }
+
+        if (messageId != null && isMe) {
+            bubblesByMessageId.put(messageId, bubbleBubble);
+        }
 
         rowPanel.add(bubbleBubble);
         rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowPanel.getPreferredSize().height));

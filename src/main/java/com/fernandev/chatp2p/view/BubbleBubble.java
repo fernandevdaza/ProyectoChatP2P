@@ -10,9 +10,10 @@ import java.util.Date;
 public class BubbleBubble extends JPanel {
     private final String text;
     private final boolean isMe;
+    private JLabel checkLabel;
     private static final Color COLOR_MY_BUBBLE = new Color(220, 248, 198);
     private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255);
-
+    private static final Color COLOR_CHECK = new Color(53, 162, 235);
 
     public BubbleBubble(String text, boolean isMe) {
         this.text = text;
@@ -29,18 +30,15 @@ public class BubbleBubble extends JPanel {
         textArea.setWrapStyleWord(true);
         textArea.setFont(new Font("Segoe UI", Font.PLAIN, 16));
 
-        //Esto es para lo del tamanio said soy adri
         FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
         int textWidth = fm.stringWidth(text);
         int maxWidth = 350;
 
         if (textWidth > maxWidth) {
-            // Mensaje largo
             textArea.setSize(new Dimension(maxWidth, Short.MAX_VALUE));
             Dimension d = textArea.getPreferredSize();
             textArea.setPreferredSize(new Dimension(maxWidth, d.height));
         } else {
-            // Mensaje corto
             textArea.setSize(new Dimension(textWidth + 10, Short.MAX_VALUE));
             Dimension d = textArea.getPreferredSize();
             textArea.setPreferredSize(new Dimension(textWidth + 10, d.height));
@@ -48,12 +46,30 @@ public class BubbleBubble extends JPanel {
 
         add(textArea, BorderLayout.CENTER);
 
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        bottomPanel.setOpaque(false);
+
         JLabel timeLbl = new JLabel(new SimpleDateFormat("HH:mm").format(new Date()));
         timeLbl.setFont(new Font("SansSerif", Font.PLAIN, 10));
         timeLbl.setForeground(Color.GRAY);
-        timeLbl.setHorizontalAlignment(SwingConstants.RIGHT);
 
-        add(timeLbl, BorderLayout.SOUTH);
+        bottomPanel.add(timeLbl);
+
+        if (isMe) {
+            checkLabel = new JLabel("✓✓");
+            checkLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
+            checkLabel.setForeground(Color.LIGHT_GRAY);
+            bottomPanel.add(checkLabel);
+        }
+
+        add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+    public void setReceived(boolean received) {
+        if (checkLabel != null) {
+            checkLabel.setForeground(received ? COLOR_CHECK : Color.LIGHT_GRAY);
+            checkLabel.repaint();
+        }
     }
 
     @Override
