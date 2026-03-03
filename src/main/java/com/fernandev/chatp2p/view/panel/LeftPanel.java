@@ -3,10 +3,8 @@ package com.fernandev.chatp2p.view.panel;
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
-import com.fernandev.chatp2p.model.entities.command.Invitacion;
 import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.Peer;
-import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -112,6 +110,28 @@ public class LeftPanel extends JPanel {
                 }
             }
         });
+
+        contactList.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    Peer selection = contactList.getSelectedValue();
+                    if (selection != null) {
+                        String ip = selection.getLastIpAddr();
+                        if (ip != null && !ip.isBlank()) {
+                            new Thread(() -> {
+                                try {
+                                    ConnectionController.getInstance().sendHelloToPeer(ip);
+                                } catch (Exception ex) {
+                                    System.out.println(
+                                            "[HELLO] No se pudo enviar hello a " + ip + ": " + ex.getMessage());
+                                }
+                            }, "hello-doubleclick-thread").start();
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private void buildConnectButton() {
@@ -124,19 +144,19 @@ public class LeftPanel extends JPanel {
                 new Thread(() -> {
                     try {
                         Peer me = mainView.getPeerController().getMyself();
-
-                        SocketClient socketClient = ConnectionController.getInstance().connectToPeer(ip);
-                        ConnectionController.getInstance().sendMessage(new Invitacion(me.getId(), me.getDisplayName()),
-                                socketClient);
-                    }catch (UnreachableException ue){
-                        javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ue.getMessage()));
-                    }
-                    catch (Exception error) {
+                        ConnectionController.getInstance().connectAndSendInvitation(ip, me.getId(),
+                                me.getDisplayName());
+                    } catch (UnreachableException ue) {
+                        javax.swing.SwingUtilities
+                                .invokeLater(() -> JOptionPane.showMessageDialog(this, ue.getMessage()));
+                    } catch (Exception error) {
                         System.out.println(error.getMessage());
                     } finally {
                         javax.swing.SwingUtilities.invokeLater(() -> connectButton.setEnabled(true));
                     }
                 }).start();
+            } else {
+                connectButton.setEnabled(true);
             }
         });
     }

@@ -69,7 +69,7 @@ public class MessageDAO {
             result.findColumn(columnName);
             return true;
         }catch (SQLException e){
-            System.out.println("No se encontró la columna: " + e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] No se encontró la columna: " + e.getMessage());
         }
         return false;
     }

@@ -53,7 +53,7 @@ public class DirectParticipantsDAO {
 
     public List<DirectParticipants> findDirectParticipantsByConversationId(String conversationId) throws ConnectException, SQLException {
         String query = "SELECT * FROM direct_participants WHERE conversation_id ='" + conversationId + "'";
-        System.out.println(query);
+        System.out.println("[" + Thread.currentThread().getName() + "] " + query);
         List<DirectParticipants> list = helper.executeQuery(query, resultReader);
         if (list.isEmpty()) {
             return null;
@@ -64,7 +64,7 @@ public class DirectParticipantsDAO {
     public DirectParticipants findConversationByPeerId(String id) {
         try {
             String query = "SELECT * FROM direct_participants WHERE peer_id ='" + id + "'";
-            System.out.println(query);
+            System.out.println("[" + Thread.currentThread().getName() + "] " + query);
             List<DirectParticipants> list = helper.executeQuery(query, resultReader);
             if (list.isEmpty()) {
                 return null;
@@ -77,7 +77,7 @@ public class DirectParticipantsDAO {
 
     public List<DirectParticipants> findConversationsByPeerId(String peerId) throws ConnectException, SQLException {
         String query = "SELECT * FROM direct_participants WHERE peer_id ='" + peerId + "'";
-        System.out.println(query);
+        System.out.println("[" + Thread.currentThread().getName() + "] " + query);
         List<DirectParticipants> list = helper.executeQuery(query, resultReader);
         if (list.isEmpty()) {
             return null;

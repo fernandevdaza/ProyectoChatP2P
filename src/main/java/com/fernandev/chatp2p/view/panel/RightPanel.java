@@ -4,7 +4,6 @@ import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.command.Mensaje;
 import com.fernandev.chatp2p.model.entities.db.Peer;
-import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -82,12 +81,13 @@ public class RightPanel extends JPanel {
                         .getConversationIdByPeerId(mainView.getCurrentChatId());
 
                 String uuid = UUID.randomUUID().toString();
-                SocketClient socketClient = ConnectionController.getInstance().getConnection(targetId);
                 Mensaje mensaje = new Mensaje(me.getId(), uuid, texto);
 
-                mensaje.setIp(socketClient.getHostIp());
+                String hostIp = ConnectionController.getInstance().getHostIpByPeerId(targetId);
+                mensaje.setIp(hostIp);
+
                 MessageController.getInstance().saveMessage(uuid, conversationId, me.getId(), texto);
-                ConnectionController.getInstance().sendMessage(mensaje, socketClient);
+                ConnectionController.getInstance().sendMessageById(targetId, mensaje);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

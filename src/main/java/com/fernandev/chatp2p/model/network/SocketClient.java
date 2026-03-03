@@ -59,56 +59,56 @@ public class SocketClient extends Thread {
                 System.out.println("Llego");
                 switch (split[0]) {
                     case "001": {
-                        System.out.println("Es invitacion");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Es invitacion");
                         Invitacion invitacion = Invitacion.parse(message);
                         invitacion.setIp(this.getIp());
                         notificar(this, invitacion);
                         break;
                     }
                     case "002": {
-                        System.out.println("Conexión Aceptada");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Conexión Aceptada");
                         Aceptar aceptacion = Aceptar.parse(message);
                         aceptacion.setIp(this.getIp());
                         notificar(this, aceptacion);
                         break;
                     }
                     case "003": {
-                        System.out.println("Conexión Rechazada");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Conexión Rechazada");
                         Rechazar rechazar = Rechazar.parse(message);
                         rechazar.setIp(this.getIp());
                         notificar(this, rechazar);
                         break;
                     }
                     case "004": {
-                        System.out.println("Hello Recibido!");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Recibido!");
                         Hello hello = Hello.parse(message);
                         hello.setIp(this.getIp());
                         notificar(this, hello);
                         break;
                     }
                     case "005": {
-                        System.out.println("Hello Aceptado!");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Aceptado!");
                         HelloAccept helloAccept = HelloAccept.parse(message);
                         helloAccept.setIp(this.getIp());
                         notificar(this, helloAccept);
                         break;
                     }
                     case "006": {
-                        System.out.println("Hello Rechazado!");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Rechazado!");
                         HelloReject helloReject = HelloReject.parse(message);
                         helloReject.setIp(this.getIp());
                         notificar(this, helloReject);
                         break;
                     }
                     case "007": {
-                        System.out.println("Nuevo Mensaje!");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Nuevo Mensaje!");
                         Mensaje mensaje = Mensaje.parse(message);
                         mensaje.setIp(this.getIp());
                         notificar(this, mensaje);
                         break;
                     }
                     case "0018": {
-                        System.out.println("Cliente " + this.getIp() + "está en modo Offline");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Cliente " + this.getIp() + "está en modo Offline");
                         Offline offline = Offline.parse(message);
                         offline.setIp(this.getIp());
                         notificar(this, offline);

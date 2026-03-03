@@ -13,7 +13,7 @@ public class Main {
 
     public static void main(String[] args) {
         int port = 1900;
-        ConnectionController.getInstance().setPort(1900);
+        ConnectionController.getInstance().setPort(1901);
 
         final ChatUI chatUI = new ChatUI();
         ConnectionController.getInstance().setUI(chatUI);
@@ -24,9 +24,13 @@ public class Main {
         final MessageController messageController = MessageController.getInstance();
         chatUI.setMessageController(messageController);
 
+        ConnectionController.getInstance().setPeerController(peerController);
+        ConnectionController.getInstance().setMessageController(messageController);
+
         java.awt.EventQueue.invokeLater(() -> chatUI.setVisible(true));
         try {
             ChatServer chatServer = new ChatServer(port);
+            chatServer.setName("ChatServer");
             chatServer.start();
         } catch (Exception e) {
             e.printStackTrace();

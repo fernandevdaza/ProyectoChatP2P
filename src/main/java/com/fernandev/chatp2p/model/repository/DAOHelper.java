@@ -76,10 +76,10 @@ public class DAOHelper<T> {
             }
 
         } catch (SQLException e){
-            System.out.println("Error SQL en query: " +  e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error SQL en query: " +  e.getMessage());
             throw new SQLException(e);
         }catch (Exception e){
-            System.out.println("Error inesperado en query: "+ e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error inesperado en query: "+ e.getMessage());
             throw new SQLException(e);
         }
     }
@@ -97,10 +97,10 @@ public class DAOHelper<T> {
             ps.executeUpdate();
 
         } catch (SQLException e){
-            System.out.println("Error SQL en query: " +  e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error SQL en query: " +  e.getMessage());
             throw new SQLException(e);
         }catch (Exception e){
-            System.out.println("Error inesperado en query: "+ e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error inesperado en query: "+ e.getMessage());
             throw new SQLException(e);
         }
     }
@@ -125,10 +125,10 @@ public class DAOHelper<T> {
             }
 
         } catch (SQLException e){
-            System.out.println("Error SQL en query: " +  e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error SQL en query: " +  e.getMessage());
             throw new SQLException(e);
         }catch (Exception e){
-            System.out.println("Error inesperado en query: "+ e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error inesperado en query: "+ e.getMessage());
             throw new SQLException(e);
         }
 
@@ -152,10 +152,10 @@ public class DAOHelper<T> {
             return value;
 
         } catch (SQLException e){
-            System.out.println("Error SQL en query: " +  e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error SQL en query: " +  e.getMessage());
             throw new SQLException(e);
         }catch (Exception e){
-            System.out.println("Error inesperado en query: "+ e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "] Error inesperado en query: "+ e.getMessage());
             throw new SQLException(e);
         }
     }

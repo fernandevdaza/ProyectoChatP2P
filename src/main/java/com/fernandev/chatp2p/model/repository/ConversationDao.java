@@ -70,7 +70,7 @@ public class ConversationDao {
 
     public Conversation findById (String id) throws ConnectException, SQLException {
         String query = "SELECT * FROM conversations WHERE id ='" + id + "'";
-        System.out.println(query);
+        System.out.println("[" + Thread.currentThread().getName() + "] "+ query);
         List<Conversation> list = helper.executeQuery(query, resultReader);
         if (list.isEmpty()) {
             return null;

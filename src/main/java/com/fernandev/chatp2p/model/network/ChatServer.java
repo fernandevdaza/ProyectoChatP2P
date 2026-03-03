@@ -29,6 +29,7 @@ public class ChatServer extends Thread {
             try {
                 SocketClient socketClient = new SocketClient(this.server.accept());
                 socketClient.addListener(ConnectionController.getInstance());
+                socketClient.setName("SocketClient-" + socketClient.getIp());
                 socketClient.start();
                 System.out.println();
             } catch (Exception e) {
