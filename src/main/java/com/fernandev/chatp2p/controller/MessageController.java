@@ -1,5 +1,7 @@
 package com.fernandev.chatp2p.controller;
 
+import com.fernandev.chatp2p.model.entities.command.Mensaje;
+import com.fernandev.chatp2p.model.entities.command.Recibido;
 import com.fernandev.chatp2p.model.entities.db.*;
 import com.fernandev.chatp2p.model.repository.ConversationDao;
 import com.fernandev.chatp2p.model.repository.DirectParticipantsDAO;
@@ -112,5 +114,14 @@ public class MessageController {
 
     public boolean hasReceipt(String messageId) {
         return messageReceiptDAO.existsByMessageId(messageId);
+    }
+
+    public void sendReceipt(Message msg){
+        Recibido recibido = new Recibido(msg.getId());
+        ConnectionController.getInstance().sendMessageById(msg.getSenderPeerId(), recibido);
+    }
+
+    public void setReceived(Message msg){
+        MessageDAO.getInstance().updateStatus(msg, MessageStatusType.RECEIVED);
     }
 }

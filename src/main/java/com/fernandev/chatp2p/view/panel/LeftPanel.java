@@ -4,6 +4,7 @@ import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
 import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
@@ -218,6 +219,10 @@ public class LeftPanel extends JPanel {
             for (Message message : messages) {
                 String meId = mainView.getPeerController().getMyself().getId();
                 boolean isMe = Objects.equals(meId, message.getSenderPeerId());
+                if(message.getStatus() != MessageStatusType.RECEIVED && !isMe){
+                    mainView.getMessageController().sendReceipt(message);
+                    mainView.getMessageController().setReceived(message);
+                }
                 String messageId = isMe ? message.getId() : null;
                 messageHistory.add(new BubbleData(message.getTextContent(), isMe, messageId));
             }

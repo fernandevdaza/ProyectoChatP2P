@@ -13,6 +13,7 @@ import java.net.ConnectException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class ConnectionController implements SocketListener {
     private static final ConnectionController instance = new ConnectionController();
@@ -264,8 +265,11 @@ public class ConnectionController implements SocketListener {
                     msg.getMessage());
             ui.onChatMessage(msg.getIdUser(), msg.getIdMessage(), msg.getMessage());
 
-            Recibido recibido = new Recibido(msg.getIdMessage());
-            sendMessageById(msg.getIdUser(), recibido);
+            if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())){
+                Recibido recibido = new Recibido(msg.getIdMessage());
+                sendMessageById(msg.getIdUser(), recibido);
+            }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

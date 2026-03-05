@@ -73,9 +73,6 @@ public class RightPanel extends JPanel {
         }
     }
 
-    /**
-     * Marca un mensaje como recibido (check azul) por su messageId.
-     */
     public void markMessageReceived(String messageId) {
         BubbleBubble bubble = bubblesByMessageId.get(messageId);
         if (bubble != null) {

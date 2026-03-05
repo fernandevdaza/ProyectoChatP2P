@@ -177,7 +177,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                 if (ip == null || ip.isBlank())
                     continue;
                 try {
-                    ConnectionController.getInstance().sendHelloToPeer(ip);
+//                    ConnectionController.getInstance().sendHelloToPeer(ip);
                 } catch (Exception ex) {
                     System.out.println("[HELLO] No se pudo enviar hello a " + ip + ": " + ex.getMessage());
                 }

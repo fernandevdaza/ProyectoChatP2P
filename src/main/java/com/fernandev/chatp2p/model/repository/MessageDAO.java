@@ -3,7 +3,9 @@ package com.fernandev.chatp2p.model.repository;
 import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.MessageType;
+import com.fernandev.chatp2p.model.entities.db.Peer;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +37,8 @@ public class MessageDAO {
                 message.setSenderPeerId(result.getString(Message.Column.SENDER_PEER_ID));
             }
             if (existColumn(result, Message.Column.TYPE)) {
-                message.setType(MessageType.values()[result.getInt(Message.Column.TYPE)]);
+                String stringResult = result.getString(Message.Column.TYPE);
+                message.setType(MessageType.valueOf(stringResult));
             }
             if (existColumn(result, Message.Column.TEXT_CONTENT)) {
                 message.setTextContent(result.getString(Message.Column.TEXT_CONTENT));
@@ -50,7 +53,8 @@ public class MessageDAO {
                 message.setExpiresAt(LocalDateTime.parse(result.getString(Message.Column.EXPIRES_AT)));
             }
             if (existColumn(result, Message.Column.STATUS)) {
-                message.setStatus(MessageStatusType.values()[result.getInt(Message.Column.STATUS)]);
+                String stringResult = result.getString(Message.Column.STATUS);
+                message.setStatus(MessageStatusType.valueOf(stringResult));
             }
             if (existColumn(result, Message.Column.RECEIVED_AT)) {
                 message.setReceivedAt(LocalDateTime.parse(result.getString(Message.Column.RECEIVED_AT)));
@@ -133,6 +137,22 @@ public class MessageDAO {
     public boolean existById(String id) throws ConnectException, SQLException {
         String query = "SELECT count(*) FROM peers WHERE id='" + id + "'";
         return helper.executeQueryCount(query, null) == 1;
+    }
+
+    public void updateStatus(Message message, MessageStatusType messageStatusType) {
+        try {
+            String query = "UPDATE messages SET status=? WHERE id=?";
+            QueryParameters params = new QueryParameters() {
+                @Override
+                public void setParameters(PreparedStatement pst) throws SQLException {
+                    pst.setString(1, messageStatusType.toString());
+                    pst.setString(2, message.getId());
+                }
+            };
+            helper.update(query, params);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void update(String query) throws Exception {
