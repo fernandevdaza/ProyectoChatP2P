@@ -1,5 +1,9 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.model.network.SocketClient;
+
+import java.io.IOException;
+
 public abstract class MessageProtocol {
     private String codigo;
     private String ip;
@@ -23,4 +27,5 @@ public abstract class MessageProtocol {
 
 
     public abstract String generarTrama();
+//    public abstract void execute(SocketClient client) throws IOException;
 }

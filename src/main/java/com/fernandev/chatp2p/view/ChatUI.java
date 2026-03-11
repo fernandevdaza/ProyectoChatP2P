@@ -22,11 +22,15 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     private PeerController peerController;
     private MessageController messageController;
+
     private boolean isContactSelected = false;
     private boolean isContactSelectedConnected = false;
+
     private String currentChatId = null;
+
     private LeftPanel leftPanel;
     private RightPanel rightPanel;
+
     DefaultListModel<Peer> listModel = new DefaultListModel<>();
 
     public ChatUI() {

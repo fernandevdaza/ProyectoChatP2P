@@ -19,10 +19,10 @@ public class PeerController {
     public void onLoad() {
         List<Peer> peers = peerDao.findAllExceptMe();
         if (peers != null) {
-            System.out.println("[" + Thread.currentThread().getName() + "]Peers encontrados: " + peers.size());
+            System.out.println("[" + Thread.currentThread().getName() + "] Peers encontrados: " + peers.size());
             view.onLoad(peers);
         } else {
-            System.err.println("[" + Thread.currentThread().getName() + "]No se encontraron peers");
+            System.err.println("[" + Thread.currentThread().getName() + "] No se encontraron peers");
         }
     }
 
