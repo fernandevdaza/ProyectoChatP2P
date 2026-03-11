@@ -4,7 +4,6 @@ import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.command.Mensaje;
 import com.fernandev.chatp2p.model.entities.db.Peer;
-import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -25,6 +24,9 @@ public class RightPanel extends JPanel {
 
     private BubbleBubble bubbleBubble;
     private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
+
+    // Mapa de messageId → BubbleBubble para poder marcar el check al recibir 008
+    private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
 
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
@@ -57,13 +59,24 @@ public class RightPanel extends JPanel {
     }
 
     public void addMessage(String text, boolean isMe, String targetId) {
+        addMessage(text, isMe, targetId, null);
+    }
+
+    public void addMessage(String text, boolean isMe, String targetId, String messageId) {
         chatHistory.putIfAbsent(targetId, new java.util.ArrayList<>());
-        chatHistory.get(targetId).add(new BubbleData(text, isMe));
+        chatHistory.get(targetId).add(new BubbleData(text, isMe, messageId));
 
         if (targetId.equals(mainView.getCurrentChatId())) {
-            paintBubble(text, isMe);
+            paintBubble(text, isMe, messageId);
         } else {
             System.out.println("Mensaje recibido de " + targetId + " (en segundo plano)");
+        }
+    }
+
+    public void markMessageReceived(String messageId) {
+        BubbleBubble bubble = bubblesByMessageId.get(messageId);
+        if (bubble != null) {
+            SwingUtilities.invokeLater(() -> bubble.setReceived(true));
         }
     }
 
@@ -72,7 +85,9 @@ public class RightPanel extends JPanel {
         if (texto.isEmpty())
             return;
 
-        addMessage(texto, true, mainView.getCurrentChatId());
+        String uuid = UUID.randomUUID().toString();
+
+        addMessage(texto, true, mainView.getCurrentChatId(), uuid);
 
         new Thread(() -> {
             try {
@@ -81,13 +96,13 @@ public class RightPanel extends JPanel {
                 String conversationId = MessageController.getInstance()
                         .getConversationIdByPeerId(mainView.getCurrentChatId());
 
-                String uuid = UUID.randomUUID().toString();
-                SocketClient socketClient = ConnectionController.getInstance().getConnection(targetId);
                 Mensaje mensaje = new Mensaje(me.getId(), uuid, texto);
 
-                mensaje.setIp(socketClient.getHostIp());
+                String hostIp = ConnectionController.getInstance().getHostIpByPeerId(targetId);
+                mensaje.setIp(hostIp);
+
                 MessageController.getInstance().saveMessage(uuid, conversationId, me.getId(), texto);
-                ConnectionController.getInstance().sendMessage(mensaje, socketClient);
+                ConnectionController.getInstance().sendMessageById(targetId, mensaje);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -183,9 +198,25 @@ public class RightPanel extends JPanel {
     }
 
     public void paintBubble(String text, boolean isMe) {
+        paintBubble(text, isMe, null);
+    }
+
+    public void paintBubble(String text, boolean isMe, String messageId) {
+        paintBubble(text, isMe, messageId, false);
+    }
+
+    public void paintBubble(String text, boolean isMe, String messageId, boolean received) {
         JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
         rowPanel.setOpaque(false);
         bubbleBubble = new BubbleBubble(text, isMe);
+
+        if (received && isMe) {
+            bubbleBubble.setReceived(true);
+        }
+
+        if (messageId != null && isMe) {
+            bubblesByMessageId.put(messageId, bubbleBubble);
+        }
 
         rowPanel.add(bubbleBubble);
         rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowPanel.getPreferredSize().height));

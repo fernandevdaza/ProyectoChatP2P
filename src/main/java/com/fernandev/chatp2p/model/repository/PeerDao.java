@@ -89,7 +89,7 @@ public class PeerDao {
 
     public Peer findByName(String name) throws ConnectException, SQLException {
         String query = "SELECT * FROM peers WHERE display_name ='" + name + "'";
-        System.out.println(query);
+        System.out.println("[" + Thread.currentThread().getName() + "] " + query);
         List<Peer> list = helper.executeQuery(query, resultReader);
         if (list.isEmpty()) {
             return null;
@@ -100,7 +100,7 @@ public class PeerDao {
     public Peer findByIp(String ip){
         try {
             String query = "SELECT * FROM peers WHERE last_ip_addr ='" + ip + "'" + " AND is_self = 0";
-            System.out.println(query);
+            System.out.println("[" + Thread.currentThread().getName() + "] " + query);
             List<Peer> list = helper.executeQuery(query, resultReader);
             if (list.isEmpty()) {
                 return null;
@@ -115,7 +115,7 @@ public class PeerDao {
     public Peer findMe() {
         try {
             String query = "SELECT * FROM peers WHERE is_self=1";
-            System.out.println(query);
+            System.out.println("[" + Thread.currentThread().getName() + "] " + query);
             List<Peer> list = helper.executeQuery(query, resultReader);
             if (list.isEmpty()) {
                 return null;
@@ -135,7 +135,7 @@ public class PeerDao {
     public Peer findById(String id)  {
         try {
             String query = "SELECT * FROM peers WHERE id ='" + id + "'";
-            System.out.println(query);
+            System.out.println("[" + Thread.currentThread().getName() + "] " + query);
             List<Peer> list = helper.executeQuery(query, resultReader);
             if (list.isEmpty()) {
                 return null;

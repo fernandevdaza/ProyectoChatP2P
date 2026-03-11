@@ -2,10 +2,10 @@ package com.fernandev.chatp2p.view.panel;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
-import com.fernandev.chatp2p.model.entities.command.Invitacion;
+import com.fernandev.chatp2p.controller.exception.UnreachableException;
 import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
-import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -28,13 +28,11 @@ public class LeftPanel extends JPanel {
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
     private final ImageIcon iconOnline = new ImageIcon(
-            new ImageIcon(
-                    "/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/online.png")
+            new ImageIcon(getClass().getResource("/com/fernandev/chatp2p/view/resources/online.png"))
                     .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
     private final ImageIcon iconOffline = new ImageIcon(
-            new ImageIcon(
-                    "/home/fernandev/Coding/Cliente2/src/main/java/com/fernandev/chatp2p/view/resources/offline.png")
+            new ImageIcon(getClass().getResource("/com/fernandev/chatp2p/view/resources/offline.png"))
                     .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
     public LeftPanel(ChatUI ui, DefaultListModel<Peer> list) {
@@ -111,6 +109,28 @@ public class LeftPanel extends JPanel {
                 }
             }
         });
+
+        contactList.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    Peer selection = contactList.getSelectedValue();
+                    if (selection != null) {
+                        String ip = selection.getLastIpAddr();
+                        if (ip != null && !ip.isBlank()) {
+                            new Thread(() -> {
+                                try {
+                                    ConnectionController.getInstance().sendHelloToPeer(ip);
+                                } catch (Exception ex) {
+                                    System.out.println(
+                                            "[HELLO] No se pudo enviar hello a " + ip + ": " + ex.getMessage());
+                                }
+                            }, "hello-doubleclick-thread").start();
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private void buildConnectButton() {
@@ -123,16 +143,19 @@ public class LeftPanel extends JPanel {
                 new Thread(() -> {
                     try {
                         Peer me = mainView.getPeerController().getMyself();
-
-                        SocketClient socketClient = ConnectionController.getInstance().connectToPeer(ip);
-                        ConnectionController.getInstance().sendMessage(new Invitacion(me.getId(), me.getDisplayName()),
-                                socketClient);
+                        ConnectionController.getInstance().connectAndSendInvitation(ip, me.getId(),
+                                me.getDisplayName());
+                    } catch (UnreachableException ue) {
+                        javax.swing.SwingUtilities
+                                .invokeLater(() -> JOptionPane.showMessageDialog(this, ue.getMessage()));
                     } catch (Exception error) {
                         System.out.println(error.getMessage());
                     } finally {
                         javax.swing.SwingUtilities.invokeLater(() -> connectButton.setEnabled(true));
                     }
                 }).start();
+            } else {
+                connectButton.setEnabled(true);
             }
         });
     }
@@ -196,11 +219,18 @@ public class LeftPanel extends JPanel {
             for (Message message : messages) {
                 String meId = mainView.getPeerController().getMyself().getId();
                 boolean isMe = Objects.equals(meId, message.getSenderPeerId());
-                messageHistory.add(new BubbleData(message.getTextContent(), isMe));
+                if(message.getStatus() != MessageStatusType.RECEIVED && !isMe){
+                    mainView.getMessageController().sendReceipt(message);
+                    mainView.getMessageController().setReceived(message);
+                }
+                String messageId = isMe ? message.getId() : null;
+                messageHistory.add(new BubbleData(message.getTextContent(), isMe, messageId));
             }
 
             for (BubbleData msg : messageHistory) {
-                mainView.paintBubbleInRightPanel(msg.text, msg.isMe);
+                boolean received = msg.isMe && msg.messageId != null
+                        && MessageController.getInstance().hasReceipt(msg.messageId);
+                mainView.paintBubbleInRightPanel(msg.text, msg.isMe, msg.messageId, received);
             }
         }
 
