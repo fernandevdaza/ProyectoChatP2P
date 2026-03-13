@@ -4,8 +4,11 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
+import javax.imageio.ImageIO;
 
 public class BubbleBubble extends JPanel {
     private final String text;
@@ -15,36 +18,74 @@ public class BubbleBubble extends JPanel {
     private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255);
     private static final Color COLOR_CHECK = new Color(53, 162, 235);
 
-    public BubbleBubble(String text, boolean isMe) {
-        this.text = text;
+    public BubbleBubble(String content, boolean isMe) {
+        this(content, isMe, false);
+    }
+
+    public BubbleBubble(String content, boolean isMe, boolean isImage) {
+        this.text = content;
         this.isMe = isMe;
 
         setLayout(new BorderLayout(0, 2));
         setOpaque(false);
         setBorder(new EmptyBorder(8, 12, 8, 12));
 
-        JTextArea textArea = new JTextArea(text);
-        textArea.setOpaque(false);
-        textArea.setEditable(false);
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        if (isImage) {
+            try {
+                byte[] imageBytes = Base64.getDecoder().decode(content);
+                ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+                Image img = ImageIO.read(bis);
 
-        FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
-        int textWidth = fm.stringWidth(text);
-        int maxWidth = 350;
+                int maxWidth = 300;
+                int maxHeight = 300;
+                int imgWidth = img.getWidth(null);
+                int imgHeight = img.getHeight(null);
 
-        if (textWidth > maxWidth) {
-            textArea.setSize(new Dimension(maxWidth, Short.MAX_VALUE));
-            Dimension d = textArea.getPreferredSize();
-            textArea.setPreferredSize(new Dimension(maxWidth, d.height));
+                if (imgWidth > maxWidth || imgHeight > maxHeight) {
+                    float widthRatio = (float) maxWidth / imgWidth;
+                    float heightRatio = (float) maxHeight / imgHeight;
+                    float ratio = Math.min(widthRatio, heightRatio);
+
+                    int newWidth = (int) (imgWidth * ratio);
+                    int newHeight = (int) (imgHeight * ratio);
+
+                    img = img.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                    new ImageIcon(img).getImage();
+                }
+
+                JLabel imageLabel = new JLabel(new ImageIcon(img));
+                imageLabel.setOpaque(false);
+                add(imageLabel, BorderLayout.CENTER);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JLabel errorLbl = new JLabel("Error cargando imagen");
+                errorLbl.setForeground(Color.RED);
+                add(errorLbl, BorderLayout.CENTER);
+            }
         } else {
-            textArea.setSize(new Dimension(textWidth + 10, Short.MAX_VALUE));
-            Dimension d = textArea.getPreferredSize();
-            textArea.setPreferredSize(new Dimension(textWidth + 10, d.height));
-        }
+            JTextArea textArea = new JTextArea(content);
+            textArea.setOpaque(false);
+            textArea.setEditable(false);
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+            textArea.setFont(new Font("Segoe UI", Font.PLAIN, 16));
 
-        add(textArea, BorderLayout.CENTER);
+            FontMetrics fm = textArea.getFontMetrics(textArea.getFont());
+            int textWidth = fm.stringWidth(content);
+            int maxWidth = 350;
+
+            if (textWidth > maxWidth) {
+                textArea.setSize(new Dimension(maxWidth, Short.MAX_VALUE));
+                Dimension d = textArea.getPreferredSize();
+                textArea.setPreferredSize(new Dimension(maxWidth, d.height));
+            } else {
+                textArea.setSize(new Dimension(textWidth + 10, Short.MAX_VALUE));
+                Dimension d = textArea.getPreferredSize();
+                textArea.setPreferredSize(new Dimension(textWidth + 10, d.height));
+            }
+
+            add(textArea, BorderLayout.CENTER);
+        }
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
         bottomPanel.setOpaque(false);

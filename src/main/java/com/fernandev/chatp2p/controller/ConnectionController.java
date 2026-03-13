@@ -61,11 +61,11 @@ public class ConnectionController implements SocketListener {
         }
     }
 
-    public void sendMessage(String peerId, MessageProtocol messageProtocol) throws UnreachableException{
+    public void sendMessage(String peerId, MessageProtocol messageProtocol) throws UnreachableException {
         SocketClient socketClient = connections.get(peerId);
-        if( socketClient == null){
-           socketClient = this.connectToPeer(peerId);
-           connections.put(messageProtocol.getIp(), socketClient);
+        if (socketClient == null) {
+            socketClient = this.connectToPeer(peerId);
+            connections.put(messageProtocol.getIp(), socketClient);
         }
         messageProtocol.execute(socketClient);
     }
@@ -103,7 +103,7 @@ public class ConnectionController implements SocketListener {
     }
 
     private void sendMessageInternal(MessageProtocol messageProtocol, SocketClient socketClient) {
-            socketClient.send(messageProtocol);
+        socketClient.send(messageProtocol);
     }
 
     public void sendHelloToPeer(String ip) {
@@ -153,7 +153,7 @@ public class ConnectionController implements SocketListener {
         }
     }
 
-    public void addConnection(String peerId, SocketClient socketClient){
+    public void addConnection(String peerId, SocketClient socketClient) {
         connections.put(peerId, socketClient);
     }
 
@@ -192,6 +192,8 @@ public class ConnectionController implements SocketListener {
             handleRechazar(socketClient, (Rechazar) messageProtocol);
         } else if (messageProtocol instanceof Mensaje) {
             handleMensaje((Mensaje) messageProtocol);
+        } else if (messageProtocol instanceof MessageImage) {
+            handleMessageImage((MessageImage) messageProtocol);
         } else if (messageProtocol instanceof Hello) {
             handleHello(socketClient, (Hello) messageProtocol);
         } else if (messageProtocol instanceof HelloAccept) {
@@ -253,7 +255,7 @@ public class ConnectionController implements SocketListener {
         String ip = rechazar.getIp();
         connections.remove(ip);
         ui.onInvitationRejected(ip);
-//        socketClient.close();
+        // socketClient.close();
     }
 
     private void handleMensaje(Mensaje msg) {
@@ -263,7 +265,21 @@ public class ConnectionController implements SocketListener {
                     msg.getMessage());
             ui.onChatMessage(msg.getIdUser(), msg.getIdMessage(), msg.getMessage());
 
-            if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())){
+            if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
+                Recibido recibido = new Recibido(msg.getIdMessage());
+                sendMessageById(msg.getIdUser(), recibido);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void handleMessageImage(MessageImage msg) {
+        try {
+            ui.onChatImage(msg.getIdUser(), msg.getIdMessage(), msg.getBase64Image());
+
+            if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
                 Recibido recibido = new Recibido(msg.getIdMessage());
                 sendMessageById(msg.getIdUser(), recibido);
             }

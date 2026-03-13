@@ -8,9 +8,13 @@ import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -20,6 +24,7 @@ public class RightPanel extends JPanel {
     private JScrollPane scrollPane = new JScrollPane(chatPanel);
     private JPanel inputPanel;
     private JButton buttonSend = new JButton("➤");
+    private JButton buttonImage = new JButton("📷");
     private JTextField messageInput = new JTextField();
 
     private BubbleBubble bubbleBubble;
@@ -59,6 +64,14 @@ public class RightPanel extends JPanel {
 
     public void addMessage(String text, boolean isMe, String targetId) {
         addMessage(text, isMe, targetId, null);
+    }
+
+    public void addImageMessage(String base64Image, boolean isMe, String targetId, String messageId) {
+        if (targetId.equals(mainView.getCurrentChatId())) {
+            paintBubbleImage(base64Image, isMe, messageId);
+        } else {
+            System.out.println("Imágen recibida de " + targetId + " (en segundo plano)");
+        }
     }
 
     public void addMessage(String text, boolean isMe, String targetId, String messageId) {
@@ -111,6 +124,84 @@ public class RightPanel extends JPanel {
         messageInput.requestFocus();
     }
 
+    private void enviarImagen() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Imágenes (JPG, PNG)", "jpg", "jpeg", "png"));
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            try {
+                Image image = ImageIO.read(selectedFile);
+                if (image == null) {
+                    JOptionPane.showMessageDialog(this, "Formato de imagen no soportado.");
+                    return;
+                }
+
+                int maxWidth = 600;
+                int width = image.getWidth(null);
+                int height = image.getHeight(null);
+                if (width > maxWidth) {
+                    float ratio = (float) maxWidth / width;
+                    width = maxWidth;
+                    height = (int) (height * ratio);
+                    Image resizedImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                    new javax.swing.ImageIcon(resizedImage).getImage();
+
+                    java.awt.image.BufferedImage bimage = new java.awt.image.BufferedImage(width, height,
+                            java.awt.image.BufferedImage.TYPE_INT_RGB);
+                    Graphics2D bGr = bimage.createGraphics();
+                    bGr.drawImage(resizedImage, 0, 0, null);
+                    bGr.dispose();
+
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(bimage, "jpg", baos);
+                    byte[] imageBytes = baos.toByteArray();
+                    String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                    procesarEnvioImagen(base64Image);
+                } else {
+                    java.awt.image.BufferedImage bimage = new java.awt.image.BufferedImage(width, height,
+                            java.awt.image.BufferedImage.TYPE_INT_RGB);
+                    Graphics2D bGr = bimage.createGraphics();
+                    bGr.drawImage(image, 0, 0, null);
+                    bGr.dispose();
+
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(bimage, "jpg", baos);
+                    byte[] imageBytes = baos.toByteArray();
+                    String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                    procesarEnvioImagen(base64Image);
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error procesando la imagen.");
+            }
+        }
+    }
+
+    private void procesarEnvioImagen(String base64Image) {
+        String uuid = UUID.randomUUID().toString();
+
+        addImageMessage(base64Image, true, mainView.getCurrentChatId(), uuid);
+
+        new Thread(() -> {
+            try {
+                Peer me = mainView.getPeerController().getMyself();
+                String targetId = mainView.getCurrentChatId();
+                com.fernandev.chatp2p.model.entities.command.MessageImage mensajeImagen = new com.fernandev.chatp2p.model.entities.command.MessageImage(
+                        me.getId(), uuid, base64Image);
+
+                String hostIp = ConnectionController.getInstance().getHostIpByPeerId(targetId);
+                mensajeImagen.setIp(hostIp);
+
+                ConnectionController.getInstance().sendMessageById(targetId, mensajeImagen);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
     private void buildHeader() {
         header.setBackground(new Color(240, 242, 245));
         header.setPreferredSize(new Dimension(0, 60));
@@ -151,13 +242,22 @@ public class RightPanel extends JPanel {
         buttonSend.setFocusPainted(false);
         buttonSend.setPreferredSize(new Dimension(60, 40));
         buttonSend.addActionListener(e -> enviarMensaje());
+
+        buttonImage.setBackground(new Color(240, 242, 245));
+        buttonImage.setForeground(Color.DARK_GRAY);
+        buttonImage.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        buttonImage.setBorderPainted(false);
+        buttonImage.setFocusPainted(false);
+        buttonImage.setPreferredSize(new Dimension(60, 40));
+        buttonImage.addActionListener(e -> enviarImagen());
     }
 
     private void buildInputPanel() {
-        inputPanel = new JPanel(new BorderLayout());
+        inputPanel = new JPanel(new BorderLayout(5, 0));
         inputPanel.setBackground(new Color(240, 242, 245));
         inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
+        inputPanel.add(buttonImage, BorderLayout.WEST);
         inputPanel.add(messageInput, BorderLayout.CENTER);
         inputPanel.add(buttonSend, BorderLayout.EAST);
     }
@@ -172,6 +272,9 @@ public class RightPanel extends JPanel {
         }
         if (buttonSend != null) {
             buttonSend.setEnabled(enabled);
+        }
+        if (buttonImage != null) {
+            buttonImage.setEnabled(enabled);
         }
 
         this.revalidate();
@@ -211,6 +314,24 @@ public class RightPanel extends JPanel {
 
         if (received && isMe) {
             bubbleBubble.setReceived(true);
+        }
+
+        if (messageId != null && isMe) {
+            bubblesByMessageId.put(messageId, bubbleBubble);
+        }
+
+        rowPanel.add(bubbleBubble);
+        rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowPanel.getPreferredSize().height));
+        repaintChatPanel(rowPanel);
+    }
+
+    public void paintBubbleImage(String base64Image, boolean isMe, String messageId) {
+        JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
+        rowPanel.setOpaque(false);
+        bubbleBubble = new BubbleBubble(base64Image, isMe, true);
+
+        if (isMe) {
+            bubbleBubble.setReceived(false);
         }
 
         if (messageId != null && isMe) {

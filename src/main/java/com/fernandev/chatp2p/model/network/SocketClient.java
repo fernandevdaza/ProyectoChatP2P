@@ -135,6 +135,13 @@ public class SocketClient extends Thread {
                         notificar(this, recibido);
                         break;
                     }
+                    case "021": {
+                        System.out.println("[" + Thread.currentThread().getName() + "] Nueva Imágen!");
+                        MessageImage messageImage = MessageImage.parse(message);
+                        messageImage.setIp(this.getIp());
+                        notificar(this, messageImage);
+                        break;
+                    }
                     case "0018": {
                         System.out.println("[" + Thread.currentThread().getName() + "] Cliente " + this.getIp()
                                 + "está en modo Offline");
