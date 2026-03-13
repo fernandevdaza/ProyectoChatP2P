@@ -83,24 +83,28 @@ public class MessageController {
         return dp.getConversationId();
     }
 
-    public void saveMessage(String id, String conversationId, String senderPeerId, String message) throws Exception {
-        if (id == null && conversationId == null && senderPeerId == null && message == null)
-            return;
-        Message mensaje = Message.builder()
-                .id(id)
-                .conversationId(conversationId)
-                .senderPeerId(senderPeerId)
-                .type(MessageType.values()[2])
-                .textContent(message)
-                .sentAt(LocalDateTime.now())
-                .receivedAt(LocalDateTime.now())
-                .isEphemeral(false)
-                .expiresAt(LocalDateTime.now())
-                .status(MessageStatusType.SENT)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        messageDAO.save(mensaje);
+    public void saveMessage(String id, String conversationId, String senderPeerId, String message) {
+        try {
+            if (id == null && conversationId == null && senderPeerId == null && message == null)
+                return;
+            Message mensaje = Message.builder()
+                    .id(id)
+                    .conversationId(conversationId)
+                    .senderPeerId(senderPeerId)
+                    .type(MessageType.values()[2])
+                    .textContent(message)
+                    .sentAt(LocalDateTime.now())
+                    .receivedAt(LocalDateTime.now())
+                    .isEphemeral(false)
+                    .expiresAt(LocalDateTime.now())
+                    .status(MessageStatusType.SENT)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            messageDAO.save(mensaje);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public List<Message> getConversationMessagesWithConversationId(String conversationId) {

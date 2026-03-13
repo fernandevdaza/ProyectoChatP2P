@@ -103,18 +103,11 @@ public class RightPanel extends JPanel {
 
         new Thread(() -> {
             try {
-                Peer me = mainView.getPeerController().getMyself();
                 String targetId = mainView.getCurrentChatId();
-                String conversationId = MessageController.getInstance()
-                        .getConversationIdByPeerId(mainView.getCurrentChatId());
-
-                Mensaje mensaje = new Mensaje(me.getId(), uuid, texto);
-
-                String hostIp = ConnectionController.getInstance().getHostIpByPeerId(targetId);
-                mensaje.setIp(hostIp);
-
-                MessageController.getInstance().saveMessage(uuid, conversationId, me.getId(), texto);
-                ConnectionController.getInstance().sendMessageById(targetId, mensaje);
+                Mensaje mensaje = new Mensaje();
+                mensaje.setIdMessage(uuid);
+                mensaje.setMessage(texto);
+                ConnectionController.getInstance().sendMessage(targetId, mensaje);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

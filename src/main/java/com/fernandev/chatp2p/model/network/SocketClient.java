@@ -104,6 +104,7 @@ public class SocketClient extends Thread {
                         System.out.println("[" + Thread.currentThread().getName() + "] Hello Recibido!");
                         Hello hello = Hello.parse(message);
                         hello.setIp(this.getIp());
+                        this.setPeerId(hello.getIdUser());
                         notificar(this, hello);
                         break;
                     }

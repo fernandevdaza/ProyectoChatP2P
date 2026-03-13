@@ -46,7 +46,7 @@ public class Hello extends MessageProtocol {
             System.out.println("[" + Thread.currentThread().getName() + "]Hubo un problema al hacer HelloRequest");
             return;
         }
-        this.setIdUser(peerId);
+        this.setIdUser(me.getId());
         client.send(this);
     }
 }

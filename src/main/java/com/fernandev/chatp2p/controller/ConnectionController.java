@@ -63,9 +63,14 @@ public class ConnectionController implements SocketListener {
 
     public void sendMessage(String peerId, MessageProtocol messageProtocol) throws UnreachableException {
         SocketClient socketClient = connections.get(peerId);
+        String ip = PeerController.getInstance().getPeerIpById(peerId);
         if (socketClient == null) {
-            socketClient = this.connectToPeer(peerId);
-            connections.put(messageProtocol.getIp(), socketClient);
+            if (ip == null) ip = peerId;
+            socketClient = this.connectToPeer(ip);
+            connections.put(ip, socketClient);
+        }
+        if(socketClient.getPeerId() == null && ip != null){
+            socketClient.setPeerId(peerId);
         }
         messageProtocol.execute(socketClient);
     }
@@ -267,7 +272,7 @@ public class ConnectionController implements SocketListener {
 
             if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
                 Recibido recibido = new Recibido(msg.getIdMessage());
-                sendMessageById(msg.getIdUser(), recibido);
+                this.sendMessage(ui.getCurrentChatId(), recibido);
             }
 
         } catch (Exception e) {
@@ -304,14 +309,10 @@ public class ConnectionController implements SocketListener {
         try {
             String peerId = hello.getIdUser();
             if (peerController.getPeerById(peerId) != null) {
-                Peer me = peerController.getMyself();
-                HelloAccept helloAccept = new HelloAccept(me.getId());
-                sendMessageInternal(helloAccept, socketClient);
-                connections.put(peerId, socketClient);
+                ConnectionController.getInstance().sendMessage(peerId, new HelloAccept());
                 ui.onHelloAccepted(peerId);
             } else {
-                HelloReject helloReject = new HelloReject();
-                sendMessageInternal(helloReject, socketClient);
+                ConnectionController.getInstance().sendMessage(peerId, new HelloReject());
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -320,11 +321,13 @@ public class ConnectionController implements SocketListener {
 
     private void handleHelloAccept(SocketClient socketClient, HelloAccept helloAccept) {
         String peerId = helloAccept.getIdUser();
+        connections.remove(helloAccept.getIp());
         connections.put(peerId, socketClient);
         ui.onHelloAccepted(peerId);
     }
 
     private void handleHelloReject(HelloReject helloReject) {
+        connections.remove(helloReject.getIp());
         ui.onHelloRejected(helloReject.getIp());
     }
 

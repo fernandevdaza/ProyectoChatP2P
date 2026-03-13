@@ -39,6 +39,7 @@ public class Recibido extends MessageProtocol {
 
     @Override
     public void execute(SocketClient client) {
+        this.setIp(client.getHostIp());
         client.send(this);
     }
 }
