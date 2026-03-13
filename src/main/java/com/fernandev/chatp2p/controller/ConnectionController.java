@@ -272,7 +272,7 @@ public class ConnectionController implements SocketListener {
 
             if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
                 Recibido recibido = new Recibido(msg.getIdMessage());
-                this.sendMessage(ui.getCurrentChatId(), recibido);
+                this.sendMessage(msg.getIdUser(), recibido);
             }
 
         } catch (Exception e) {
@@ -286,7 +286,7 @@ public class ConnectionController implements SocketListener {
 
             if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
                 Recibido recibido = new Recibido(msg.getIdMessage());
-                sendMessageById(msg.getIdUser(), recibido);
+                this.sendMessage(msg.getIdUser(), recibido);
             }
 
         } catch (Exception e) {
