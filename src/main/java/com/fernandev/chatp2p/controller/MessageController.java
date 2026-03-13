@@ -34,27 +34,36 @@ public class MessageController {
         return instance;
     }
 
-    public String createConversation() throws Exception {
-        String uuid = UUID.randomUUID().toString();
-        Conversation conversation = Conversation.builder()
-                .id(uuid)
-                .type(ConversationType.values()[1])
-                .title(null)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+    public String createConversation() {
+       try {
+           String uuid = UUID.randomUUID().toString();
+           Conversation conversation = Conversation.builder()
+                   .id(uuid)
+                   .type(ConversationType.values()[1])
+                   .title(null)
+                   .createdAt(LocalDateTime.now())
+                   .updatedAt(LocalDateTime.now())
+                   .build();
 
-        conversationDao.save(conversation);
-        return conversation.getId();
+           conversationDao.save(conversation);
+           return conversation.getId();
+       } catch (Exception e){
+           e.printStackTrace();
+           return null;
+       }
     }
 
-    public void setPeerToConversation(String conversationId, String peerId) throws Exception {
-        DirectParticipants directParticipants = DirectParticipants.builder()
-                .conversationId(conversationId)
-                .peerId(peerId)
-                .build();
+    public void setPeerToConversation(String conversationId, String peerId) {
+        try {
+            DirectParticipants directParticipants = DirectParticipants.builder()
+                    .conversationId(conversationId)
+                    .peerId(peerId)
+                    .build();
 
-        directParticipantsDAO.save(directParticipants);
+            directParticipantsDAO.save(directParticipants);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public String getConversationIdByPeerId(String peerId) {

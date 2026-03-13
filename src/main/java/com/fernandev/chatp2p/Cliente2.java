@@ -5,6 +5,7 @@ import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.ChatServer;
+import com.fernandev.chatp2p.model.repository.DatabaseConnection;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.ChatUI;
 
@@ -12,11 +13,13 @@ import javax.swing.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class Main {
+public class Cliente2 {
 
     public static void main(String[] args) {
-        int port = 1900;
-        ConnectionController.getInstance().setPort(1901);
+        int port = 1901;
+        ConnectionController.getInstance().setPort(1900);
+
+        DatabaseConnection.setUrl("jdbc:sqlite:./upbot2.db");
 
         java.awt.EventQueue.invokeLater(() -> {
             Thread.currentThread().setName("UI-Thread");

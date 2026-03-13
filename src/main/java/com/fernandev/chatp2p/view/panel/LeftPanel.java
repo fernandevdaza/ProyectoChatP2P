@@ -3,6 +3,7 @@ package com.fernandev.chatp2p.view.panel;
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
+import com.fernandev.chatp2p.model.entities.command.Invitacion;
 import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
@@ -142,9 +143,7 @@ public class LeftPanel extends JPanel {
             if (ip != null && !ip.isEmpty()) {
                 new Thread(() -> {
                     try {
-                        Peer me = mainView.getPeerController().getMyself();
-                        ConnectionController.getInstance().connectAndSendInvitation(ip, me.getId(),
-                                me.getDisplayName());
+                        ConnectionController.getInstance().sendMessage(ip, new Invitacion());
                     } catch (UnreachableException ue) {
                         javax.swing.SwingUtilities
                                 .invokeLater(() -> JOptionPane.showMessageDialog(this, ue.getMessage()));

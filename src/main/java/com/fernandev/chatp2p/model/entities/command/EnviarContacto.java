@@ -1,5 +1,7 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.model.network.SocketClient;
+
 import java.util.regex.Pattern;
 
 public class EnviarContacto extends MessageProtocol {
@@ -51,5 +53,10 @@ public class EnviarContacto extends MessageProtocol {
     @Override
     public String generarTrama() {
         return getCodigo() + "|" + getIdUser() + "|" + getUserName() + "|" + getUserIp() + System.lineSeparator();
+    }
+
+    @Override
+    public void execute(SocketClient client) {
+
     }
 }

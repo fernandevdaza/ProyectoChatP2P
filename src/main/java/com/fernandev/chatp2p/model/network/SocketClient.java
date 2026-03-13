@@ -13,18 +13,19 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
 
-/**
- * @author rlaredo
- */
 public class SocketClient extends Thread {
     private final Socket socket;
     private final String ip;
+    private String peerId;
+    private String displayName;
     private final DataOutputStream dout;
     private final BufferedReader br;
+    private boolean isRejected = false;
     private SocketListener listener;
 
     public SocketClient(Socket socket) throws IOException {
@@ -35,7 +36,8 @@ public class SocketClient extends Thread {
     }
 
     public SocketClient(String ip, int port) throws IOException {
-        this.socket = new Socket(ip, port);
+        this.socket = new Socket();
+        socket.connect(new InetSocketAddress(ip, port), 3000);
         this.ip = ip;
         dout = new DataOutputStream(socket.getOutputStream());
         br = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
@@ -45,11 +47,28 @@ public class SocketClient extends Thread {
         this.listener = listener;
     }
 
+    public void setPeerId(String peerId) {
+        this.peerId = peerId;
+    }
+
+    public String getPeerId() {
+        return this.peerId;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
     @Override
     public void run() {
         try {
             String message;
             while ((message = br.readLine()) != null) {
+                this.isRejected = false;
                 System.out.println(message);
                 String split[] = message.split(Pattern.quote("|"));
                 if (split.length == 0) {
@@ -61,6 +80,8 @@ public class SocketClient extends Thread {
                         System.out.println("[" + Thread.currentThread().getName() + "] Es invitacion");
                         Invitacion invitacion = Invitacion.parse(message);
                         invitacion.setIp(this.getIp());
+                        this.setPeerId(invitacion.getIdUsuario());
+                        this.setDisplayName(invitacion.getNombre());
                         notificar(this, invitacion);
                         break;
                     }
@@ -76,6 +97,7 @@ public class SocketClient extends Thread {
                         Rechazar rechazar = Rechazar.parse(message);
                         rechazar.setIp(this.getIp());
                         notificar(this, rechazar);
+                        this.isRejected = true;
                         break;
                     }
                     case "004": {
@@ -123,12 +145,15 @@ public class SocketClient extends Thread {
                     }
                 }
             }
-
+            if (!isRejected) {
+                onDisconnect(this);
+            }
+            close();
         } catch (IOException e) {
-            e.printStackTrace();
+            if (!this.socket.isClosed()) {
+                e.printStackTrace();
+            }
         }
-        onDisconnect(this);
-        close();
     }
 
     public void notificar(SocketClient socketClient, MessageProtocol messageProtocol) {
@@ -140,7 +165,7 @@ public class SocketClient extends Thread {
         SwingUtilities.invokeLater(() -> ConnectionController.getInstance().onClientDisconnected(socketClient));
     }
 
-    public void send(MessageProtocol messageProtocol) throws IOException {
+    public void send(MessageProtocol messageProtocol) {
         try {
             dout.write(messageProtocol.generarTrama().getBytes("UTF-8"));
             dout.flush();
@@ -159,6 +184,10 @@ public class SocketClient extends Thread {
 
     public int getPort() {
         return this.socket.getPort();
+    }
+
+    public boolean isClosed() {
+        return socket.isClosed();
     }
 
     public void close() {

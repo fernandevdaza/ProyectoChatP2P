@@ -8,12 +8,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class PeerController {
-    private PeerDao peerDao;
+    private static PeerController peerController = new PeerController();
+    private PeerDao peerDao = PeerDao.getInstance();
     private IView view;
 
-    public PeerController(IView view) {
-        peerDao = PeerDao.getInstance();
+    public PeerController() {
+    }
+
+    public void setView(IView view){
         this.view = view;
+    }
+
+    public static PeerController getInstance(){
+        return peerController;
     }
 
     public void onLoad() {
@@ -30,20 +37,24 @@ public class PeerController {
         return peerDao.findMe();
     }
 
-    public void savePeer(String ip, String id, String displayName, int port) throws Exception {
-        if (ip == null && id == null && displayName == null)
-            return;
-        Peer peer = Peer.builder()
-                .id(id)
-                .displayName(displayName)
-                .isSelf(0)
-                .lastIpAddr(ip)
-                .lastPort(port)
-                .lastSeenAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        peerDao.save(peer);
+    public void savePeer(String ip, String id, String displayName, int port) {
+       try {
+           if (ip == null && id == null && displayName == null)
+               return;
+           Peer peer = Peer.builder()
+                   .id(id)
+                   .displayName(displayName)
+                   .isSelf(0)
+                   .lastIpAddr(ip)
+                   .lastPort(port)
+                   .lastSeenAt(LocalDateTime.now())
+                   .createdAt(LocalDateTime.now())
+                   .updatedAt(LocalDateTime.now())
+                   .build();
+           peerDao.save(peer);
+       }catch (Exception e){
+           e.printStackTrace();
+       }
     }
 
     public String getPeerIdByIp(String ip) {

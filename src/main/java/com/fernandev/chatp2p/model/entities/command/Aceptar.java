@@ -1,5 +1,11 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.controller.MessageController;
+import com.fernandev.chatp2p.controller.PeerController;
+import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.network.SocketClient;
+
 import java.util.regex.Pattern;
 
 public class Aceptar extends MessageProtocol {
@@ -27,6 +33,20 @@ public class Aceptar extends MessageProtocol {
     @Override
     public String generarTrama() {
         return getCodigo() +"|" +idUsuario +"|" +nombre + System.lineSeparator();
+    }
+
+    @Override
+    public void execute(SocketClient client) {
+        Peer me = PeerController.getInstance().getMyself();
+        this.setIdUsuario(me.getId());
+        this.setNombre(me.getDisplayName());
+        client.send(this);
+
+        PeerController.getInstance().savePeer(client.getIp(), client.getPeerId(), client.getDisplayName(), client.getPort());
+
+        String conversationId = MessageController.getInstance().createConversation();
+
+        MessageController.getInstance().setPeerToConversation(conversationId, client.getPeerId());
     }
 
     public String getIdUsuario() {

@@ -1,5 +1,10 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.controller.PeerController;
+import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.network.SocketClient;
+
 import java.util.regex.Pattern;
 
 public class Invitacion extends MessageProtocol {
@@ -27,6 +32,14 @@ public class Invitacion extends MessageProtocol {
     @Override
     public String generarTrama() {
         return getCodigo() +"|" +idUsuario +"|" +nombre + System.lineSeparator();
+    }
+
+    @Override
+    public void execute(SocketClient client) {
+        Peer me = PeerController.getInstance().getMyself();
+        this.setIdUsuario(me.getId());
+        this.setNombre(me.getDisplayName());
+        client.send(this);
     }
 
     public String getIdUsuario() {

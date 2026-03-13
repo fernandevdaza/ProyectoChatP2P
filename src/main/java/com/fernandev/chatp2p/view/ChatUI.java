@@ -196,7 +196,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     }
 
     public void onDisconnect(String ip) {
-        String message = "Cliente con ip: " + ip + " se desconectó";
+        String message = "Conexión con cliente de ip: " + ip + " cerrada";
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message));
     }
 

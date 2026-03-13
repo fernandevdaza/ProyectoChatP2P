@@ -25,7 +25,6 @@ public class RightPanel extends JPanel {
     private BubbleBubble bubbleBubble;
     private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
 
-    // Mapa de messageId → BubbleBubble para poder marcar el check al recibir 008
     private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
 
     private ChatUI mainView;
