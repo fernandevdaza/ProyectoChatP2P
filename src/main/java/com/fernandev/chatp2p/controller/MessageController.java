@@ -27,7 +27,7 @@ public class MessageController {
         this.directParticipantsDAO = DirectParticipantsDAO.getInstance();
         this.messageDAO = MessageDAO.getInstance();
         this.messageReceiptDAO = MessageReceiptDAO.getInstance();
-        this.peerDao = PeerDao.getInstance();
+        this.peerDao = new PeerDao();
     }
 
     public static MessageController getInstance() {

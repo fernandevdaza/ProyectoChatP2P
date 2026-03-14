@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PeerController {
     private static PeerController peerController = new PeerController();
-    private PeerDao peerDao = PeerDao.getInstance();
+    private PeerDao peerDao = new PeerDao();
     private IView view;
 
     public PeerController() {
@@ -88,5 +88,13 @@ public class PeerController {
         if (peer == null)
             return null;
         return peer.getDisplayName();
+    }
+
+    public Peer getPeerByIp(String ip){
+        Peer peer = peerDao.findByIp(ip);
+        if (peer == null){
+            return null;
+        }
+        return peer;
     }
 }

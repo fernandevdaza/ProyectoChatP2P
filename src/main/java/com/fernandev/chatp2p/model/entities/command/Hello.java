@@ -1,5 +1,6 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.model.repository.PeerDao;
@@ -39,8 +40,8 @@ public class Hello extends MessageProtocol {
 
     @Override
     public void execute(SocketClient client) {
-        Peer me = PeerDao.getInstance().findMe();
-        String peerId = PeerDao.getInstance().findByIp(client.getIp()) != null ? PeerDao.getInstance().findByIp(client.getIp()).getId()
+        Peer me = PeerController.getInstance().getMyself();
+        String peerId = PeerController.getInstance().getPeerByIp(client.getIp()) != null ? PeerController.getInstance().getPeerByIp(client.getIp()).getId()
                 : null;
         if (me == null || peerId == null || client == null) {
             System.out.println("[" + Thread.currentThread().getName() + "]Hubo un problema al hacer HelloRequest");

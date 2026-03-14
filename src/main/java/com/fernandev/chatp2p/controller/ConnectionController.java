@@ -113,8 +113,8 @@ public class ConnectionController implements SocketListener {
 
     public void sendHelloToPeer(String ip) {
         try {
-            Peer me = PeerDao.getInstance().findMe();
-            String peerId = PeerDao.getInstance().findByIp(ip) != null ? PeerDao.getInstance().findByIp(ip).getId()
+            Peer me = peerController.getMyself();
+            String peerId = peerController.getPeerByIp(ip) != null ? peerController.getPeerByIp(ip).getId()
                     : null;
             SocketClient socketClient = this.connectToPeer(ip);
             if (me == null || peerId == null || socketClient == null) {
@@ -134,7 +134,7 @@ public class ConnectionController implements SocketListener {
         if (isOffline) {
             this.setOffline(false);
         } else {
-            Peer me = PeerDao.getInstance().findMe();
+            Peer me = peerController.getMyself();
             Offline offline = new Offline(me.getId());
             connections.forEach((id, socketClient) -> {
                 this.sendMessageInternal(offline, socketClient);
@@ -183,7 +183,7 @@ public class ConnectionController implements SocketListener {
     @Override
     public void onMessageReceived(SocketClient socketClient, MessageProtocol messageProtocol) {
         if (this.isOffline) {
-            Peer me = PeerDao.getInstance().findMe();
+            Peer me = peerController.getMyself();
             Offline offline = new Offline(me.getId());
             this.sendMessageInternal(offline, socketClient);
             return;
@@ -338,7 +338,7 @@ public class ConnectionController implements SocketListener {
 
     @Override
     public void onClientDisconnected(SocketClient socketClient) {
-        Peer peer = PeerDao.getInstance().findByIp(socketClient.getIp());
+        Peer peer = peerController.getPeerByIp(socketClient.getIp());
 
         if (peer == null) {
             ui.onDisconnect(socketClient.getIp());

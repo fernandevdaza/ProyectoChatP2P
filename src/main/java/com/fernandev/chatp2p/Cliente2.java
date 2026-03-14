@@ -21,9 +21,11 @@ public class Cliente2 {
 
         DatabaseConnection.setUrl("jdbc:sqlite:./upbot2.db");
 
+        PeerDao peerDao = new PeerDao();
+
         java.awt.EventQueue.invokeLater(() -> {
             Thread.currentThread().setName("UI-Thread");
-            Peer myself = PeerDao.getInstance().findMe();
+            Peer myself = peerDao.findMe();
             if (myself == null) {
                 String displayName = JOptionPane.showInputDialog(null,
                         "Bienvenido! Ingresa tu nombre de usuario:",
@@ -59,7 +61,7 @@ public class Cliente2 {
                         .build();
 
                 try {
-                    PeerDao.getInstance().save(selfPeer);
+                    peerDao.save(selfPeer);
                     System.out.println("Se creó el peer propio: " + selfPeer.getDisplayName());
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(null,

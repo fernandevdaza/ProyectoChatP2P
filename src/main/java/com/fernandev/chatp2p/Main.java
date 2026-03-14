@@ -17,10 +17,10 @@ public class Main {
     public static void main(String[] args) {
         int port = 1900;
         ConnectionController.getInstance().setPort(1900);
-
+        PeerDao peerDao = new PeerDao();
         java.awt.EventQueue.invokeLater(() -> {
             Thread.currentThread().setName("UI-Thread");
-            Peer myself = PeerDao.getInstance().findMe();
+            Peer myself = peerDao.findMe();
             if (myself == null) {
                 String displayName = JOptionPane.showInputDialog(null,
                         "Bienvenido! Ingresa tu nombre de usuario:",
@@ -56,7 +56,7 @@ public class Main {
                         .build();
 
                 try {
-                    PeerDao.getInstance().save(selfPeer);
+                    peerDao.save(selfPeer);
                     System.out.println("Se creó el peer propio: " + selfPeer.getDisplayName());
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(null,

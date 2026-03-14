@@ -11,14 +11,13 @@ import java.util.List;
 import java.time.LocalDateTime;
 
 
-public class PeerDao {
+public class PeerDao implements IPeerDao{
     private final DAOHelper<Peer> helper;
-    private final static PeerDao peerDao = new PeerDao();
 
-    public static PeerDao getInstance(){
-        return peerDao;
-    }
-    private PeerDao() {
+//    public static PeerDao getInstance(){
+//        return peerDao;
+//    }
+    public PeerDao() {
         helper = new DAOHelper<>();
     }
 
@@ -61,11 +60,13 @@ public class PeerDao {
         return false;
     }
 
+    @Override
     public List<Peer> findAll() throws ConnectException, SQLException {
         String query = "SELECT * FROM peers";
         return helper.executeQuery(query, resultReader);
     }
 
+    @Override
     public List<Peer> findAllExceptMe(){
         try {
             String query = "SELECT * FROM peers WHERE is_self = 0";
@@ -76,17 +77,17 @@ public class PeerDao {
         }
     }
 
-
+    @Override
     public boolean exist(String argument) throws ConnectException, SQLException {
         String query = "SELECT count(*) FROM peers WHERE " + argument;
         return helper.executeQueryCount(query, null) == 1;
     }
-
+    @Override
     public boolean existByName(String name) throws ConnectException, SQLException {
         String query = "SELECT count(*) FROM peers WHERE display_name='" + name + "'";
         return helper.executeQueryCount(query, null) == 1;
     }
-
+    @Override
     public Peer findByName(String name) throws ConnectException, SQLException {
         String query = "SELECT * FROM peers WHERE display_name ='" + name + "'";
         System.out.println("[" + Thread.currentThread().getName() + "] " + query);
@@ -96,7 +97,7 @@ public class PeerDao {
         }
         return list.getFirst();
     }
-
+    @Override
     public Peer findByIp(String ip){
         try {
             String query = "SELECT * FROM peers WHERE last_ip_addr ='" + ip + "'" + " AND is_self = 0";
@@ -111,7 +112,7 @@ public class PeerDao {
             return null;
         }
     }
-
+    @Override
     public Peer findMe() {
         try {
             String query = "SELECT * FROM peers WHERE is_self=1";
@@ -126,12 +127,12 @@ public class PeerDao {
             return null;
         }
     }
-
+    @Override
     public boolean existById(String id) throws ConnectException, SQLException {
         String query = "SELECT count(*) FROM peers WHERE id='" + id + "'";
         return helper.executeQueryCount(query, null) == 1;
     }
-
+    @Override
     public Peer findById(String id)  {
         try {
             String query = "SELECT * FROM peers WHERE id ='" + id + "'";
@@ -146,11 +147,11 @@ public class PeerDao {
             return null;
         }
     }
-
+    @Override
     public void update(String query) throws Exception {
         helper.update(query, null);
     }
-
+    @Override
     public void save(Peer peer) throws Exception {
         String query = "INSERT INTO peers(id, display_name, is_self, last_ip_addr, last_port, last_seen_at, created_at, updated_at) values (?,?,?,?,?,?,?,?)";
         QueryParameters params = new QueryParameters() {
@@ -168,7 +169,7 @@ public class PeerDao {
         };
         helper.insert(query, params, peer);
     }
-
+    @Override
     public void update(Peer peer) throws Exception {
         String query = "UPDATE contact SET last_ip_addr=? WHERE id=?";
         QueryParameters params = new QueryParameters() {
@@ -180,7 +181,7 @@ public class PeerDao {
         };
         helper.update(query, params);
     }
-
+    @Override
     public void update(String query, String conditionWhere) throws Exception {
         if (query.trim().endsWith("%s")) {
             query = String.format(query, conditionWhere);

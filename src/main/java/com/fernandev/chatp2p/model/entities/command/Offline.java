@@ -1,5 +1,6 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.model.repository.PeerDao;
@@ -38,7 +39,7 @@ public class Offline extends MessageProtocol {
 
     @Override
     public void execute(SocketClient client) {
-        Peer me = PeerDao.getInstance().findMe();
+        Peer me = PeerController.getInstance().getMyself();
         this.setIdUser(me.getId());
         client.send(this);
     }

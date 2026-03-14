@@ -8,17 +8,17 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface IPeerDao {
-    public List<Peer> findAll() throws ConnectException, SQLException;
-    public List<Peer> findAllExceptMe();
-    public boolean exist(String argument) throws ConnectException, SQLException;
-    public boolean existByName(String name) throws ConnectException, SQLException;
-    public Peer findByName(String name) throws ConnectException, SQLException;
-    public Peer findByIp(String ip);
-    public Peer findMe();
-    public boolean existById(String id) throws ConnectException, SQLException;
-    public Peer findById(String id);
-    public void update(String query) throws Exception;
-    public void save(Peer peer) throws Exception;
-    public void update(Peer peer) throws Exception;
-    public void update(String query, String conditionWhere) throws Exception;
+    List<Peer> findAll() throws ConnectException, SQLException;
+    List<Peer> findAllExceptMe();
+    boolean exist(String argument) throws ConnectException, SQLException;
+    boolean existByName(String name) throws ConnectException, SQLException;
+    Peer findByName(String name) throws ConnectException, SQLException;
+    Peer findByIp(String ip);
+    Peer findMe();
+    boolean existById(String id) throws ConnectException, SQLException;
+    Peer findById(String id);
+    void update(String query) throws Exception;
+    void save(Peer peer) throws Exception;
+    void update(Peer peer) throws Exception;
+    void update(String query, String conditionWhere) throws Exception;
     }
