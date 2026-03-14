@@ -159,7 +159,9 @@ public class SocketClient extends Thread {
             close();
         } catch (IOException e) {
             if (!this.socket.isClosed()) {
-                e.printStackTrace();
+//                e.printStackTrace();
+                onDisconnect(this);
+                close();
             }
         }
     }
