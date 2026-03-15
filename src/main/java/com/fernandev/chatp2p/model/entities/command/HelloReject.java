@@ -1,5 +1,6 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.model.network.SocketClient;
 
 import java.util.regex.Pattern;
@@ -23,6 +24,7 @@ public class HelloReject extends MessageProtocol {
     @Override
     public void execute(SocketClient client) {
         client.send(this);
+        ConnectionController.getInstance().removeConnection(client.getPeerId(), false);
     }
 
 }

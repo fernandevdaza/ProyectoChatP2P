@@ -14,9 +14,6 @@ import java.time.LocalDateTime;
 public class PeerDao implements IPeerDao{
     private final DAOHelper<Peer> helper;
 
-//    public static PeerDao getInstance(){
-//        return peerDao;
-//    }
     public PeerDao() {
         helper = new DAOHelper<>();
     }

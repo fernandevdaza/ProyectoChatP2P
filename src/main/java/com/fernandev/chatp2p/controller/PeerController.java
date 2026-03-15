@@ -1,6 +1,8 @@
 package com.fernandev.chatp2p.controller;
 
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.repository.CachePeerDao;
+import com.fernandev.chatp2p.model.repository.IPeerDao;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.interfaces.IView;
 
@@ -9,7 +11,8 @@ import java.util.List;
 
 public class PeerController {
     private static PeerController peerController = new PeerController();
-    private PeerDao peerDao = new PeerDao();
+    private IPeerDao peerDao = new CachePeerDao(new PeerDao());
+    ;
     private IView view;
 
     public PeerController() {

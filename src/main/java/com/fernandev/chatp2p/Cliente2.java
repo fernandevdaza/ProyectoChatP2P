@@ -5,7 +5,9 @@ import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.ChatServer;
+import com.fernandev.chatp2p.model.repository.CachePeerDao;
 import com.fernandev.chatp2p.model.repository.DatabaseConnection;
+import com.fernandev.chatp2p.model.repository.IPeerDao;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.ChatUI;
 
@@ -21,10 +23,10 @@ public class Cliente2 {
 
         DatabaseConnection.setUrl("jdbc:sqlite:./upbot2.db");
 
-        PeerDao peerDao = new PeerDao();
+        IPeerDao peerDao = new CachePeerDao(new PeerDao());
 
         java.awt.EventQueue.invokeLater(() -> {
-            Thread.currentThread().setName("UI-Thread");
+            Thread.currentThread().setName("UI-Thread-Client-2");
             Peer myself = peerDao.findMe();
             if (myself == null) {
                 String displayName = JOptionPane.showInputDialog(null,

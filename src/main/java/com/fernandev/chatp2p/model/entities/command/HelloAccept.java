@@ -43,6 +43,5 @@ public class HelloAccept extends MessageProtocol {
             Peer me = PeerController.getInstance().getMyself();
             this.setIdUser(me.getId());
             client.send(this);
-            ConnectionController.getInstance().addConnection(client.getPeerId(), client);
     }
 }

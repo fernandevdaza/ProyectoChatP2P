@@ -75,12 +75,6 @@ public class ConnectionController implements SocketListener {
         messageProtocol.execute(socketClient);
     }
 
-    public void connectAndSendInvitation(String ip, String myId, String myName) throws UnreachableException {
-        SocketClient socketClient = connectToPeer(ip);
-        connections.put(ip, socketClient);
-        Invitacion invitacion = new Invitacion(myId, myName);
-        sendMessageInternal(invitacion, socketClient);
-    }
 
     public void sendMessageById(String peerId, MessageProtocol messageProtocol) {
         SocketClient socketClient = connections.get(peerId);
@@ -99,35 +93,9 @@ public class ConnectionController implements SocketListener {
         return null;
     }
 
-    public int getPortByPeerId(String peerId) {
-        SocketClient socketClient = connections.get(peerId);
-        if (socketClient != null) {
-            return socketClient.getPort();
-        }
-        return 0;
-    }
 
     private void sendMessageInternal(MessageProtocol messageProtocol, SocketClient socketClient) {
         socketClient.send(messageProtocol);
-    }
-
-    public void sendHelloToPeer(String ip) {
-        try {
-            Peer me = peerController.getMyself();
-            String peerId = peerController.getPeerByIp(ip) != null ? peerController.getPeerByIp(ip).getId()
-                    : null;
-            SocketClient socketClient = this.connectToPeer(ip);
-            if (me == null || peerId == null || socketClient == null) {
-                System.out.println("[" + Thread.currentThread().getName() + "]Hubo un problema al hacer HelloRequest");
-                return;
-            }
-            MessageProtocol hello = new Hello(me.getId());
-            this.sendMessageInternal(hello, socketClient);
-        } catch (UnreachableException ue) {
-            ue.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void onModeOffline() throws SQLException, ConnectException {
@@ -309,9 +277,11 @@ public class ConnectionController implements SocketListener {
         try {
             String peerId = hello.getIdUser();
             if (peerController.getPeerById(peerId) != null) {
+                this.addConnection(peerId, socketClient);
                 ConnectionController.getInstance().sendMessage(peerId, new HelloAccept());
                 ui.onHelloAccepted(peerId);
             } else {
+                this.addConnection(peerId, socketClient);
                 ConnectionController.getInstance().sendMessage(peerId, new HelloReject());
             }
         } catch (Exception e) {

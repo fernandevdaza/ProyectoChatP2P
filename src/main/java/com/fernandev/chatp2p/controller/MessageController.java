@@ -3,11 +3,7 @@ package com.fernandev.chatp2p.controller;
 import com.fernandev.chatp2p.model.entities.command.Mensaje;
 import com.fernandev.chatp2p.model.entities.command.Recibido;
 import com.fernandev.chatp2p.model.entities.db.*;
-import com.fernandev.chatp2p.model.repository.ConversationDao;
-import com.fernandev.chatp2p.model.repository.DirectParticipantsDAO;
-import com.fernandev.chatp2p.model.repository.MessageDAO;
-import com.fernandev.chatp2p.model.repository.MessageReceiptDAO;
-import com.fernandev.chatp2p.model.repository.PeerDao;
+import com.fernandev.chatp2p.model.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,17 +16,18 @@ public class MessageController {
     private final DirectParticipantsDAO directParticipantsDAO;
     private final MessageDAO messageDAO;
     private final MessageReceiptDAO messageReceiptDAO;
-    private final PeerDao peerDao;
+    private final IPeerDao peerDao;
 
     private MessageController() {
         this.conversationDao = ConversationDao.getInstance();
         this.directParticipantsDAO = DirectParticipantsDAO.getInstance();
-        this.messageDAO = MessageDAO.getInstance();
+        this.messageDAO = new MessageDAO();
         this.messageReceiptDAO = MessageReceiptDAO.getInstance();
-        this.peerDao = new PeerDao();
+        this.peerDao = new CachePeerDao(new PeerDao());
+
     }
 
-    public static MessageController getInstance() {
+    public static MessageController getInstance(){
         return instance;
     }
 
@@ -135,6 +132,6 @@ public class MessageController {
     }
 
     public void setReceived(Message msg){
-        MessageDAO.getInstance().updateStatus(msg, MessageStatusType.RECEIVED);
+        messageDAO.updateStatus(msg, MessageStatusType.RECEIVED);
     }
 }
