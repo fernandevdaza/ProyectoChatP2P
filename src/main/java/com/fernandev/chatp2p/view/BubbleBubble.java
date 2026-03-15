@@ -1,8 +1,14 @@
 package com.fernandev.chatp2p.view;
 
+import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.controller.MessageController;
+import com.fernandev.chatp2p.model.entities.command.EliminarMensaje;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
@@ -13,19 +19,20 @@ import javax.imageio.ImageIO;
 public class BubbleBubble extends JPanel {
     private final String text;
     private final boolean isMe;
+    private final String idMessage;
     private JLabel checkLabel;
     private static final Color COLOR_MY_BUBBLE = new Color(220, 248, 198);
     private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255);
     private static final Color COLOR_CHECK = new Color(53, 162, 235);
 
-    public BubbleBubble(String content, boolean isMe) {
-        this(content, isMe, false);
+    public BubbleBubble(String content, boolean isMe, String idMessage) {
+        this(content, isMe, false, idMessage);
     }
 
-    public BubbleBubble(String content, boolean isMe, boolean isImage) {
+    public BubbleBubble(String content, boolean isMe, boolean isImage, String idMessage) {
         this.text = content;
         this.isMe = isMe;
-
+        this.idMessage = idMessage;
         setLayout(new BorderLayout(0, 2));
         setOpaque(false);
         setBorder(new EmptyBorder(8, 12, 8, 12));
@@ -104,6 +111,7 @@ public class BubbleBubble extends JPanel {
         }
 
         add(bottomPanel, BorderLayout.SOUTH);
+        setupContextMenu();
     }
 
     public void setReceived(boolean received) {
@@ -124,5 +132,58 @@ public class BubbleBubble extends JPanel {
 
         g2.dispose();
         super.paintComponent(g);
+    }
+
+    private void setupContextMenu(){
+        JPopupMenu popupMenu = new JPopupMenu();
+
+        JMenuItem deleteItem = new JMenuItem("Eliminar para mí");
+        deleteItem.addActionListener(e -> {
+            MessageController.getInstance().deleteMessage(this.idMessage);
+        });
+
+        popupMenu.add(deleteItem);
+        popupMenu.add(new JSeparator());
+
+        if(isMe){
+            JMenuItem deleteEveryoneItem = new JMenuItem("Eliminar para todos");
+            JMenuItem pinItem = new JMenuItem("Fijar mensaje");
+
+            deleteEveryoneItem.addActionListener(e -> {
+                String senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
+                EliminarMensaje eliminarMensaje = new EliminarMensaje();
+                eliminarMensaje.setIdMessage(this.idMessage);
+                ConnectionController.getInstance().sendMessage(senderPeerId, eliminarMensaje);
+                MessageController.getInstance().deleteMessage(this.idMessage);
+            });
+
+            popupMenu.add(deleteEveryoneItem);
+            
+
+        }
+
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showMenu(e);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showMenu(e);
+                }
+            }
+            private void showMenu(MouseEvent e) {
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        });
+
+    }
+
+    public String getIdMessage(){
+        return this.idMessage;
     }
 }

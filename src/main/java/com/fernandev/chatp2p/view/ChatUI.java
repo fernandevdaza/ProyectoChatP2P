@@ -31,7 +31,12 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     private LeftPanel leftPanel;
     private RightPanel rightPanel;
 
-    DefaultListModel<Peer> listModel = new DefaultListModel<>();
+    DefaultListModel<Peer> peerDefaultListModel = new DefaultListModel<>();
+
+    private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
+
+    private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
+
 
     public ChatUI() {
         setTitle("Chat P2P");
@@ -40,7 +45,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        this.leftPanel = new LeftPanel(this, listModel);
+        this.leftPanel = new LeftPanel(this);
         add(leftPanel, BorderLayout.WEST);
 
         this.rightPanel = new RightPanel(this);
@@ -69,6 +74,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.remove(this.rightPanel);
 
         this.setRightPanel(new RightPanel(this));
+
+        this.getLeftPanel().loadSelectedChat(this.currentChatId);
 
         this.add(this.rightPanel, BorderLayout.CENTER);
 
@@ -106,6 +113,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.currentChatId = id;
     }
 
+
     public boolean getContactSelected() {
         return this.isContactSelected;
     }
@@ -113,6 +121,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     public void setContactSelected(boolean selected) {
         this.isContactSelected = selected;
     }
+
 
     public boolean getContactSelectedConected() {
         return this.isContactSelectedConnected;
@@ -122,25 +131,37 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.isContactSelectedConnected = connected;
     }
 
-    public void setPeerController(PeerController peerController) {
-        this.peerController = peerController;
-    }
 
     public PeerController getPeerController() {
         return this.peerController;
     }
 
-    public void setMessageController(MessageController messageController) {
-        this.messageController = messageController;
+    public void setPeerController(PeerController peerController) {
+        this.peerController = peerController;
+    }
+
+
+    public DefaultListModel<Peer> getPeerDefaultListModel(){
+        return peerDefaultListModel;
+    }
+
+    public Map<String, List<BubbleData>> getChatHistory(){
+        return chatHistory;
+    }
+
+
+    public Map<String, BubbleBubble> getBubblesByMessageId(){
+        return bubblesByMessageId;
     }
 
     public MessageController getMessageController() {
         return this.messageController;
     }
 
-    public void paintBubbleInRightPanel(String text, boolean isMe) {
-        this.rightPanel.paintBubble(text, isMe);
+    public void setMessageController(MessageController messageController) {
+        this.messageController = messageController;
     }
+
 
     public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received) {
         this.rightPanel.paintBubble(text, isMe, messageId, received);
@@ -169,11 +190,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
         new Thread(() -> {
             SwingUtilities.invokeLater(() -> {
-                listModel.clear();
+                peerDefaultListModel.clear();
 
-                listModel.addAll(validPeers);
+                peerDefaultListModel.addAll(validPeers);
 
-                leftPanel.setListModel(listModel);
+//                leftPanel.setListModel(listModel);
             });
 
             for (Peer p : validPeers) {
@@ -218,7 +239,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                 .build();
 
         peer.setConnected(true);
-        SwingUtilities.invokeLater(() -> listModel.addElement(peer));
+        SwingUtilities.invokeLater(() -> peerDefaultListModel.addElement(peer));
     }
 
     public void onInvitationRejected(String ip) {

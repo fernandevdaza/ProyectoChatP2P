@@ -4,6 +4,9 @@ import com.fernandev.chatp2p.model.entities.command.Mensaje;
 import com.fernandev.chatp2p.model.entities.command.Recibido;
 import com.fernandev.chatp2p.model.entities.db.*;
 import com.fernandev.chatp2p.model.repository.*;
+import com.fernandev.chatp2p.view.BubbleData;
+import com.fernandev.chatp2p.view.ChatUI;
+import com.fernandev.chatp2p.view.interfaces.IView;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +20,12 @@ public class MessageController {
     private final MessageDAO messageDAO;
     private final MessageReceiptDAO messageReceiptDAO;
     private final IPeerDao peerDao;
+    private IView view;
+
+    public void setView(IView view){
+        this.view = view;
+    }
+
 
     private MessageController() {
         this.conversationDao = ConversationDao.getInstance();
@@ -104,8 +113,18 @@ public class MessageController {
         }
     }
 
+    public void updateMessageStatus(String messageId, MessageStatusType messageStatusType){
+        Message message = messageDAO.findMessageById(messageId);
+        messageDAO.updateStatus(message, messageStatusType);
+    }
+
     public List<Message> getConversationMessagesWithConversationId(String conversationId) {
         return messageDAO.findMessagesByConversationId(conversationId);
+    }
+
+    public String getSenderPeerIdByMessageId(String messageId){
+        Message message = messageDAO.findMessageById(messageId);
+        return message.getSenderPeerId();
     }
 
     public void saveReceipt(String messageId, String peerId) {
@@ -133,5 +152,23 @@ public class MessageController {
 
     public void setReceived(Message msg){
         messageDAO.updateStatus(msg, MessageStatusType.RECEIVED);
+    }
+
+    public boolean deleteMessage(String messageId){
+        try {
+            boolean onExist = messageDAO.existById(messageId);
+            if(onExist){
+                messageDAO.deleteById(messageId);
+                view.repaintRightPanel();
+                return true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void onLoadMessagesByPeerId(String peerId){
+
     }
 }

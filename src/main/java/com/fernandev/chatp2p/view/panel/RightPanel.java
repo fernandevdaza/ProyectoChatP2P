@@ -28,10 +28,6 @@ public class RightPanel extends JPanel {
     private JTextField messageInput = new JTextField();
 
     private BubbleBubble bubbleBubble;
-    private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
-
-    private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
-
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
     private static final Color COLOR_BG_CHAT = new Color(236, 229, 221);
@@ -75,8 +71,8 @@ public class RightPanel extends JPanel {
     }
 
     public void addMessage(String text, boolean isMe, String targetId, String messageId) {
-        chatHistory.putIfAbsent(targetId, new java.util.ArrayList<>());
-        chatHistory.get(targetId).add(new BubbleData(text, isMe, messageId));
+        mainView.getChatHistory().putIfAbsent(targetId, new java.util.ArrayList<>());
+        mainView.getChatHistory().get(targetId).add(new BubbleData(text, isMe, messageId));
 
         if (targetId.equals(mainView.getCurrentChatId())) {
             paintBubble(text, isMe, messageId);
@@ -85,8 +81,20 @@ public class RightPanel extends JPanel {
         }
     }
 
+    public void removeMessage(String messageId) {
+        List<BubbleData> currentHistory = mainView.getChatHistory().get(mainView.getCurrentChatId());
+        Iterator<BubbleData> iterator = currentHistory.iterator();
+
+        while (iterator.hasNext()) {
+            BubbleData bubbleData = iterator.next();
+            if (Objects.equals(bubbleData.getMessageId(), messageId)) {
+                iterator.remove();
+            }
+        }
+    }
+
     public void markMessageReceived(String messageId) {
-        BubbleBubble bubble = bubblesByMessageId.get(messageId);
+        BubbleBubble bubble = mainView.getBubblesByMessageId().get(messageId);
         if (bubble != null) {
             SwingUtilities.invokeLater(() -> bubble.setReceived(true));
         }
@@ -292,10 +300,6 @@ public class RightPanel extends JPanel {
         });
     }
 
-    public void paintBubble(String text, boolean isMe) {
-        paintBubble(text, isMe, null);
-    }
-
     public void paintBubble(String text, boolean isMe, String messageId) {
         paintBubble(text, isMe, messageId, false);
     }
@@ -303,14 +307,14 @@ public class RightPanel extends JPanel {
     public void paintBubble(String text, boolean isMe, String messageId, boolean received) {
         JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
         rowPanel.setOpaque(false);
-        bubbleBubble = new BubbleBubble(text, isMe);
+        bubbleBubble = new BubbleBubble(text, isMe, messageId);
 
         if (received && isMe) {
             bubbleBubble.setReceived(true);
         }
 
         if (messageId != null && isMe) {
-            bubblesByMessageId.put(messageId, bubbleBubble);
+            mainView.getBubblesByMessageId().put(messageId, bubbleBubble);
         }
 
         rowPanel.add(bubbleBubble);
@@ -321,14 +325,14 @@ public class RightPanel extends JPanel {
     public void paintBubbleImage(String base64Image, boolean isMe, String messageId) {
         JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
         rowPanel.setOpaque(false);
-        bubbleBubble = new BubbleBubble(base64Image, isMe, true);
+        bubbleBubble = new BubbleBubble(base64Image, isMe, true, messageId);
 
         if (isMe) {
             bubbleBubble.setReceived(false);
         }
 
         if (messageId != null && isMe) {
-            bubblesByMessageId.put(messageId, bubbleBubble);
+            mainView.getBubblesByMessageId().put(messageId, bubbleBubble);
         }
 
         rowPanel.add(bubbleBubble);

@@ -80,6 +80,8 @@ public class Main {
             chatUI.setPeerController(peerController);
 
             final MessageController messageController = MessageController.getInstance();
+            messageController.setView(chatUI);
+
             chatUI.setMessageController(messageController);
 
             ConnectionController.getInstance().setPeerController(peerController);
