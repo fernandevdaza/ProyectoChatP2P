@@ -12,16 +12,19 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     private static final DatabaseConnection connection = new DatabaseConnection();
-    private final String url;
+    private static String url = "jdbc:sqlite:./upbot.db";
 
     private DatabaseConnection(){
-        this.url = "jdbc:sqlite:./upbot.db";
 
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e){
             throw new IllegalStateException("No se encuentra el driver JDBC de SQLite");
         }
+    }
+
+    public static void setUrl(String urlConnection){
+        url = urlConnection;
     }
 
 

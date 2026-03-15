@@ -6,6 +6,7 @@ import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.ChatServer;
 import com.fernandev.chatp2p.model.repository.CachePeerDao;
+import com.fernandev.chatp2p.model.repository.DatabaseConnection;
 import com.fernandev.chatp2p.model.repository.IPeerDao;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -14,14 +15,18 @@ import javax.swing.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class Main {
+public class Cliente2 {
 
     public static void main(String[] args) {
-        int port = 1900;
-        ConnectionController.getInstance().setPort(1901);
+        int port = 1901;
+        ConnectionController.getInstance().setPort(1900);
+
+        DatabaseConnection.setUrl("jdbc:sqlite:./upbot2.db");
+
         IPeerDao peerDao = new CachePeerDao(new PeerDao());
+
         java.awt.EventQueue.invokeLater(() -> {
-            Thread.currentThread().setName("UI-Thread");
+            Thread.currentThread().setName("UI-Thread-Client-2");
             Peer myself = peerDao.findMe();
             if (myself == null) {
                 String displayName = JOptionPane.showInputDialog(null,

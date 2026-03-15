@@ -181,7 +181,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
                 if (ip == null || ip.isBlank())
                     continue;
                 try {
-//                    ConnectionController.getInstance().sendHelloToPeer(ip);
+                    // ConnectionController.getInstance().sendHelloToPeer(ip);
                 } catch (Exception ex) {
                     System.out.println("[HELLO] No se pudo enviar hello a " + ip + ": " + ex.getMessage());
                 }
@@ -196,7 +196,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     }
 
     public void onDisconnect(String ip) {
-        String message = "Cliente con ip: " + ip + " se desconectó";
+        String message = "Conexión con cliente de ip: " + ip + " cerrada";
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message));
     }
 
@@ -227,6 +227,10 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     public void onChatMessage(String peerId, String idMessage, String message) {
         SwingUtilities.invokeLater(() -> this.rightPanel.addMessage(message, false, peerId));
+    }
+
+    public void onChatImage(String peerId, String idMessage, String base64Image) {
+        SwingUtilities.invokeLater(() -> this.rightPanel.addImageMessage(base64Image, false, peerId, idMessage));
     }
 
     public void onHelloAccepted(String peerId) {

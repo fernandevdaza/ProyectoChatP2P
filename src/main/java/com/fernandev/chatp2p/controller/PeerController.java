@@ -1,6 +1,8 @@
 package com.fernandev.chatp2p.controller;
 
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.repository.CachePeerDao;
+import com.fernandev.chatp2p.model.repository.IPeerDao;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.interfaces.IView;
 
@@ -8,12 +10,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class PeerController {
-    private PeerDao peerDao;
+    private static PeerController peerController = new PeerController();
+    private IPeerDao peerDao = new CachePeerDao(new PeerDao());
+    ;
     private IView view;
 
-    public PeerController(IView view) {
-        peerDao = PeerDao.getInstance();
+    public PeerController() {
+    }
+
+    public void setView(IView view){
         this.view = view;
+    }
+
+    public static PeerController getInstance(){
+        return peerController;
     }
 
     public void onLoad() {
@@ -30,20 +40,24 @@ public class PeerController {
         return peerDao.findMe();
     }
 
-    public void savePeer(String ip, String id, String displayName, int port) throws Exception {
-        if (ip == null && id == null && displayName == null)
-            return;
-        Peer peer = Peer.builder()
-                .id(id)
-                .displayName(displayName)
-                .isSelf(0)
-                .lastIpAddr(ip)
-                .lastPort(port)
-                .lastSeenAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-        peerDao.save(peer);
+    public void savePeer(String ip, String id, String displayName, int port) {
+       try {
+           if (ip == null && id == null && displayName == null)
+               return;
+           Peer peer = Peer.builder()
+                   .id(id)
+                   .displayName(displayName)
+                   .isSelf(0)
+                   .lastIpAddr(ip)
+                   .lastPort(port)
+                   .lastSeenAt(LocalDateTime.now())
+                   .createdAt(LocalDateTime.now())
+                   .updatedAt(LocalDateTime.now())
+                   .build();
+           peerDao.save(peer);
+       }catch (Exception e){
+           e.printStackTrace();
+       }
     }
 
     public String getPeerIdByIp(String ip) {
@@ -77,5 +91,13 @@ public class PeerController {
         if (peer == null)
             return null;
         return peer.getDisplayName();
+    }
+
+    public Peer getPeerByIp(String ip){
+        Peer peer = peerDao.findByIp(ip);
+        if (peer == null){
+            return null;
+        }
+        return peer;
     }
 }

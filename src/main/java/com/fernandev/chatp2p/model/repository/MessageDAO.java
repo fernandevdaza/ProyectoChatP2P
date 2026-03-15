@@ -13,15 +13,10 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class MessageDAO {
+public class MessageDAO implements IMessageDao{
     private DAOHelper<Message> helper;
-    private final static MessageDAO messageDao = new MessageDAO();
 
-    public static MessageDAO getInstance(){
-        return messageDao;
-    }
-
-    private MessageDAO(){
+    public MessageDAO(){
         this.helper = new DAOHelper<>();
     }
 

@@ -1,5 +1,8 @@
 package com.fernandev.chatp2p.model.entities.command;
 
+import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.model.network.SocketClient;
+
 public class Rechazar extends MessageProtocol {
 
     public Rechazar(){
@@ -15,5 +18,14 @@ public class Rechazar extends MessageProtocol {
     @Override
     public String generarTrama() {
         return getCodigo() + "|" + System.lineSeparator();
+    }
+
+    @Override
+    public void execute(SocketClient client) {
+        client.send(this);
+        ConnectionController.getInstance().removeConnection(client.getPeerId(), true);
+        if(!client.isClosed()){
+            client.close();
+        }
     }
 }
