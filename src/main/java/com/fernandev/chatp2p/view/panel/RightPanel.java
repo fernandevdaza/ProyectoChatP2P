@@ -40,9 +40,6 @@ public class RightPanel extends JPanel {
 
     private BubbleBubble bubbleBubble;
     private ChatUI mainView;
-    private static final Color COLOR_HEADER = new Color(0, 168, 132);
-    private static final Color COLOR_BG_CHAT = new Color(236, 229, 221);
-
     public RightPanel(ChatUI ui) {
         this.setLayout(new BorderLayout());
 
@@ -227,7 +224,8 @@ public class RightPanel extends JPanel {
     }
 
     private void buildHeader() {
-        header.setBackground(new Color(240, 242, 245));
+        header.setBackground(mainView.getCOLOR_HEADER_BG());
+        header.setForeground(mainView.getCOLOR_HEADER_FG());
         header.setLayout(new BorderLayout());
         header.setPreferredSize(new Dimension(0, 50));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
@@ -269,7 +267,7 @@ public class RightPanel extends JPanel {
             item.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             item.addActionListener(e -> {
                 com.fernandev.chatp2p.view.ThemeManager.getInstance().applyTheme(themeId,
-                        SwingUtilities.getWindowAncestor(RightPanel.this));
+                        mainView);
                 if (mainView.getContactSelectedConected()) {
                     new Thread(() -> {
                         try {
@@ -327,7 +325,7 @@ public class RightPanel extends JPanel {
 
     private void buildChatPanel() {
         chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
-        chatPanel.setBackground(COLOR_BG_CHAT);
+        chatPanel.setBackground(mainView.getCOLOR_BG_CHAT());
 
         JPanel verticalGlue = new JPanel();
         verticalGlue.setOpaque(false);
@@ -348,15 +346,15 @@ public class RightPanel extends JPanel {
     }
 
     private void buildSendButton() {
-        buttonSend.setBackground(COLOR_HEADER);
-        buttonSend.setForeground(Color.WHITE);
+        buttonSend.setBackground(mainView.getCOLOR_SEND_BUTTON_BG());
+        buttonSend.setForeground(mainView.getCOLOR_SEND_BUTTON_FG());
         buttonSend.setFont(new Font("Segoe UI", Font.BOLD, 20));
         buttonSend.setBorderPainted(false);
         buttonSend.setFocusPainted(false);
         buttonSend.setPreferredSize(new Dimension(60, 40));
         buttonSend.addActionListener(e -> enviarMensaje());
 
-        buttonOneTimeMessage.setBackground(new Color(240, 242, 245));
+        buttonOneTimeMessage.setBackground(mainView.getCOLOR_INPUT_PANEL_BG());
         buttonOneTimeMessage.setForeground(Color.DARK_GRAY);
         buttonOneTimeMessage.setFont(new Font("Segoe UI", Font.BOLD, 20));
         buttonOneTimeMessage.setBorderPainted(false);
@@ -367,12 +365,12 @@ public class RightPanel extends JPanel {
             if (isOneTimeMessage) {
                 buttonOneTimeMessage.setBackground(new Color(135, 140, 145));
             } else {
-                buttonOneTimeMessage.setBackground(new Color(240, 242, 245));
+                buttonOneTimeMessage.setBackground(mainView.getCOLOR_INPUT_PANEL_BG());
             }
         });
 
-        buttonImage.setBackground(new Color(240, 242, 245));
-        buttonImage.setForeground(Color.DARK_GRAY);
+        buttonImage.setBackground(mainView.getCOLOR_INPUT_PANEL_BG());
+        buttonImage.setForeground(mainView.getCOLOR_BUBBLE_TEXT_ME());
         buttonImage.setFont(new Font("Segoe UI", Font.BOLD, 20));
         buttonImage.setBorderPainted(false);
         buttonImage.setFocusPainted(false);
@@ -382,14 +380,14 @@ public class RightPanel extends JPanel {
 
     private void buildInputPanel() {
         inputPanel = new JPanel(new BorderLayout(5, 0));
-        inputPanel.setBackground(new Color(240, 242, 245));
+        inputPanel.setBackground(mainView.getCOLOR_INPUT_PANEL_BG());
         inputPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         inputPanel.add(buttonImage, BorderLayout.WEST);
         inputPanel.add(messageInput, BorderLayout.CENTER);
 
         JPanel sendButtonsPanel = new JPanel(new BorderLayout(5, 0));
-        sendButtonsPanel.setBackground(new Color(240, 242, 245));
+        sendButtonsPanel.setBackground(mainView.getCOLOR_INPUT_PANEL_BG());
         sendButtonsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         sendButtonsPanel.add(buttonOneTimeMessage, BorderLayout.WEST);

@@ -333,12 +333,12 @@ public class ConnectionController implements SocketListener {
                     mensajeUnico.getMessage(), true);
             ui.onChatMessage(mensajeUnico.getIdUser(), mensajeUnico.getIdMessage(), mensajeUnico.getMessage(), true);
 
-            if (Objects.equals(ui.getCurrentChatId(), mensajeUnico.getIdUser())) {
-                MessageController.getInstance().updateMessageStatus(mensajeUnico.getIdMessage(),
-                        MessageStatusType.RECEIVED);
-                Recibido recibido = new Recibido(mensajeUnico.getIdMessage());
-                this.sendMessage(mensajeUnico.getIdUser(), recibido);
-            }
+//            if (Objects.equals(ui.getCurrentChatId(), mensajeUnico.getIdUser())) {
+//                MessageController.getInstance().updateMessageStatus(mensajeUnico.getIdMessage(),
+//                        MessageStatusType.RECEIVED);
+//                Recibido recibido = new Recibido(mensajeUnico.getIdMessage());
+//                this.sendMessage(mensajeUnico.getIdUser(), recibido);
+//            }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -348,6 +348,7 @@ public class ConnectionController implements SocketListener {
     private void handleFijarMensaje(FijarMensaje fijarMensaje) {
         boolean showPinMessage = ui.getShowPinnedMessage();
         MessageController.getInstance().pinMessage(fijarMensaje.getIdMessage(), !showPinMessage);
+        MessageController.getInstance().pinMessage(fijarMensaje.getIdMessage(), true);
     }
 
     private void handleOffline(Offline offline) {

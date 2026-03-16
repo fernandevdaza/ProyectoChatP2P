@@ -51,14 +51,14 @@ public class DirectParticipantsDAO {
         return helper.executeQueryCount(query, null) == 1;
     }
 
-    public List<DirectParticipants> findDirectParticipantsByConversationId(String conversationId) throws ConnectException, SQLException {
+    public DirectParticipants findDirectParticipantsByConversationId(String conversationId) throws ConnectException, SQLException {
         String query = "SELECT * FROM direct_participants WHERE conversation_id ='" + conversationId + "'";
         System.out.println("[" + Thread.currentThread().getName() + "] " + query);
         List<DirectParticipants> list = helper.executeQuery(query, resultReader);
         if (list.isEmpty()) {
             return null;
         }
-        return list;
+        return list.getFirst();
     }
 
     public DirectParticipants findConversationByPeerId(String id) {

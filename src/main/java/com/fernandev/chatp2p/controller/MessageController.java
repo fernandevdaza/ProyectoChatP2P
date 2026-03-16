@@ -146,7 +146,13 @@ public class MessageController {
         return messageReceiptDAO.existsByMessageId(messageId);
     }
 
+    public void sendReceipt(String messageId){
+        Message message = messageDAO.findMessageById(messageId);
+        this.sendReceipt(message);
+    }
+
     public void sendReceipt(Message msg){
+        if(msg.getIsEphemeral() && !msg.getTextContent().equals("")) return;
         Recibido recibido = new Recibido(msg.getId());
         ConnectionController.getInstance().sendMessageById(msg.getSenderPeerId(), recibido);
     }
@@ -202,6 +208,17 @@ public class MessageController {
     public Message getMessageById(String messageId){
         try {
             return messageDAO.findMessageById(messageId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getReceiverPeerIdByMessageID(String messageId){
+        try{
+            Message message = messageDAO.findMessageById(messageId);
+            DirectParticipants directParticipants = directParticipantsDAO.findDirectParticipantsByConversationId(message.getConversationId());
+            return directParticipants.getPeerId();
         }catch (Exception e){
             e.printStackTrace();
         }

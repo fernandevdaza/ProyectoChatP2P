@@ -2,8 +2,13 @@ package com.fernandev.chatp2p.view;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
+import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.command.EliminarMensaje;
 import com.fernandev.chatp2p.model.entities.command.FijarMensaje;
+import com.fernandev.chatp2p.model.entities.command.Recibido;
+import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
+import com.fernandev.chatp2p.model.entities.db.Peer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -84,8 +89,13 @@ public class BubbleBubble extends JPanel {
             if(!isMe){
                 openMessage.addActionListener(e -> {
                     openMessage.setEnabled(false);
-                    JOptionPane.showMessageDialog(null, this.text);
+                    SwingUtilities.invokeLater( ()-> {
+                        JOptionPane.showMessageDialog(null, this.text);
+                    });
                     MessageController.getInstance().editMessage(this.idMessage, "");
+                    MessageController.getInstance().updateMessageStatus(this.idMessage,
+                            MessageStatusType.RECEIVED);
+                    MessageController.getInstance().sendReceipt(this.idMessage);
                 });
             }else{
                 openMessage.setEnabled(false);
@@ -138,7 +148,7 @@ public class BubbleBubble extends JPanel {
 
     public void setReceived(boolean received) {
         if (checkLabel != null) {
-            checkLabel.setForeground(received ? COLOR_CHECK : Color.LIGHT_GRAY);
+            checkLabel.setForeground(received ? ChatUI.getCOLOR_CHECK() : Color.LIGHT_GRAY);
             checkLabel.repaint();
         }
     }
@@ -148,7 +158,7 @@ public class BubbleBubble extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        g2.setColor(isMe ? COLOR_MY_BUBBLE : COLOR_THEIR_BUBBLE);
+        g2.setColor(isMe ? ChatUI.getCOLOR_BUBBLE_ME() : ChatUI.getCOLOR_BUBBLE_PEER());
 
         g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
 
@@ -166,9 +176,15 @@ public class BubbleBubble extends JPanel {
 
         JMenuItem pinItem = new JMenuItem("Fijar mensaje");
         pinItem.addActionListener(e -> {
-            String senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
             FijarMensaje fijarMensaje = new FijarMensaje();
+            String senderPeerId = "";
+            if(isMe){
+                senderPeerId = MessageController.getInstance().getReceiverPeerIdByMessageID(this.idMessage);
+            }else{
+                senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
+            }
             fijarMensaje.setIdMessage(this.idMessage);
+
             ConnectionController.getInstance().sendMessage(senderPeerId, fijarMensaje);
             MessageController.getInstance().pinMessage(this.idMessage, true);
         });
@@ -180,8 +196,14 @@ public class BubbleBubble extends JPanel {
             JMenuItem deleteEveryoneItem = new JMenuItem("Eliminar para todos");
 
             deleteEveryoneItem.addActionListener(e -> {
-                String senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
+                String senderPeerId = "";
                 EliminarMensaje eliminarMensaje = new EliminarMensaje();
+
+                if(isMe){
+                    senderPeerId = MessageController.getInstance().getReceiverPeerIdByMessageID(this.idMessage);
+                }else{
+                    senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
+                }
                 eliminarMensaje.setIdMessage(this.idMessage);
                 ConnectionController.getInstance().sendMessage(senderPeerId, eliminarMensaje);
                 MessageController.getInstance().deleteMessage(this.idMessage);

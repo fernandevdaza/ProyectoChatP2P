@@ -63,7 +63,7 @@ public class LeftPanel extends JPanel {
 
         notificationPanel.setLayout(new BoxLayout(notificationPanel, BoxLayout.Y_AXIS));
         notificationPanel.setBorder(new EmptyBorder(8, 8, 8, 8));
-        notificationPanel.setBackground(Color.WHITE);
+        notificationPanel.setBackground(ChatUI.getCOLOR_BUBBLE_PEER());
 
         JScrollPane scrollPane = new JScrollPane(notificationPanel);
         scrollPane.setPreferredSize(new Dimension(240, 180));
@@ -82,7 +82,7 @@ public class LeftPanel extends JPanel {
     }
 
     private void buildHeader() {
-        header.setBackground(new Color(240, 242, 245));
+        header.setBackground(ChatUI.getCOLOR_GENERAL_BG());
         header.setLayout(new BorderLayout());
         header.setPreferredSize(new Dimension(300, 30));
         Peer me = PeerController.getInstance().getMyself();
@@ -169,7 +169,7 @@ public class LeftPanel extends JPanel {
     }
 
     private void buildConnectButton() {
-        connectButton.setBackground(COLOR_HEADER);
+        connectButton.setBackground(ChatUI.getCOLOR_SEND_BUTTON_BG());
         connectButton.setForeground(Color.WHITE);
         connectButton.addActionListener(e -> {
             connectButton.setEnabled(false);
@@ -314,7 +314,7 @@ public class LeftPanel extends JPanel {
 
     private JPanel createNotificationItem(String text) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(245, 245, 245));
+        panel.setBackground(ChatUI.getCOLOR_BUBBLE_PEER());
         panel.setBorder(new EmptyBorder(8, 10, 8, 10));
 
         JLabel label = new JLabel("<html>" + text + "</html>");
