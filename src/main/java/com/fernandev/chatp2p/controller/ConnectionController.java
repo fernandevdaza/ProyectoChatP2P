@@ -2,6 +2,7 @@ package com.fernandev.chatp2p.controller;
 
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
 import com.fernandev.chatp2p.model.entities.command.*;
+import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.model.network.SocketListener;
@@ -175,10 +176,12 @@ public class ConnectionController implements SocketListener {
             handleHelloReject((HelloReject) messageProtocol);
         } else if (messageProtocol instanceof Recibido) {
             handleRecibido((Recibido) messageProtocol);
-        } else if (messageProtocol instanceof Offline) {
-            handleOffline((Offline) messageProtocol);
+        } else if(messageProtocol instanceof EliminarMensaje) {
+            handleEliminarMensaje((EliminarMensaje) messageProtocol);
+        }else if (messageProtocol instanceof Offline) {
+                handleOffline((Offline) messageProtocol);
+            }
         }
-    }
 
     private void handleInvitacion(SocketClient socketClient, Invitacion invitacion) {
         String peerId = invitacion.getIdUsuario();
@@ -239,6 +242,7 @@ public class ConnectionController implements SocketListener {
             ui.onChatMessage(msg.getIdUser(), msg.getIdMessage(), msg.getMessage());
 
             if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
+                MessageController.getInstance().updateMessageStatus(msg.getIdMessage(), MessageStatusType.RECEIVED);
                 Recibido recibido = new Recibido(msg.getIdMessage());
                 this.sendMessage(msg.getIdUser(), recibido);
             }
@@ -268,6 +272,7 @@ public class ConnectionController implements SocketListener {
                 ? peerController.getPeerIdByIp(recibido.getIp())
                 : null;
         if (peerId != null) {
+            messageController.updateMessageStatus(messageId, MessageStatusType.RECEIVED);
             messageController.saveReceipt(messageId, peerId);
         }
         ui.onMessageReceived(messageId);
@@ -299,6 +304,10 @@ public class ConnectionController implements SocketListener {
     private void handleHelloReject(HelloReject helloReject) {
         connections.remove(helloReject.getIp());
         ui.onHelloRejected(helloReject.getIp());
+    }
+
+    private void handleEliminarMensaje(EliminarMensaje eliminarMensaje){
+        MessageController.getInstance().deleteMessage(eliminarMensaje.getIdMessage());
     }
 
     private void handleOffline(Offline offline) {

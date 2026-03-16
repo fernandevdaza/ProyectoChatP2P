@@ -98,7 +98,7 @@ public class MessageDAO implements IMessageDao{
         }
     }
 
-    public Message findMessagesById(String id) {
+    public Message findMessageById(String id) {
         try {
             String query = "SELECT * FROM messages WHERE id ='" + id + "'";
             System.out.println(query);
@@ -112,6 +112,7 @@ public class MessageDAO implements IMessageDao{
             return null;
         }
     }
+
 
     public List<Message> findMessagesBySenderPeerId(String senderPeerId) {
         try{
@@ -130,7 +131,7 @@ public class MessageDAO implements IMessageDao{
 
 
     public boolean existById(String id) throws ConnectException, SQLException {
-        String query = "SELECT count(*) FROM peers WHERE id='" + id + "'";
+        String query = "SELECT count(*) FROM messages WHERE id='" + id + "'";
         return helper.executeQueryCount(query, null) == 1;
     }
 
@@ -195,6 +196,15 @@ public class MessageDAO implements IMessageDao{
             query = String.format("%s %s", query, conditionWhere);
         }
         helper.update(query, null);
+    }
+
+    public void deleteById(String messageId) throws Exception {
+        try {
+            String query = "DELETE FROM messages WHERE id='" + messageId + "'";
+            helper.executeQuery(query, resultReader);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 

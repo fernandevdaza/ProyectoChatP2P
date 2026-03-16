@@ -88,6 +88,7 @@ public class SocketClient extends Thread {
                     case "002": {
                         System.out.println("[" + Thread.currentThread().getName() + "] Conexión Aceptada");
                         Aceptar aceptacion = Aceptar.parse(message);
+                        this.setPeerId(aceptacion.getIdUsuario());
                         aceptacion.setIp(this.getIp());
                         notificar(this, aceptacion);
                         break;
@@ -134,6 +135,13 @@ public class SocketClient extends Thread {
                         Recibido recibido = Recibido.parse(message);
                         recibido.setIp(this.getIp());
                         notificar(this, recibido);
+                        break;
+                    }
+                    case "009": {
+                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Recibido (ACK)!");
+                        EliminarMensaje eliminarMensaje = EliminarMensaje.parse(message);
+                        eliminarMensaje.setIp(this.getIp());
+                        notificar(this, eliminarMensaje);
                         break;
                     }
                     case "021": {

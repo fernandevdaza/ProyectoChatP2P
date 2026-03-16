@@ -14,6 +14,8 @@ import com.fernandev.chatp2p.view.ChatUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class LeftPanel extends JPanel {
@@ -21,11 +23,7 @@ public class LeftPanel extends JPanel {
     private JButton connectButton = new JButton("Nueva conexión (+)");
     private JButton offlineModeButton = new JButton("Modo offline");
 
-    private DefaultListModel<Peer> listModel;
     private JList<Peer> contactList;
-
-    private BubbleBubble bubbleBubble;
-    private java.util.List<BubbleData> messageHistory = new java.util.ArrayList<>();
 
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
@@ -37,8 +35,7 @@ public class LeftPanel extends JPanel {
             new ImageIcon(getClass().getResource("/com/fernandev/chatp2p/view/resources/offline.png"))
                     .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
-    public LeftPanel(ChatUI ui, DefaultListModel<Peer> list) {
-        this.listModel = list;
+    public LeftPanel(ChatUI ui) {
         this.mainView = ui;
         this.setLayout(new BorderLayout());
 
@@ -64,7 +61,7 @@ public class LeftPanel extends JPanel {
     }
 
     private void buildPeerList() {
-        contactList = new JList<>(listModel);
+        contactList = new JList<>(mainView.getPeerDefaultListModel());
         contactList.setFixedCellHeight(50);
         contactList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         contactList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -107,7 +104,7 @@ public class LeftPanel extends JPanel {
                     mainView.setContactSelectedConnected(selection.getConnected());
 
                     setContactSelected(true, id);
-                    loadSelectedChat(id);
+//                    loadSelectedChat(id);
                 }
             }
         });
@@ -211,10 +208,13 @@ public class LeftPanel extends JPanel {
     public void loadSelectedChat(String id) {
         mainView.setCurrentChatId(id);
         String conversationId = MessageController.getInstance().getConversationIdByPeerId(id);
-        java.util.List<Message> messages = MessageController.getInstance()
+
+        List<Message> messages = MessageController.getInstance()
                 .getConversationMessagesWithConversationId(conversationId);
 
+        List<BubbleData> messageHistory = mainView.getChatHistory().getOrDefault(id, new ArrayList<BubbleData>());
         messageHistory.clear();
+
 
         if (messages != null) {
             for (Message message : messages) {
@@ -224,8 +224,7 @@ public class LeftPanel extends JPanel {
                     mainView.getMessageController().sendReceipt(message);
                     mainView.getMessageController().setReceived(message);
                 }
-                String messageId = isMe ? message.getId() : null;
-                messageHistory.add(new BubbleData(message.getTextContent(), isMe, messageId));
+                messageHistory.add(new BubbleData(message.getTextContent(), isMe, message.getId()));
             }
 
             for (BubbleData msg : messageHistory) {
@@ -239,11 +238,11 @@ public class LeftPanel extends JPanel {
 
     public void updatePeerStatus(String idUser, boolean online) {
         SwingUtilities.invokeLater(() -> {
-            for (int i = 0; i < listModel.getSize(); i++) {
-                Peer p = listModel.getElementAt(i);
+            for (int i = 0; i < (mainView.getPeerDefaultListModel()).getSize(); i++) {
+                Peer p = mainView.getPeerDefaultListModel().getElementAt(i);
                 if (Objects.equals(p.getId(), idUser)) {
                     p.setConnected(online);
-                    listModel.set(i, p);
+                    (mainView.getPeerDefaultListModel()).set(i, p);
                     if (Objects.equals(mainView.getCurrentChatId(), p.getId())) {
                         setContactSelectedConnected(online, p.getId());
                     }
@@ -253,8 +252,5 @@ public class LeftPanel extends JPanel {
         });
     }
 
-    public void setListModel(DefaultListModel<Peer> listModel) {
-        this.listModel = listModel;
-    }
 
 }

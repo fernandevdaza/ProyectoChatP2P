@@ -16,4 +16,8 @@ public class BubbleData {
         this.isMe = isMe;
         this.messageId = messageId;
     }
+
+    public String getMessageId() {
+        return messageId;
+    }
 }

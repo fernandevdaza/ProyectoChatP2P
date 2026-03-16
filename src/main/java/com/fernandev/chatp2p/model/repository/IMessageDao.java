@@ -12,7 +12,7 @@ public interface IMessageDao {
     List<Message> findAll() throws ConnectException, SQLException;
     boolean exist(String argument) throws ConnectException, SQLException;
     List<Message> findMessagesByConversationId(String conversationId);
-    Message findMessagesById(String id);
+    Message findMessageById(String id);
     List<Message> findMessagesBySenderPeerId(String senderPeerId);
     boolean existById(String id) throws ConnectException, SQLException;
     void updateStatus(Message message, MessageStatusType messageStatusType);
