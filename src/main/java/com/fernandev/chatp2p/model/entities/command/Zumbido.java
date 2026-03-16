@@ -43,7 +43,7 @@ public class Zumbido extends MessageProtocol {
         String peerId = PeerController.getInstance().getPeerByIp(client.getIp()) != null ? PeerController.getInstance().getPeerByIp(client.getIp()).getId()
                 : null;
         if (me == null || peerId == null || client == null) {
-            System.out.println("[" + Thread.currentThread().getName() + "]Hubo un problema al hacer HelloRequest");
+            System.out.println("[" + Thread.currentThread().getName() + "]Hubo un problema al enviar el Zumbido");
             return;
         }
         this.setIdUser(me.getId());
