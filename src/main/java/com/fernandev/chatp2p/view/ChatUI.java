@@ -37,7 +37,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
 
-
     public ChatUI() {
         setTitle("Chat P2P");
         setSize(1000, 700);
@@ -113,7 +112,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.currentChatId = id;
     }
 
-
     public boolean getContactSelected() {
         return this.isContactSelected;
     }
@@ -121,7 +119,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     public void setContactSelected(boolean selected) {
         this.isContactSelected = selected;
     }
-
 
     public boolean getContactSelectedConected() {
         return this.isContactSelectedConnected;
@@ -131,7 +128,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.isContactSelectedConnected = connected;
     }
 
-
     public PeerController getPeerController() {
         return this.peerController;
     }
@@ -140,17 +136,15 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.peerController = peerController;
     }
 
-
-    public DefaultListModel<Peer> getPeerDefaultListModel(){
+    public DefaultListModel<Peer> getPeerDefaultListModel() {
         return peerDefaultListModel;
     }
 
-    public Map<String, List<BubbleData>> getChatHistory(){
+    public Map<String, List<BubbleData>> getChatHistory() {
         return chatHistory;
     }
 
-
-    public Map<String, BubbleBubble> getBubblesByMessageId(){
+    public Map<String, BubbleBubble> getBubblesByMessageId() {
         return bubblesByMessageId;
     }
 
@@ -162,6 +156,9 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.messageController = messageController;
     }
 
+    public boolean getShowPinnedMessage() {
+        return this.rightPanel.getShowPinnedMessageBox();
+    }
 
     public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received) {
         this.rightPanel.paintBubble(text, isMe, messageId, received);
@@ -169,6 +166,12 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     public void setInputEnabledInRightPanel(boolean enabled) {
         this.rightPanel.setInputEnabled(enabled);
+    }
+
+    public void setPinMessage(boolean isVisible, String message, String messageId) {
+        this.rightPanel.setPinnedMessageId(messageId);
+        this.rightPanel.setShowPinnedMessageBox(isVisible);
+        this.rightPanel.setPinnedMessage(message);
     }
 
     @Override
@@ -194,7 +197,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
                 peerDefaultListModel.addAll(validPeers);
 
-//                leftPanel.setListModel(listModel);
+                // leftPanel.setListModel(listModel);
             });
 
             for (Peer p : validPeers) {

@@ -138,10 +138,17 @@ public class SocketClient extends Thread {
                         break;
                     }
                     case "009": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Recibido (ACK)!");
+                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Eliminado");
                         EliminarMensaje eliminarMensaje = EliminarMensaje.parse(message);
                         eliminarMensaje.setIp(this.getIp());
                         notificar(this, eliminarMensaje);
+                        break;
+                    }
+                    case "011": {
+                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Fijado");
+                        FijarMensaje fijarMensaje = FijarMensaje.parse(message);
+                        fijarMensaje.setIp(this.getIp());
+                        notificar(this, fijarMensaje);
                         break;
                     }
                     case "021": {

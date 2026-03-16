@@ -168,6 +168,31 @@ public class MessageController {
         return false;
     }
 
+    public boolean pinMessage(String messageId, boolean isFixed){
+        try{
+            boolean onExist = messageDAO.existById(messageId);
+            if(onExist){
+                messageDAO.updateFixedStatus(messageId, isFixed);
+                Message message = messageDAO.findMessageById(messageId);
+                view.setPinMessage(isFixed, message.getTextContent(), messageId);
+                return true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+
+    }
+
+    public Message getMessageById(String messageId){
+        try {
+            return messageDAO.findMessageById(messageId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void onLoadMessagesByPeerId(String peerId){
 
     }

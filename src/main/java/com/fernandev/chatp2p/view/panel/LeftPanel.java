@@ -104,7 +104,7 @@ public class LeftPanel extends JPanel {
                     mainView.setContactSelectedConnected(selection.getConnected());
 
                     setContactSelected(true, id);
-//                    loadSelectedChat(id);
+                    // loadSelectedChat(id);
                 }
             }
         });
@@ -119,7 +119,7 @@ public class LeftPanel extends JPanel {
                         if (ip != null && !ip.isBlank()) {
                             new Thread(() -> {
                                 try {
-//                                    ConnectionController.getInstance().sendHelloToPeer(ip);
+                                    // ConnectionController.getInstance().sendHelloToPeer(ip);
                                     ConnectionController.getInstance().sendMessage(selection.getId(), new Hello());
                                 } catch (Exception ex) {
                                     System.out.println(
@@ -215,16 +215,20 @@ public class LeftPanel extends JPanel {
         List<BubbleData> messageHistory = mainView.getChatHistory().getOrDefault(id, new ArrayList<BubbleData>());
         messageHistory.clear();
 
-
         if (messages != null) {
             for (Message message : messages) {
                 String meId = mainView.getPeerController().getMyself().getId();
                 boolean isMe = Objects.equals(meId, message.getSenderPeerId());
-                if(message.getStatus() != MessageStatusType.RECEIVED && !isMe){
+                if (message.getStatus() != MessageStatusType.RECEIVED && !isMe) {
                     mainView.getMessageController().sendReceipt(message);
                     mainView.getMessageController().setReceived(message);
                 }
                 messageHistory.add(new BubbleData(message.getTextContent(), isMe, message.getId()));
+                if (message.getIsFixed()) {
+                    mainView.getRightPanel().setPinnedMessageId(message.getId());
+                    mainView.getRightPanel().setPinnedMessage(message.getTextContent());
+                    mainView.getRightPanel().setShowPinnedMessageBox(message.getIsFixed());
+                }
             }
 
             for (BubbleData msg : messageHistory) {
@@ -251,6 +255,5 @@ public class LeftPanel extends JPanel {
             }
         });
     }
-
 
 }

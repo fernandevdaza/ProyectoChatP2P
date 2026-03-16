@@ -2,6 +2,7 @@ package com.fernandev.chatp2p.controller;
 
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
 import com.fernandev.chatp2p.model.entities.command.*;
+import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
@@ -178,6 +179,8 @@ public class ConnectionController implements SocketListener {
             handleRecibido((Recibido) messageProtocol);
         } else if(messageProtocol instanceof EliminarMensaje) {
             handleEliminarMensaje((EliminarMensaje) messageProtocol);
+        } else if (messageProtocol instanceof FijarMensaje) {
+            handleFijarMensaje((FijarMensaje) messageProtocol);
         }else if (messageProtocol instanceof Offline) {
                 handleOffline((Offline) messageProtocol);
             }
@@ -308,6 +311,11 @@ public class ConnectionController implements SocketListener {
 
     private void handleEliminarMensaje(EliminarMensaje eliminarMensaje){
         MessageController.getInstance().deleteMessage(eliminarMensaje.getIdMessage());
+    }
+
+    private void handleFijarMensaje(FijarMensaje fijarMensaje){
+        boolean showPinMessage = ui.getShowPinnedMessage();
+        MessageController.getInstance().pinMessage(fijarMensaje.getIdMessage(), !showPinMessage);
     }
 
     private void handleOffline(Offline offline) {
