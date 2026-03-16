@@ -19,13 +19,18 @@ import java.util.*;
 import java.util.List;
 
 public class RightPanel extends JPanel {
-    private JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    private JPanel header = new JPanel(new BorderLayout());
+    private JPanel pinMessageBox = new JPanel();
     private JPanel chatPanel = new JPanel();
     private JScrollPane scrollPane = new JScrollPane(chatPanel);
     private JPanel inputPanel;
     private JButton buttonSend = new JButton("➤");
     private JButton buttonImage = new JButton("📷");
     private JTextField messageInput = new JTextField();
+    private boolean showPinnedMessageBox = false;
+    private String pinnedMessage = "";
+    private String pinnedMessageId = "";
+    private JLabel labelPinnedMessage;
 
     private BubbleBubble bubbleBubble;
     private ChatUI mainView;
@@ -41,6 +46,7 @@ public class RightPanel extends JPanel {
             return;
         }
 
+        buildPinMessageBox();
         buildHeader();
         buildChatPanel();
         buildScrollPane();
@@ -50,7 +56,11 @@ public class RightPanel extends JPanel {
 
         this.setPreferredSize(new Dimension(300, 0));
         this.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY));
-        this.add(header, BorderLayout.NORTH);
+
+        JPanel northWrapper = new JPanel(new BorderLayout());
+        northWrapper.add(header, BorderLayout.NORTH);
+        northWrapper.add(pinMessageBox, BorderLayout.SOUTH);
+        this.add(northWrapper, BorderLayout.NORTH);
         this.add(scrollPane, BorderLayout.CENTER);
         this.add(inputPanel, BorderLayout.SOUTH);
 
@@ -206,11 +216,38 @@ public class RightPanel extends JPanel {
     private void buildHeader() {
         header.setBackground(new Color(240, 242, 245));
         header.setPreferredSize(new Dimension(0, 60));
-        header.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY));
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
         String labelContactString = mainView.getPeerController().getPeerDisplayNameById(mainView.getCurrentChatId());
-        JLabel labelContact = new JLabel(labelContactString);
+        JLabel labelContact = new JLabel("  " + labelContactString);
         labelContact.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        header.add(labelContact);
+        header.add(labelContact, BorderLayout.CENTER);
+    }
+
+    private void buildPinMessageBox() {
+        pinMessageBox.setLayout(new BorderLayout(5, 0));
+        pinMessageBox.setBackground(new Color(80, 80, 80));
+        pinMessageBox.setPreferredSize(new Dimension(Integer.MAX_VALUE, 35));
+        pinMessageBox.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, Color.LIGHT_GRAY));
+
+        JButton pin = new JButton("✕ Desfijar");
+        pin.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        pin.setForeground(Color.WHITE);
+        pin.setBackground(new Color(113, 122, 122));
+        pin.setBorderPainted(false);
+        pin.setFocusPainted(false);
+        pin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        pin.setToolTipText("Desfijar mensaje");
+        pin.addActionListener(e -> {
+            MessageController.getInstance().pinMessage(pinnedMessageId, false);
+        });
+        pinMessageBox.add(pin, BorderLayout.WEST);
+
+        labelPinnedMessage = new JLabel(pinnedMessage);
+        labelPinnedMessage.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        labelPinnedMessage.setForeground(Color.white);
+        pinMessageBox.add(labelPinnedMessage, BorderLayout.CENTER);
+
+        pinMessageBox.setVisible(showPinnedMessageBox);
     }
 
     private void buildChatPanel() {
@@ -280,6 +317,32 @@ public class RightPanel extends JPanel {
 
         this.revalidate();
         this.repaint();
+    }
+
+    public void setShowPinnedMessageBox(boolean showPinnedMessageBox) {
+        this.showPinnedMessageBox = showPinnedMessageBox;
+        if (pinMessageBox != null) {
+            pinMessageBox.setVisible(showPinnedMessageBox);
+        }
+    }
+
+    public boolean getShowPinnedMessageBox() {
+        return this.showPinnedMessageBox;
+    }
+
+    public String getPinnedMessageId() {
+        return this.pinnedMessageId;
+    }
+
+    public void setPinnedMessageId(String pinnedMessageId) {
+        this.pinnedMessageId = pinnedMessageId;
+    }
+
+    public void setPinnedMessage(String pinnedMessage) {
+        this.pinnedMessage = pinnedMessage;
+        if (labelPinnedMessage != null) {
+            labelPinnedMessage.setText(pinnedMessage);
+        }
     }
 
     public void repaintChatPanel(JPanel rowPanel) {

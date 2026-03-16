@@ -3,6 +3,7 @@ package com.fernandev.chatp2p.view;
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.command.EliminarMensaje;
+import com.fernandev.chatp2p.model.entities.command.FijarMensaje;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -142,12 +143,20 @@ public class BubbleBubble extends JPanel {
             MessageController.getInstance().deleteMessage(this.idMessage);
         });
 
-        popupMenu.add(deleteItem);
-        popupMenu.add(new JSeparator());
+        JMenuItem pinItem = new JMenuItem("Fijar mensaje");
+        pinItem.addActionListener(e -> {
+            String senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
+            FijarMensaje fijarMensaje = new FijarMensaje();
+            fijarMensaje.setIdMessage(this.idMessage);
+            ConnectionController.getInstance().sendMessage(senderPeerId, fijarMensaje);
+            MessageController.getInstance().pinMessage(this.idMessage, true);
+        });
 
+
+
+        popupMenu.add(deleteItem);
         if(isMe){
             JMenuItem deleteEveryoneItem = new JMenuItem("Eliminar para todos");
-            JMenuItem pinItem = new JMenuItem("Fijar mensaje");
 
             deleteEveryoneItem.addActionListener(e -> {
                 String senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
@@ -161,6 +170,10 @@ public class BubbleBubble extends JPanel {
             
 
         }
+
+        popupMenu.add(new JSeparator());
+        popupMenu.add(pinItem);
+
 
         this.addMouseListener(new MouseAdapter() {
             @Override

@@ -60,6 +60,9 @@ public class MessageDAO implements IMessageDao{
             if (existColumn(result, Message.Column.UPDATED_AT)) {
                 message.setUpdatedAt(LocalDateTime.parse(result.getString(Message.Column.UPDATED_AT)));
             }
+            if (existColumn(result, Message.Column.IS_FIXED)) {
+                message.setFixed(result.getBoolean(Message.Column.IS_FIXED));
+            }
             return message;
     };
 
@@ -172,6 +175,7 @@ public class MessageDAO implements IMessageDao{
                 pst.setString(10, message.getStatus().toString());
                 pst.setString(11, message.getCreatedAt().toString());
                 pst.setString(12, message.getUpdatedAt().toString());
+                pst.setString(13, String.valueOf(message.getIsFixed()));
             }
         };
         helper.insert(query, params, message);
@@ -196,6 +200,23 @@ public class MessageDAO implements IMessageDao{
             query = String.format("%s %s", query, conditionWhere);
         }
         helper.update(query, null);
+    }
+
+    public void updateFixedStatus(String messageId, boolean isFixed) throws Exception{
+        try {
+            String query = "UPDATE messages SET is_fixed=? WHERE id=?";
+            int isFixedInteger = isFixed ? 1 : 0;
+            QueryParameters params = new QueryParameters() {
+                @Override
+                public void setParameters(PreparedStatement pst) throws SQLException {
+                    pst.setString(1, String.valueOf(isFixedInteger));
+                    pst.setString(2, messageId);
+                }
+            };
+            helper.update(query, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void deleteById(String messageId) throws Exception {

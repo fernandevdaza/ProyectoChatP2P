@@ -19,4 +19,6 @@ public interface IView {
     Map<String, List<BubbleData>> getChatHistory();
     Map<String, BubbleBubble> getBubblesByMessageId();
     void repaintRightPanel();
+    void setPinMessage(boolean isVisible, String message, String messageId);
+    boolean getShowPinnedMessage();
 }
