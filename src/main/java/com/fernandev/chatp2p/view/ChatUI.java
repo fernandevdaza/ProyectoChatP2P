@@ -37,6 +37,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
 
+    private final List<String> notifications = new ArrayList<>();
+
+    private int unreadNotificationsCount = 0;
+
+
     public ChatUI() {
         setTitle("Chat P2P");
         setSize(1000, 700);
@@ -148,6 +153,18 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         return bubblesByMessageId;
     }
 
+    public List<String> getNotifications(){
+        return notifications;
+    }
+
+    public int getUnreadNotificationsCount(){
+        return unreadNotificationsCount;
+    }
+
+    public void setUnreadNotificationsCount(int unreadNotificationsCount){
+        this.unreadNotificationsCount = unreadNotificationsCount;
+    }
+
     public MessageController getMessageController() {
         return this.messageController;
     }
@@ -213,6 +230,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
         }, "load-contacts-thread").start();
 
+    }
+
+    public void addNotification(String text){
+        this.getLeftPanel().addNotification(text);
+        this.getLeftPanel().triggerBuzz();
     }
 
     public void onUpdatePeerStatus(String id) {

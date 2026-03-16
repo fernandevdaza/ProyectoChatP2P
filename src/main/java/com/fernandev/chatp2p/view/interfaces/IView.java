@@ -21,4 +21,5 @@ public interface IView {
     void repaintRightPanel();
     void setPinMessage(boolean isVisible, String message, String messageId);
     boolean getShowPinnedMessage();
+    void addNotification(String text);
 }

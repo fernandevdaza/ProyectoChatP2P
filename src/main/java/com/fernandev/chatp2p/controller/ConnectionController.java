@@ -10,6 +10,7 @@ import com.fernandev.chatp2p.model.network.SocketListener;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.ChatUI;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.sql.SQLException;
@@ -179,6 +180,8 @@ public class ConnectionController implements SocketListener {
             handleRecibido((Recibido) messageProtocol);
         } else if(messageProtocol instanceof EliminarMensaje) {
             handleEliminarMensaje((EliminarMensaje) messageProtocol);
+        }else if(messageProtocol instanceof Zumbido){
+            handleZumbido((Zumbido) messageProtocol);
         } else if (messageProtocol instanceof FijarMensaje) {
             handleFijarMensaje((FijarMensaje) messageProtocol);
         } else if (messageProtocol instanceof MensajeUnico) {
@@ -313,6 +316,13 @@ public class ConnectionController implements SocketListener {
 
     private void handleEliminarMensaje(EliminarMensaje eliminarMensaje){
         MessageController.getInstance().deleteMessage(eliminarMensaje.getIdMessage());
+    }
+
+    private void handleZumbido(Zumbido zumbido){
+        Peer peer = PeerController.getInstance().getPeerById(zumbido.getIdUser());
+        SwingUtilities.invokeLater(() -> {
+            ui.addNotification("Zumbido recibido de " + peer.getDisplayName());
+        });
     }
 
     private void handleMensajeUnico(MensajeUnico mensajeUnico){

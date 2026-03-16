@@ -2,6 +2,7 @@ package com.fernandev.chatp2p.view.panel;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
+import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
 import com.fernandev.chatp2p.model.entities.command.Hello;
 import com.fernandev.chatp2p.model.entities.command.Invitacion;
@@ -13,6 +14,7 @@ import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,9 @@ public class LeftPanel extends JPanel {
     private JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
     private JButton connectButton = new JButton("Nueva conexión (+)");
     private JButton offlineModeButton = new JButton("Modo offline");
-
+    private JButton notificationButton = new JButton("🔔");
+    private JPopupMenu notificationPopupMenu = new JPopupMenu();
+    private JPanel notificationPanel = new JPanel();
     private JList<Peer> contactList;
 
     private ChatUI mainView;
@@ -39,6 +43,7 @@ public class LeftPanel extends JPanel {
         this.mainView = ui;
         this.setLayout(new BorderLayout());
 
+        buildNotificationPanel();
         buildHeader();
         buildPeerList();
         buildConnectButton();
@@ -47,17 +52,47 @@ public class LeftPanel extends JPanel {
         this.setPreferredSize(new Dimension(300, 0));
         this.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY));
         this.add(new JScrollPane(contactList), BorderLayout.CENTER);
-        this.add(offlineModeButton, BorderLayout.NORTH);
+        this.add(header, BorderLayout.NORTH);
         this.add(connectButton, BorderLayout.SOUTH);
+    }
+
+    private void buildNotificationPanel(){
+        notificationButton.setFocusPainted(false);
+        notificationButton.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        notificationPopupMenu.setLayout(new BorderLayout());
+
+        notificationPanel.setLayout(new BoxLayout(notificationPanel, BoxLayout.Y_AXIS));
+        notificationPanel.setBorder(new EmptyBorder(8, 8, 8, 8));
+        notificationPanel.setBackground(Color.WHITE);
+
+        JScrollPane scrollPane = new JScrollPane(notificationPanel);
+        scrollPane.setPreferredSize(new Dimension(240, 180));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        notificationPopupMenu.add(scrollPane, BorderLayout.CENTER);
+
+        notificationButton.addActionListener(e -> {
+            refreshPopupNotification();
+            notificationPopupMenu.show(notificationButton, notificationButton.getWidth() - 240, notificationButton.getHeight());
+            mainView.setUnreadNotificationsCount(0);
+            updateNotificationButtonText();
+        });
+
+        updateNotificationButtonText();
     }
 
     private void buildHeader() {
         header.setBackground(new Color(240, 242, 245));
-        header.setPreferredSize(new Dimension(300, 60));
+        header.setLayout(new BorderLayout());
+        header.setPreferredSize(new Dimension(300, 30));
+        Peer me = PeerController.getInstance().getMyself();
 
-        JLabel labelUser = new JLabel("Mi usuario");
+        JLabel labelUser = new JLabel("Bienvenido, " + me.getDisplayName() + "!");
         labelUser.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        header.add(labelUser);
+        labelUser.setHorizontalAlignment(JLabel.CENTER);
+        labelUser.setVerticalAlignment(JLabel.CENTER);
+        header.add(labelUser, BorderLayout.WEST);
+        header.add(notificationButton, BorderLayout.EAST);
     }
 
     private void buildPeerList() {
@@ -199,6 +234,7 @@ public class LeftPanel extends JPanel {
     private void setContactSelectedConnected(boolean connected, String id) {
         if (!Objects.equals(mainView.getCurrentChatId(), id))
             return;
+        mainView.getRightPanel().getBuzzButton().setEnabled(connected);
         SwingUtilities.invokeLater(() -> {
             mainView.setContactSelectedConnected(connected);
             mainView.setInputEnabledInRightPanel(connected);
@@ -254,6 +290,76 @@ public class LeftPanel extends JPanel {
                 }
             }
         });
+    }
+
+    private void refreshPopupNotification() {
+        notificationPanel.removeAll();
+
+        if (mainView.getNotifications().isEmpty()) {
+            JLabel emptyLabel = new JLabel("No hay notificaciones");
+            emptyLabel.setBorder(new EmptyBorder(8, 8, 8, 8));
+            notificationPanel.add(emptyLabel);
+        } else {
+            for (String notification : mainView.getNotifications()) {
+                JPanel item = createNotificationItem(notification);
+                notificationPanel.add(item);
+                notificationPanel.add(Box.createVerticalStrut(6));
+            }
+        }
+
+        notificationPanel.revalidate();
+        notificationPanel.repaint();
+    }
+
+    private JPanel createNotificationItem(String text) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(245, 245, 245));
+        panel.setBorder(new EmptyBorder(8, 10, 8, 10));
+
+        JLabel label = new JLabel("<html>" + text + "</html>");
+        panel.add(label, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private void updateNotificationButtonText() {
+        if (mainView.getUnreadNotificationsCount() > 0) {
+            notificationButton.setText("🔔 (" + mainView.getUnreadNotificationsCount() + ")");
+        } else {
+            notificationButton.setText("🔔");
+        }
+    }
+
+    public void addNotification(String text) {
+        mainView.getNotifications().addFirst(text);
+        mainView.setUnreadNotificationsCount(mainView.getUnreadNotificationsCount() + 1);
+        updateNotificationButtonText();
+        refreshPopupNotification();
+    }
+
+    public void triggerBuzz() {
+        shakeWindow(mainView);
+    }
+
+    private void shakeWindow(JFrame frame) {
+        Point original = frame.getLocation();
+        int distance = 10;
+        int times = 12;
+        int delay = 25;
+
+        new Thread(() -> {
+            try {
+                for (int i = 0; i < times; i++) {
+                    int x = original.x + (i % 2 == 0 ? distance : -distance);
+                    SwingUtilities.invokeLater(() -> frame.setLocation(x, original.y));
+                    Thread.sleep(delay);
+                }
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            } finally {
+                SwingUtilities.invokeLater(() -> frame.setLocation(original));
+            }
+        }).start();
     }
 
 }

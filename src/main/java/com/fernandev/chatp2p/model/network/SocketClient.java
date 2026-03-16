@@ -143,6 +143,12 @@ public class SocketClient extends Thread {
                         eliminarMensaje.setIp(this.getIp());
                         notificar(this, eliminarMensaje);
                         break;
+                    }case "010": {
+                        System.out.println("[" + Thread.currentThread().getName() + "] Zumbido");
+                        Zumbido zumbido = Zumbido.parse(message);
+                        zumbido.setIp(this.getIp());
+                        notificar(this, zumbido);
+                        break;
                     }
                     case "011": {
                         System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Fijado");

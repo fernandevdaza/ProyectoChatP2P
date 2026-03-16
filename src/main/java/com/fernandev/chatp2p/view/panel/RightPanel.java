@@ -4,6 +4,7 @@ import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.command.Mensaje;
 import com.fernandev.chatp2p.model.entities.command.MensajeUnico;
+import com.fernandev.chatp2p.model.entities.command.Zumbido;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
@@ -28,6 +29,7 @@ public class RightPanel extends JPanel {
     private JButton buttonSend = new JButton("➤");
     private JButton buttonImage = new JButton("📷");
     private JButton buttonOneTimeMessage = new JButton("❶");
+    JButton buzzButton = new JButton("\uD83D\uDD0A");
     private boolean isOneTimeMessage = false;
     private JTextField messageInput = new JTextField();
     private boolean showPinnedMessageBox = false;
@@ -225,12 +227,30 @@ public class RightPanel extends JPanel {
 
     private void buildHeader() {
         header.setBackground(new Color(240, 242, 245));
-        header.setPreferredSize(new Dimension(0, 60));
+        header.setLayout(new BorderLayout());
+        header.setPreferredSize(new Dimension(0, 50));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+
         String labelContactString = mainView.getPeerController().getPeerDisplayNameById(mainView.getCurrentChatId());
         JLabel labelContact = new JLabel("  " + labelContactString);
-        labelContact.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        header.add(labelContact, BorderLayout.CENTER);
+        labelContact.setFont(new Font("Segoe UI", Font.BOLD, 22));
+
+        labelContact.setVerticalAlignment(JLabel.CENTER);
+        labelContact.setHorizontalAlignment(JLabel.LEFT);
+
+        buzzButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        buzzButton.setPreferredSize(new Dimension(50, 50));
+        buzzButton.addActionListener(e -> {
+            Zumbido zumbido = new Zumbido();
+            ConnectionController.getInstance().sendMessage(mainView.getCurrentChatId(), zumbido);
+        });
+
+        if(!mainView.getContactSelectedConected()){
+            buzzButton.setEnabled(false);
+        }
+
+        header.add(labelContact, BorderLayout.WEST);
+        header.add(buzzButton, BorderLayout.EAST);
     }
 
     private void buildPinMessageBox() {
@@ -366,6 +386,10 @@ public class RightPanel extends JPanel {
 
     public String getPinnedMessageId() {
         return this.pinnedMessageId;
+    }
+
+    public JButton getBuzzButton() {
+        return this.buzzButton;
     }
 
     public void setPinnedMessageId(String pinnedMessageId) {
