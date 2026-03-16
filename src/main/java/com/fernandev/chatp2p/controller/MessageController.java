@@ -89,10 +89,11 @@ public class MessageController {
         return dp.getConversationId();
     }
 
-    public void saveMessage(String id, String conversationId, String senderPeerId, String message) {
+    public void saveMessage(String id, String conversationId, String senderPeerId, String message, boolean isEphemeral) {
         try {
             if (id == null && conversationId == null && senderPeerId == null && message == null)
                 return;
+
             Message mensaje = Message.builder()
                     .id(id)
                     .conversationId(conversationId)
@@ -101,7 +102,7 @@ public class MessageController {
                     .textContent(message)
                     .sentAt(LocalDateTime.now())
                     .receivedAt(LocalDateTime.now())
-                    .isEphemeral(false)
+                    .isEphemeral(isEphemeral)
                     .expiresAt(LocalDateTime.now())
                     .status(MessageStatusType.SENT)
                     .createdAt(LocalDateTime.now())
@@ -159,6 +160,20 @@ public class MessageController {
             boolean onExist = messageDAO.existById(messageId);
             if(onExist){
                 messageDAO.deleteById(messageId);
+                view.repaintRightPanel();
+                return true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean editMessage(String messageId, String textContent){
+        try {
+            boolean onExist = messageDAO.existById(messageId);
+            if(onExist){
+                messageDAO.updateTextContent(messageId, textContent);
                 view.repaintRightPanel();
                 return true;
             }

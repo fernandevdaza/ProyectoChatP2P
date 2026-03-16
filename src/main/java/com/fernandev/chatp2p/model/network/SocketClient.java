@@ -151,6 +151,13 @@ public class SocketClient extends Thread {
                         notificar(this, fijarMensaje);
                         break;
                     }
+                    case "012": {
+                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Único");
+                        MensajeUnico mensajeUnico = MensajeUnico.parse(message);
+                        mensajeUnico.setIp(this.getIp());
+                        notificar(this, mensajeUnico);
+                        break;
+                    }
                     case "021": {
                         System.out.println("[" + Thread.currentThread().getName() + "] Nueva Imágen!");
                         MessageImage messageImage = MessageImage.parse(message);

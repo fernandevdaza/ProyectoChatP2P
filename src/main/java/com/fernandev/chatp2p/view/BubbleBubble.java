@@ -15,25 +15,29 @@ import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Objects;
 import javax.imageio.ImageIO;
 
 public class BubbleBubble extends JPanel {
     private final String text;
     private final boolean isMe;
     private final String idMessage;
+    private final boolean isEphemeral;
     private JLabel checkLabel;
     private static final Color COLOR_MY_BUBBLE = new Color(220, 248, 198);
     private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255);
     private static final Color COLOR_CHECK = new Color(53, 162, 235);
 
-    public BubbleBubble(String content, boolean isMe, String idMessage) {
-        this(content, isMe, false, idMessage);
+    public BubbleBubble(String content, boolean isMe, String idMessage, boolean isEphemeral) {
+        this(content, isMe, false, idMessage, isEphemeral);
     }
 
-    public BubbleBubble(String content, boolean isMe, boolean isImage, String idMessage) {
+    public BubbleBubble(String content, boolean isMe, boolean isImage, String idMessage, boolean isEphemeral) {
         this.text = content;
         this.isMe = isMe;
         this.idMessage = idMessage;
+        this.isEphemeral = isEphemeral;
+
         setLayout(new BorderLayout(0, 2));
         setOpaque(false);
         setBorder(new EmptyBorder(8, 12, 8, 12));
@@ -70,7 +74,24 @@ public class BubbleBubble extends JPanel {
                 errorLbl.setForeground(Color.RED);
                 add(errorLbl, BorderLayout.CENTER);
             }
-        } else {
+        } else if (isEphemeral){
+            JButton openMessage = new JButton("❶ Mensaje");
+            if (Objects.equals(text, "")){
+                openMessage.setEnabled(false);
+            }
+            openMessage.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            openMessage.setSize(new Dimension(350, 350));
+            if(!isMe){
+                openMessage.addActionListener(e -> {
+                    openMessage.setEnabled(false);
+                    JOptionPane.showMessageDialog(null, this.text);
+                    MessageController.getInstance().editMessage(this.idMessage, "");
+                });
+            }else{
+                openMessage.setEnabled(false);
+            }
+            add(openMessage, BorderLayout.CENTER);
+        }else {
             JTextArea textArea = new JTextArea(content);
             textArea.setOpaque(false);
             textArea.setEditable(false);

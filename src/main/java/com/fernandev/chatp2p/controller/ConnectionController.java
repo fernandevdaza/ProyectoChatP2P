@@ -181,6 +181,8 @@ public class ConnectionController implements SocketListener {
             handleEliminarMensaje((EliminarMensaje) messageProtocol);
         } else if (messageProtocol instanceof FijarMensaje) {
             handleFijarMensaje((FijarMensaje) messageProtocol);
+        } else if (messageProtocol instanceof MensajeUnico) {
+            handleMensajeUnico((MensajeUnico) messageProtocol);
         }else if (messageProtocol instanceof Offline) {
                 handleOffline((Offline) messageProtocol);
             }
@@ -241,8 +243,8 @@ public class ConnectionController implements SocketListener {
         try {
             String conversationId = messageController.getConversationIdByPeerId(msg.getIdUser());
             messageController.saveMessage(msg.getIdMessage(), conversationId, msg.getIdUser(),
-                    msg.getMessage());
-            ui.onChatMessage(msg.getIdUser(), msg.getIdMessage(), msg.getMessage());
+                    msg.getMessage(), false);
+            ui.onChatMessage(msg.getIdUser(), msg.getIdMessage(), msg.getMessage(), false);
 
             if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
                 MessageController.getInstance().updateMessageStatus(msg.getIdMessage(), MessageStatusType.RECEIVED);
@@ -311,6 +313,24 @@ public class ConnectionController implements SocketListener {
 
     private void handleEliminarMensaje(EliminarMensaje eliminarMensaje){
         MessageController.getInstance().deleteMessage(eliminarMensaje.getIdMessage());
+    }
+
+    private void handleMensajeUnico(MensajeUnico mensajeUnico){
+        try {
+            String conversationId = messageController.getConversationIdByPeerId(mensajeUnico.getIdUser());
+            messageController.saveMessage(mensajeUnico.getIdMessage(), conversationId, mensajeUnico.getIdUser(),
+                    mensajeUnico.getMessage(), true);
+            ui.onChatMessage(mensajeUnico.getIdUser(), mensajeUnico.getIdMessage(), mensajeUnico.getMessage(), true);
+
+            if (Objects.equals(ui.getCurrentChatId(), mensajeUnico.getIdUser())) {
+                MessageController.getInstance().updateMessageStatus(mensajeUnico.getIdMessage(), MessageStatusType.RECEIVED);
+                Recibido recibido = new Recibido(mensajeUnico.getIdMessage());
+                this.sendMessage(mensajeUnico.getIdUser(), recibido);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void handleFijarMensaje(FijarMensaje fijarMensaje){

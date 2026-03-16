@@ -160,8 +160,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         return this.rightPanel.getShowPinnedMessageBox();
     }
 
-    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received) {
-        this.rightPanel.paintBubble(text, isMe, messageId, received);
+    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received, boolean isOneTimeMessage) {
+        this.rightPanel.paintBubble(text, isMe, messageId, received, isOneTimeMessage);
     }
 
     public void setInputEnabledInRightPanel(boolean enabled) {
@@ -249,8 +249,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ip + " rechazó la conexión."));
     }
 
-    public void onChatMessage(String peerId, String idMessage, String message) {
-        SwingUtilities.invokeLater(() -> this.rightPanel.addMessage(message, false, peerId));
+    public void onChatMessage(String peerId, String idMessage, String message, boolean isEphemeral) {
+        SwingUtilities.invokeLater(() -> this.rightPanel.addMessage(message, false, peerId, idMessage, isEphemeral));
     }
 
     public void onChatImage(String peerId, String idMessage, String base64Image) {

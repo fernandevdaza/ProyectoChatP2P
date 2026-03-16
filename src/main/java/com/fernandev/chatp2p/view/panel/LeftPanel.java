@@ -223,7 +223,7 @@ public class LeftPanel extends JPanel {
                     mainView.getMessageController().sendReceipt(message);
                     mainView.getMessageController().setReceived(message);
                 }
-                messageHistory.add(new BubbleData(message.getTextContent(), isMe, message.getId()));
+                messageHistory.add(new BubbleData(message.getTextContent(), isMe, message.getId(), message.getIsEphemeral()));
                 if (message.getIsFixed()) {
                     mainView.getRightPanel().setPinnedMessageId(message.getId());
                     mainView.getRightPanel().setPinnedMessage(message.getTextContent());
@@ -234,7 +234,7 @@ public class LeftPanel extends JPanel {
             for (BubbleData msg : messageHistory) {
                 boolean received = msg.isMe && msg.messageId != null
                         && MessageController.getInstance().hasReceipt(msg.messageId);
-                mainView.paintBubbleInRightPanel(msg.text, msg.isMe, msg.messageId, received);
+                mainView.paintBubbleInRightPanel(msg.text, msg.isMe, msg.messageId, received, msg.getIsEphemeral());
             }
         }
 

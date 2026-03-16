@@ -3,6 +3,7 @@ package com.fernandev.chatp2p.view.panel;
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.command.Mensaje;
+import com.fernandev.chatp2p.model.entities.command.MensajeUnico;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
@@ -26,6 +27,8 @@ public class RightPanel extends JPanel {
     private JPanel inputPanel;
     private JButton buttonSend = new JButton("➤");
     private JButton buttonImage = new JButton("📷");
+    private JButton buttonOneTimeMessage = new JButton("❶");
+    private boolean isOneTimeMessage = false;
     private JTextField messageInput = new JTextField();
     private boolean showPinnedMessageBox = false;
     private String pinnedMessage = "";
@@ -68,10 +71,6 @@ public class RightPanel extends JPanel {
 
     }
 
-    public void addMessage(String text, boolean isMe, String targetId) {
-        addMessage(text, isMe, targetId, null);
-    }
-
     public void addImageMessage(String base64Image, boolean isMe, String targetId, String messageId) {
         if (targetId.equals(mainView.getCurrentChatId())) {
             paintBubbleImage(base64Image, isMe, messageId);
@@ -80,12 +79,12 @@ public class RightPanel extends JPanel {
         }
     }
 
-    public void addMessage(String text, boolean isMe, String targetId, String messageId) {
+    public void addMessage(String text, boolean isMe, String targetId, String messageId, boolean isOneTimeMessage) {
         mainView.getChatHistory().putIfAbsent(targetId, new java.util.ArrayList<>());
-        mainView.getChatHistory().get(targetId).add(new BubbleData(text, isMe, messageId));
+        mainView.getChatHistory().get(targetId).add(new BubbleData(text, isMe, messageId, isOneTimeMessage));
 
         if (targetId.equals(mainView.getCurrentChatId())) {
-            paintBubble(text, isMe, messageId);
+            paintBubble(text, isMe, messageId, false, isOneTimeMessage);
         } else {
             System.out.println("Mensaje recibido de " + targetId + " (en segundo plano)");
         }
@@ -117,15 +116,22 @@ public class RightPanel extends JPanel {
 
         String uuid = UUID.randomUUID().toString();
 
-        addMessage(texto, true, mainView.getCurrentChatId(), uuid);
+        addMessage(texto, true, mainView.getCurrentChatId(), uuid, isOneTimeMessage);
 
         new Thread(() -> {
             try {
                 String targetId = mainView.getCurrentChatId();
-                Mensaje mensaje = new Mensaje();
-                mensaje.setIdMessage(uuid);
-                mensaje.setMessage(texto);
-                ConnectionController.getInstance().sendMessage(targetId, mensaje);
+                if (!isOneTimeMessage){
+                    Mensaje mensaje = new Mensaje();
+                    mensaje.setIdMessage(uuid);
+                    mensaje.setMessage(texto);
+                    ConnectionController.getInstance().sendMessage(targetId, mensaje);
+                }else{
+                    MensajeUnico mensajeUnico = new MensajeUnico();
+                    mensajeUnico.setIdMessage(uuid);
+                    mensajeUnico.setMessage(texto);
+                    ConnectionController.getInstance().sendMessage(targetId, mensajeUnico);
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -133,6 +139,10 @@ public class RightPanel extends JPanel {
 
         messageInput.setText("");
         messageInput.requestFocus();
+    }
+
+    private void setOneTimeMessage(boolean isOneTimeMessage){
+        this.isOneTimeMessage = isOneTimeMessage;
     }
 
     private void enviarImagen() {
@@ -281,6 +291,21 @@ public class RightPanel extends JPanel {
         buttonSend.setPreferredSize(new Dimension(60, 40));
         buttonSend.addActionListener(e -> enviarMensaje());
 
+        buttonOneTimeMessage.setBackground(new Color(240, 242, 245));
+        buttonOneTimeMessage.setForeground(Color.DARK_GRAY);
+        buttonOneTimeMessage.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        buttonOneTimeMessage.setBorderPainted(false);
+        buttonOneTimeMessage.setFocusPainted(false);
+        buttonOneTimeMessage.setPreferredSize(new Dimension(60, 40));
+        buttonOneTimeMessage.addActionListener(e -> {
+            setOneTimeMessage(!isOneTimeMessage);
+            if (isOneTimeMessage){
+                buttonOneTimeMessage.setBackground(new Color(135, 140, 145));
+            }else{
+                buttonOneTimeMessage.setBackground(new Color(240, 242, 245));
+            }
+        });
+
         buttonImage.setBackground(new Color(240, 242, 245));
         buttonImage.setForeground(Color.DARK_GRAY);
         buttonImage.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -297,7 +322,16 @@ public class RightPanel extends JPanel {
 
         inputPanel.add(buttonImage, BorderLayout.WEST);
         inputPanel.add(messageInput, BorderLayout.CENTER);
-        inputPanel.add(buttonSend, BorderLayout.EAST);
+
+        JPanel sendButtonsPanel = new JPanel(new BorderLayout(5, 0));
+        sendButtonsPanel.setBackground(new Color(240, 242, 245));
+        sendButtonsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        sendButtonsPanel.add(buttonOneTimeMessage, BorderLayout.WEST);
+        sendButtonsPanel.add(buttonSend, BorderLayout.EAST);
+
+
+        inputPanel.add(sendButtonsPanel, BorderLayout.EAST);
     }
 
     public void setInputEnabled(boolean enabled) {
@@ -363,14 +397,10 @@ public class RightPanel extends JPanel {
         });
     }
 
-    public void paintBubble(String text, boolean isMe, String messageId) {
-        paintBubble(text, isMe, messageId, false);
-    }
-
-    public void paintBubble(String text, boolean isMe, String messageId, boolean received) {
+    public void paintBubble(String text, boolean isMe, String messageId, boolean received, boolean isOneTimeMessage) {
         JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
         rowPanel.setOpaque(false);
-        bubbleBubble = new BubbleBubble(text, isMe, messageId);
+        bubbleBubble = new BubbleBubble(text, isMe, messageId, isOneTimeMessage);
 
         if (received && isMe) {
             bubbleBubble.setReceived(true);
@@ -388,7 +418,7 @@ public class RightPanel extends JPanel {
     public void paintBubbleImage(String base64Image, boolean isMe, String messageId) {
         JPanel rowPanel = new JPanel(new FlowLayout(isMe ? FlowLayout.RIGHT : FlowLayout.LEFT, 10, 5));
         rowPanel.setOpaque(false);
-        bubbleBubble = new BubbleBubble(base64Image, isMe, true, messageId);
+        bubbleBubble = new BubbleBubble(base64Image, isMe, true, messageId, false);
 
         if (isMe) {
             bubbleBubble.setReceived(false);
