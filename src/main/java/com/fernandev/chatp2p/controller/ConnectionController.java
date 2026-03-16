@@ -68,16 +68,16 @@ public class ConnectionController implements SocketListener {
         SocketClient socketClient = connections.get(peerId);
         String ip = PeerController.getInstance().getPeerIpById(peerId);
         if (socketClient == null) {
-            if (ip == null) ip = peerId;
+            if (ip == null)
+                ip = peerId;
             socketClient = this.connectToPeer(ip);
             connections.put(ip, socketClient);
         }
-        if(socketClient.getPeerId() == null && ip != null){
+        if (socketClient.getPeerId() == null && ip != null) {
             socketClient.setPeerId(peerId);
         }
         messageProtocol.execute(socketClient);
     }
-
 
     public void sendMessageById(String peerId, MessageProtocol messageProtocol) {
         SocketClient socketClient = connections.get(peerId);
@@ -95,7 +95,6 @@ public class ConnectionController implements SocketListener {
         }
         return null;
     }
-
 
     private void sendMessageInternal(MessageProtocol messageProtocol, SocketClient socketClient) {
         socketClient.send(messageProtocol);
@@ -178,18 +177,20 @@ public class ConnectionController implements SocketListener {
             handleHelloReject((HelloReject) messageProtocol);
         } else if (messageProtocol instanceof Recibido) {
             handleRecibido((Recibido) messageProtocol);
-        } else if(messageProtocol instanceof EliminarMensaje) {
+        } else if (messageProtocol instanceof EliminarMensaje) {
             handleEliminarMensaje((EliminarMensaje) messageProtocol);
-        }else if(messageProtocol instanceof Zumbido){
+        } else if (messageProtocol instanceof Zumbido) {
             handleZumbido((Zumbido) messageProtocol);
         } else if (messageProtocol instanceof FijarMensaje) {
             handleFijarMensaje((FijarMensaje) messageProtocol);
         } else if (messageProtocol instanceof MensajeUnico) {
             handleMensajeUnico((MensajeUnico) messageProtocol);
-        }else if (messageProtocol instanceof Offline) {
-                handleOffline((Offline) messageProtocol);
-            }
+        } else if (messageProtocol instanceof Offline) {
+            handleOffline((Offline) messageProtocol);
+        } else if (messageProtocol instanceof CambiarTema) {
+            handleCambiarTema((CambiarTema) messageProtocol);
         }
+    }
 
     private void handleInvitacion(SocketClient socketClient, Invitacion invitacion) {
         String peerId = invitacion.getIdUsuario();
@@ -314,18 +315,18 @@ public class ConnectionController implements SocketListener {
         ui.onHelloRejected(helloReject.getIp());
     }
 
-    private void handleEliminarMensaje(EliminarMensaje eliminarMensaje){
+    private void handleEliminarMensaje(EliminarMensaje eliminarMensaje) {
         MessageController.getInstance().deleteMessage(eliminarMensaje.getIdMessage());
     }
 
-    private void handleZumbido(Zumbido zumbido){
+    private void handleZumbido(Zumbido zumbido) {
         Peer peer = PeerController.getInstance().getPeerById(zumbido.getIdUser());
         SwingUtilities.invokeLater(() -> {
             ui.addNotification("Zumbido recibido de " + peer.getDisplayName());
         });
     }
 
-    private void handleMensajeUnico(MensajeUnico mensajeUnico){
+    private void handleMensajeUnico(MensajeUnico mensajeUnico) {
         try {
             String conversationId = messageController.getConversationIdByPeerId(mensajeUnico.getIdUser());
             messageController.saveMessage(mensajeUnico.getIdMessage(), conversationId, mensajeUnico.getIdUser(),
@@ -333,7 +334,8 @@ public class ConnectionController implements SocketListener {
             ui.onChatMessage(mensajeUnico.getIdUser(), mensajeUnico.getIdMessage(), mensajeUnico.getMessage(), true);
 
             if (Objects.equals(ui.getCurrentChatId(), mensajeUnico.getIdUser())) {
-                MessageController.getInstance().updateMessageStatus(mensajeUnico.getIdMessage(), MessageStatusType.RECEIVED);
+                MessageController.getInstance().updateMessageStatus(mensajeUnico.getIdMessage(),
+                        MessageStatusType.RECEIVED);
                 Recibido recibido = new Recibido(mensajeUnico.getIdMessage());
                 this.sendMessage(mensajeUnico.getIdUser(), recibido);
             }
@@ -343,7 +345,7 @@ public class ConnectionController implements SocketListener {
         }
     }
 
-    private void handleFijarMensaje(FijarMensaje fijarMensaje){
+    private void handleFijarMensaje(FijarMensaje fijarMensaje) {
         boolean showPinMessage = ui.getShowPinnedMessage();
         MessageController.getInstance().pinMessage(fijarMensaje.getIdMessage(), !showPinMessage);
     }
@@ -351,6 +353,11 @@ public class ConnectionController implements SocketListener {
     private void handleOffline(Offline offline) {
         String userName = peerController.getPeerNameByIp(offline.getIp());
         ui.onOfflineReceived(offline.getIdUser(), userName);
+    }
+
+    private void handleCambiarTema(CambiarTema cambiarTema) {
+        String themeId = cambiarTema.getIdTema();
+        SwingUtilities.invokeLater(() -> ui.onThemeChanged(themeId));
     }
 
     @Override

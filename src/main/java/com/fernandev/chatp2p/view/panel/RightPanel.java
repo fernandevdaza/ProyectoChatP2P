@@ -30,6 +30,7 @@ public class RightPanel extends JPanel {
     private JButton buttonImage = new JButton("📷");
     private JButton buttonOneTimeMessage = new JButton("❶");
     JButton buzzButton = new JButton("\uD83D\uDD0A");
+    JButton themeButton = new JButton("Tema");
     private boolean isOneTimeMessage = false;
     private JTextField messageInput = new JTextField();
     private boolean showPinnedMessageBox = false;
@@ -123,12 +124,12 @@ public class RightPanel extends JPanel {
         new Thread(() -> {
             try {
                 String targetId = mainView.getCurrentChatId();
-                if (!isOneTimeMessage){
+                if (!isOneTimeMessage) {
                     Mensaje mensaje = new Mensaje();
                     mensaje.setIdMessage(uuid);
                     mensaje.setMessage(texto);
                     ConnectionController.getInstance().sendMessage(targetId, mensaje);
-                }else{
+                } else {
                     MensajeUnico mensajeUnico = new MensajeUnico();
                     mensajeUnico.setIdMessage(uuid);
                     mensajeUnico.setMessage(texto);
@@ -143,7 +144,7 @@ public class RightPanel extends JPanel {
         messageInput.requestFocus();
     }
 
-    private void setOneTimeMessage(boolean isOneTimeMessage){
+    private void setOneTimeMessage(boolean isOneTimeMessage) {
         this.isOneTimeMessage = isOneTimeMessage;
     }
 
@@ -230,6 +231,7 @@ public class RightPanel extends JPanel {
         header.setLayout(new BorderLayout());
         header.setPreferredSize(new Dimension(0, 50));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+        header.setName("theme-header");
 
         String labelContactString = mainView.getPeerController().getPeerDisplayNameById(mainView.getCurrentChatId());
         JLabel labelContact = new JLabel("  " + labelContactString);
@@ -245,12 +247,55 @@ public class RightPanel extends JPanel {
             ConnectionController.getInstance().sendMessage(mainView.getCurrentChatId(), zumbido);
         });
 
-        if(!mainView.getContactSelectedConected()){
+        if (!mainView.getContactSelectedConected()) {
             buzzButton.setEnabled(false);
+            themeButton.setEnabled(false);
         }
 
+        themeButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        themeButton.setPreferredSize(new Dimension(100, 50));
+        themeButton.setToolTipText("Cambiar tema");
+        themeButton.setBackground(new Color(240, 242, 245));
+        themeButton.setForeground(Color.DARK_GRAY);
+        themeButton.setBorderPainted(true);
+        themeButton.setFocusPainted(false);
+
+        JPopupMenu themeMenu = new JPopupMenu();
+        Map<String, String> themeEntries = com.fernandev.chatp2p.view.ThemeManager.getInstance().getThemeMenuEntries();
+        for (Map.Entry<String, String> entry : themeEntries.entrySet()) {
+            String themeId = entry.getKey();
+            String label = entry.getValue();
+            JMenuItem item = new JMenuItem(label);
+            item.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            item.addActionListener(e -> {
+                com.fernandev.chatp2p.view.ThemeManager.getInstance().applyTheme(themeId,
+                        SwingUtilities.getWindowAncestor(RightPanel.this));
+                if (mainView.getContactSelectedConected()) {
+                    new Thread(() -> {
+                        try {
+                            com.fernandev.chatp2p.model.entities.command.CambiarTema cmd = new com.fernandev.chatp2p.model.entities.command.CambiarTema();
+                            cmd.setIdTema(themeId);
+                            ConnectionController.getInstance().sendMessage(
+                                    mainView.getCurrentChatId(), cmd);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            });
+            themeMenu.add(item);
+        }
+
+        themeButton.addActionListener(e -> themeMenu.show(themeButton, 0, themeButton.getHeight()));
+
+        JPanel rightButtons = new JPanel(new BorderLayout());
+        rightButtons.setOpaque(false);
+        rightButtons.setPreferredSize(new Dimension(150, 50));
+        rightButtons.add(themeButton, BorderLayout.WEST);
+        rightButtons.add(buzzButton, BorderLayout.EAST);
+
         header.add(labelContact, BorderLayout.WEST);
-        header.add(buzzButton, BorderLayout.EAST);
+        header.add(rightButtons, BorderLayout.EAST);
     }
 
     private void buildPinMessageBox() {
@@ -319,9 +364,9 @@ public class RightPanel extends JPanel {
         buttonOneTimeMessage.setPreferredSize(new Dimension(60, 40));
         buttonOneTimeMessage.addActionListener(e -> {
             setOneTimeMessage(!isOneTimeMessage);
-            if (isOneTimeMessage){
+            if (isOneTimeMessage) {
                 buttonOneTimeMessage.setBackground(new Color(135, 140, 145));
-            }else{
+            } else {
                 buttonOneTimeMessage.setBackground(new Color(240, 242, 245));
             }
         });
@@ -349,7 +394,6 @@ public class RightPanel extends JPanel {
 
         sendButtonsPanel.add(buttonOneTimeMessage, BorderLayout.WEST);
         sendButtonsPanel.add(buttonSend, BorderLayout.EAST);
-
 
         inputPanel.add(sendButtonsPanel, BorderLayout.EAST);
     }
@@ -391,6 +435,8 @@ public class RightPanel extends JPanel {
     public JButton getBuzzButton() {
         return this.buzzButton;
     }
+
+    public JButton getThemeButton() { return this.themeButton; }
 
     public void setPinnedMessageId(String pinnedMessageId) {
         this.pinnedMessageId = pinnedMessageId;

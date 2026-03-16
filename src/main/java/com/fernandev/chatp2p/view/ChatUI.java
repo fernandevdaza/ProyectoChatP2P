@@ -41,7 +41,6 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     private int unreadNotificationsCount = 0;
 
-
     public ChatUI() {
         setTitle("Chat P2P");
         setSize(1000, 700);
@@ -153,15 +152,15 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         return bubblesByMessageId;
     }
 
-    public List<String> getNotifications(){
+    public List<String> getNotifications() {
         return notifications;
     }
 
-    public int getUnreadNotificationsCount(){
+    public int getUnreadNotificationsCount() {
         return unreadNotificationsCount;
     }
 
-    public void setUnreadNotificationsCount(int unreadNotificationsCount){
+    public void setUnreadNotificationsCount(int unreadNotificationsCount) {
         this.unreadNotificationsCount = unreadNotificationsCount;
     }
 
@@ -177,7 +176,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         return this.rightPanel.getShowPinnedMessageBox();
     }
 
-    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received, boolean isOneTimeMessage) {
+    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received,
+            boolean isOneTimeMessage) {
         this.rightPanel.paintBubble(text, isMe, messageId, received, isOneTimeMessage);
     }
 
@@ -232,7 +232,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     }
 
-    public void addNotification(String text){
+    public void addNotification(String text) {
         this.getLeftPanel().addNotification(text);
         this.getLeftPanel().triggerBuzz();
     }
@@ -297,6 +297,10 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     public void onMessageReceived(String messageId) {
         SwingUtilities.invokeLater(() -> this.rightPanel.markMessageReceived(messageId));
+    }
+
+    public void onThemeChanged(String themeId) {
+        ThemeManager.getInstance().applyTheme(themeId, this);
     }
 
 }

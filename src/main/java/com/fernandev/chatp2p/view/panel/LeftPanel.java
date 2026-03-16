@@ -235,6 +235,7 @@ public class LeftPanel extends JPanel {
         if (!Objects.equals(mainView.getCurrentChatId(), id))
             return;
         mainView.getRightPanel().getBuzzButton().setEnabled(connected);
+        mainView.getRightPanel().getThemeButton().setEnabled(connected);
         SwingUtilities.invokeLater(() -> {
             mainView.setContactSelectedConnected(connected);
             mainView.setInputEnabledInRightPanel(connected);

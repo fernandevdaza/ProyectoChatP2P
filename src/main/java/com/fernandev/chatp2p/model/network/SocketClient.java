@@ -143,7 +143,8 @@ public class SocketClient extends Thread {
                         eliminarMensaje.setIp(this.getIp());
                         notificar(this, eliminarMensaje);
                         break;
-                    }case "010": {
+                    }
+                    case "010": {
                         System.out.println("[" + Thread.currentThread().getName() + "] Zumbido");
                         Zumbido zumbido = Zumbido.parse(message);
                         zumbido.setIp(this.getIp());
@@ -162,6 +163,13 @@ public class SocketClient extends Thread {
                         MensajeUnico mensajeUnico = MensajeUnico.parse(message);
                         mensajeUnico.setIp(this.getIp());
                         notificar(this, mensajeUnico);
+                        break;
+                    }
+                    case "013": {
+                        System.out.println("[" + Thread.currentThread().getName() + "] Cambiar Tema");
+                        CambiarTema cambiarTema = CambiarTema.parse(message);
+                        cambiarTema.setIp(this.getIp());
+                        notificar(this, cambiarTema);
                         break;
                     }
                     case "021": {
@@ -187,7 +195,7 @@ public class SocketClient extends Thread {
             close();
         } catch (IOException e) {
             if (!this.socket.isClosed()) {
-//                e.printStackTrace();
+                // e.printStackTrace();
                 onDisconnect(this);
                 close();
             }
