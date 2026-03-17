@@ -66,7 +66,9 @@ public class ConnectionController implements SocketListener {
         if (socketClient.getPeerId() == null && ip != null) {
             socketClient.setPeerId(peerId);
         }
-        messageProtocol.execute(socketClient);
+        ProtocolCommand protocolCommand = ProtocolCommandFactory.create(messageProtocol);
+        protocolCommand.send(socketClient, messageProtocol);
+//        messageProtocol.execute(socketClient);
     }
 
 

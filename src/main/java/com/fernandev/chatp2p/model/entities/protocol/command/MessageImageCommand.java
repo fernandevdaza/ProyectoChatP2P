@@ -12,6 +12,6 @@ public class MessageImageCommand implements ProtocolCommand {
 
     @Override
     public void send(SocketClient socketClient, MessageProtocol messageProtocol) {
-
+        socketClient.send(messageProtocol);
     }
 }

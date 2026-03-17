@@ -1,7 +1,9 @@
 package com.fernandev.chatp2p.model.entities.protocol.command;
 
 import com.fernandev.chatp2p.controller.MessageController;
+import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.ProtocolCommand;
 import com.fernandev.chatp2p.model.entities.protocol.messages.MensajeUnico;
@@ -21,6 +23,16 @@ public class MensajeUnicoCommand implements ProtocolCommand {
 
     @Override
     public void send(SocketClient socketClient, MessageProtocol messageProtocol) {
+        Peer me = PeerController.getInstance().getMyself();
+        String conversationId = MessageController.getInstance()
+                .getConversationIdByPeerId(socketClient.getPeerId());
 
+        messageProtocol.setIp(socketClient.getHostIp());
+
+        ((MensajeUnico) messageProtocol).setIdUser(me.getId());
+
+        MessageController.getInstance().saveMessage(((MensajeUnico) messageProtocol).getIdMessage(), conversationId, me.getId(), "", true);
+
+        socketClient.send(messageProtocol);
     }
 }

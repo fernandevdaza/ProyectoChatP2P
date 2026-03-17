@@ -23,6 +23,7 @@ public class RecibidoCommand implements ProtocolCommand {
 
     @Override
     public void send(SocketClient socketClient, MessageProtocol messageProtocol) {
-
+        messageProtocol.setIp(socketClient.getHostIp());
+        socketClient.send(messageProtocol);
     }
 }

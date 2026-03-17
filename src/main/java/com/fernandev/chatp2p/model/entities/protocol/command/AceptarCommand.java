@@ -33,6 +33,17 @@ public class AceptarCommand implements ProtocolCommand {
 
     @Override
     public void send(SocketClient socketClient, MessageProtocol messageProtocol) {
+        Peer me = PeerController.getInstance().getMyself();
+        ((Aceptar) messageProtocol).setIdUsuario(me.getId());
+        ((Aceptar) messageProtocol).setNombre(me.getDisplayName());
+        socketClient.send(messageProtocol);
+
+        PeerController.getInstance().savePeer(socketClient.getIp(), socketClient.getPeerId(), socketClient.getDisplayName(), socketClient.getPort());
+
+        String conversationId = MessageController.getInstance().createConversation();
+
+        MessageController.getInstance().setPeerToConversation(conversationId, socketClient.getPeerId());
+        PeerController.getInstance().setPeerStatus(socketClient.getPeerId(), true);
 
     }
 }

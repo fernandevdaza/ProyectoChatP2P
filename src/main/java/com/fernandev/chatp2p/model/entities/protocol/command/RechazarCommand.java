@@ -17,6 +17,10 @@ public class RechazarCommand implements ProtocolCommand {
 
     @Override
     public void send(SocketClient socketClient, MessageProtocol messageProtocol) {
-
+        socketClient.send(messageProtocol);
+        ConnectionController.getInstance().removeConnection(socketClient.getPeerId(), true);
+        if(!socketClient.isClosed()){
+            socketClient.close();
+        }
     }
 }
