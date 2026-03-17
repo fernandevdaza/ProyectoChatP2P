@@ -1,0 +1,163 @@
+name: Build installers
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  APP_NAME: ChatP2P
+  MAIN_CLASS: com.fernandev.chatp2p.Main
+  JAVA_VERSION: '21'
+  JAR_FILE: ChatP2P-jar-with-dependencies.jar
+
+jobs:
+  linux-installers:
+    name: Build DEB and RPM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Install Linux packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fakeroot rpm
+
+      - name: Build JAR with Maven
+        run: mvn -B clean package
+
+      - name: Verify JAR exists
+        run: |
+          ls -lah target
+          test -f "target/${{ env.JAR_FILE }}"
+
+      - name: Create output directories
+        run: |
+          mkdir -p dist/linux/deb
+          mkdir -p dist/linux/rpm
+
+      - name: Build DEB installer
+        run: |
+          jpackage \
+            --type deb \
+            --name "${{ env.APP_NAME }}" \
+            --input target \
+            --main-jar "${{ env.JAR_FILE }}" \
+            --main-class "${{ env.MAIN_CLASS }}" \
+            --dest dist/linux/deb \
+            --linux-shortcut \
+            --vendor "UPB" \
+            --app-version "${{ github.run_number }}"
+
+      - name: Build RPM installer
+        run: |
+          jpackage \
+            --type rpm \
+            --name "${{ env.APP_NAME }}" \
+            --input target \
+            --main-jar "${{ env.JAR_FILE }}" \
+            --main-class "${{ env.MAIN_CLASS }}" \
+            --dest dist/linux/rpm \
+            --linux-shortcut \
+            --vendor "UPB" \
+            --app-version "${{ github.run_number }}"
+
+      - name: Upload Linux installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-installers
+          path: |
+            dist/linux/deb/*.deb
+            dist/linux/rpm/*.rpm
+          if-no-files-found: error
+
+  windows-installer:
+    name: Build Windows EXE installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build JAR with Maven
+        run: mvn -B clean package
+
+      - name: Verify JAR exists
+        shell: pwsh
+        run: |
+          Get-ChildItem target
+          if (!(Test-Path "target/${{ env.JAR_FILE }}")) {
+            Write-Error "No existe target/${{ env.JAR_FILE }}"
+            exit 1
+          }
+
+      - name: Add WiX to PATH if present
+        shell: pwsh
+        run: |
+          $wixPaths = @(
+            "C:\Program Files (x86)\WiX Toolset v3.14\bin",
+            "C:\Program Files (x86)\WiX Toolset v3.11\bin"
+          )
+
+          $found = $false
+          foreach ($path in $wixPaths) {
+            if (Test-Path $path) {
+              $path | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+              Write-Host "WiX encontrado en: $path"
+              $found = $true
+              break
+            }
+          }
+
+          if (-not $found) {
+            Write-Error "WiX no fue encontrado"
+            exit 1
+          }
+
+      - name: Create output directory
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path dist/windows | Out-Null
+
+      - name: Build Windows EXE installer
+        shell: pwsh
+        run: |
+          jpackage `
+            --type exe `
+            --name "${{ env.APP_NAME }}" `
+            --input target `
+            --main-jar "${{ env.JAR_FILE }}" `
+            --main-class "${{ env.MAIN_CLASS }}" `
+            --dest dist/windows `
+            --vendor "UPB" `
+            --app-version "${{ github.run_number }}" `
+            --win-menu `
+            --win-shortcut `
+            --win-dir-chooser `
+            --win-per-user-install
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/windows/*.exe
+          if-no-files-found: error
