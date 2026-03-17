@@ -18,6 +18,8 @@ public class AceptarCommand implements ProtocolCommand {
         String nombre =  ((Aceptar) messageProtocol).getNombre();
         String ip =  messageProtocol.getIp();
 
+        socketClient.setPeerId(peerId);
+
         ConnectionController.getInstance().removeConnection(ip, true);
         ConnectionController.getInstance().addConnection(peerId, socketClient);
 

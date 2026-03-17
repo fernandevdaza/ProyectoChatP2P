@@ -174,7 +174,10 @@ public class ConnectionController implements SocketListener {
                         ((Aceptar) messageProtocol).getNombre());
             });
         } else if (messageProtocol instanceof Rechazar) {
-            handleRechazar(socketClient, (Rechazar) messageProtocol);
+//            handleRechazar(socketClient, (Rechazar) messageProtocol);
+            SwingUtilities.invokeLater(() -> {
+                ui.onInvitationRejected(messageProtocol.getIp());
+            });
         } else if (messageProtocol instanceof Mensaje) {
             handleMensaje((Mensaje) messageProtocol);
         } else if (messageProtocol instanceof MessageImage) {
