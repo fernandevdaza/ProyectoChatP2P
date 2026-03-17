@@ -12,6 +12,7 @@ public class RechazarCommand implements ProtocolCommand {
         socketClient.setRejected(true);
         String ip = messageProtocol.getIp();
         ConnectionController.getInstance().removeConnection(ip, false);
+        socketClient.close();
     }
 
     @Override
