@@ -27,4 +27,5 @@ public abstract class MessageProtocol {
 
     public abstract String generarTrama();
     public abstract void execute(SocketClient client);
+    public abstract void onReceive(SocketClient client);
 }

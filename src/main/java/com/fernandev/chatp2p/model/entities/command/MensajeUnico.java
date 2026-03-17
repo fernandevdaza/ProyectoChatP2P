@@ -72,5 +72,10 @@ public class MensajeUnico extends MessageProtocol {
 
         client.send(this);
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
 }
 

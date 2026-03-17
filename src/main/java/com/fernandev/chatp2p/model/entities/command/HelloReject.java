@@ -27,4 +27,9 @@ public class HelloReject extends MessageProtocol {
         ConnectionController.getInstance().removeConnection(client.getPeerId(), false);
     }
 
+    @Override
+    public void onReceive(SocketClient client) {
+        client.setRejected(true);
+    }
+
 }

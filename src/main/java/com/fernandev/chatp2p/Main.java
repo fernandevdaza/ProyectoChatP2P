@@ -21,7 +21,7 @@ public class Main {
     public static void main(String[] args) {
         DatabaseConnection.getInstance().initDatabase();
         int port = 1900;
-        ConnectionController.getInstance().setPort(1900);
+        ConnectionController.getInstance().setPort(1901);
         IPeerDao peerDao = new CachePeerDao(new PeerDao());
         java.awt.EventQueue.invokeLater(() -> {
             Thread.currentThread().setName("UI-Thread");

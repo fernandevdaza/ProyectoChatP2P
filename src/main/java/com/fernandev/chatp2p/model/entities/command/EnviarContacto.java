@@ -59,4 +59,9 @@ public class EnviarContacto extends MessageProtocol {
     public void execute(SocketClient client) {
 
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
 }
