@@ -7,9 +7,12 @@ package com.fernandev.chatp2p.view;
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
+import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.entities.protocol.messages.Aceptar;
 import com.fernandev.chatp2p.model.entities.protocol.messages.Rechazar;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Recibido;
 import com.fernandev.chatp2p.view.interfaces.IView;
 import com.fernandev.chatp2p.view.panel.LeftPanel;
 import com.fernandev.chatp2p.view.panel.RightPanel;
@@ -200,10 +203,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.rightPanel.setInputEnabled(enabled);
     }
 
-    public void setPinMessage(boolean isVisible, String message, String messageId) {
+    public void setPinMessage(boolean isVisible, String messageId) {
+        Message message = MessageController.getInstance().getMessageById(messageId);
         this.rightPanel.setPinnedMessageId(messageId);
         this.rightPanel.setShowPinnedMessageBox(isVisible);
-        this.rightPanel.setPinnedMessage(message);
+        this.rightPanel.setPinnedMessage(message.getTextContent());
     }
 
     @Override
@@ -296,11 +300,24 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     }
 
     public void onChatMessage(String peerId, String idMessage, String message, boolean isEphemeral) {
-        SwingUtilities.invokeLater(() -> this.rightPanel.addMessage(message, false, peerId, idMessage, isEphemeral));
+        SwingUtilities.invokeLater(() -> {
+            this.rightPanel.addMessage(message, false, peerId, idMessage, isEphemeral);
+            if (Objects.equals(this.getCurrentChatId(), peerId) && !isEphemeral) {
+                MessageController.getInstance().updateMessageStatus(idMessage, MessageStatusType.RECEIVED);
+                Recibido recibido = new Recibido(idMessage);
+                ConnectionController.getInstance().sendMessage(peerId, recibido);
+            }
+        });
     }
 
     public void onChatImage(String peerId, String idMessage, String base64Image) {
-        SwingUtilities.invokeLater(() -> this.rightPanel.addImageMessage(base64Image, false, peerId, idMessage));
+        SwingUtilities.invokeLater(() -> {
+            this.rightPanel.addImageMessage(base64Image, false, peerId, idMessage);
+            if (Objects.equals(this.getCurrentChatId(), peerId)) {
+                Recibido recibido = new Recibido(idMessage);
+                ConnectionController.getInstance().sendMessage(peerId, recibido);
+            }
+        });
     }
 
     public void onHelloAccepted(String peerId, boolean isRejected) {
@@ -312,10 +329,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ip + " rechazó la conexión."));
     }
 
-    public void onOfflineReceived(String peerId, String userName) {
+    public void onOfflineReceived(String peerId) {
         javax.swing.SwingUtilities
                 .invokeLater(() -> {
-                    JOptionPane.showMessageDialog(this, userName + " está en modo Offline!");
+                    Peer peer = PeerController.getInstance().getPeerById(peerId);
+                    JOptionPane.showMessageDialog(this, peer.getDisplayName() + " está en modo Offline!");
                 });
         this.leftPanel.updatePeerStatus(peerId, false);
     }
@@ -326,6 +344,16 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     public void onThemeChanged(String themeId) {
         ThemeManager.getInstance().applyTheme(themeId, this);
+    }
+
+    public void onMessageDeleted(){
+        this.repaintRightPanel();
+    }
+
+    public void onBuzz(String peerId) {
+        Peer peer = PeerController.getInstance().getPeerById(peerId);
+        this.getLeftPanel().addNotification("Zumbido recibido de " + peer.getDisplayName());
+        this.getLeftPanel().triggerBuzz();
     }
 
     public static Color getCOLOR_HEADER_BG() {

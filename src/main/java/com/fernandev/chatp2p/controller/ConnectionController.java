@@ -35,33 +35,11 @@ public class ConnectionController implements SocketListener {
         return instance;
     }
 
-//    public void setPort(int port) {
-//        this.port = port;
-//    }
-//
-//    public int getPort() {
-//        return this.port;
-//    }
-//
-//    public void setUI(ChatUI ui) {
-//        this.ui = ui;
-//    }
-//
-//    public void setPeerController(PeerController peerController) {
-//        this.peerController = peerController;
-//    }
-//
-//    public void setMessageController(MessageController messageController) {
-//        this.messageController = messageController;
-//    }
 
     public boolean getOffline() {
         return this.isOffline;
     }
 
-//    public void setOffline(boolean isOffline) {
-//        this.isOffline = isOffline;
-//    }
 
     public SocketClient connectToPeer(String ip) throws UnreachableException {
         try {
@@ -194,131 +172,56 @@ public class ConnectionController implements SocketListener {
                     ui.onHelloRejected(messageProtocol.getIp());
 
             } else if (messageProtocol instanceof Mensaje) {
-                handleMensaje((Mensaje) messageProtocol);
-            } else if (messageProtocol instanceof MessageImage) {
-                handleMessageImage((MessageImage) messageProtocol);
+
+                ui.onChatMessage(
+                        ((Mensaje) messageProtocol).getIdUser(),
+                        ((Mensaje) messageProtocol).getIdMessage(),
+                        ((Mensaje) messageProtocol).getMessage(),
+                        false
+                );
+
             } else if (messageProtocol instanceof Recibido) {
-                handleRecibido((Recibido) messageProtocol);
+                ui.onMessageReceived(
+                        ((Recibido) messageProtocol).getIdMessage()
+                );
+
             } else if (messageProtocol instanceof EliminarMensaje) {
-                handleEliminarMensaje((EliminarMensaje) messageProtocol);
-            } else if (messageProtocol instanceof Zumbido) {
-                handleZumbido((Zumbido) messageProtocol);
+                ui.onMessageDeleted();
+            }
+            else if (messageProtocol instanceof Zumbido) {
+                ui.onBuzz(
+                        ((Zumbido) messageProtocol).getIdUser()
+                );
             } else if (messageProtocol instanceof FijarMensaje) {
-                handleFijarMensaje((FijarMensaje) messageProtocol);
+
+                ui.setPinMessage(
+                        true,
+                        ((FijarMensaje) messageProtocol).getIdMessage()
+                );
+
             } else if (messageProtocol instanceof MensajeUnico) {
-                handleMensajeUnico((MensajeUnico) messageProtocol);
+
+                ui.onChatMessage(
+                        ((MensajeUnico) messageProtocol).getIdUser(),
+                        ((MensajeUnico) messageProtocol).getIdMessage(),
+                        ((MensajeUnico) messageProtocol).getMessage(),
+                        true
+                );
+
+            }else if (messageProtocol instanceof CambiarTema) {
+
+                ui.onThemeChanged(((CambiarTema) messageProtocol).getIdTema());
+
             } else if (messageProtocol instanceof Offline) {
-                handleOffline((Offline) messageProtocol);
-            } else if (messageProtocol instanceof CambiarTema) {
-                handleCambiarTema((CambiarTema) messageProtocol);
+                ui.onOfflineReceived(((Offline) messageProtocol).getIdUser());
+
+            } else if (messageProtocol instanceof MessageImage) {
+                ui.onChatImage(((MessageImage) messageProtocol).getIdUser(), ((MessageImage) messageProtocol).getIdMessage(), ((MessageImage) messageProtocol).getBase64Image());
             }
         });
 
     }
 
-
-    private void handleMensaje(Mensaje msg) {
-        try {
-            String conversationId = messageController.getConversationIdByPeerId(msg.getIdUser());
-            messageController.saveMessage(msg.getIdMessage(), conversationId, msg.getIdUser(),
-                    msg.getMessage(), false);
-            ui.onChatMessage(msg.getIdUser(), msg.getIdMessage(), msg.getMessage(), false);
-
-            if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
-                MessageController.getInstance().updateMessageStatus(msg.getIdMessage(), MessageStatusType.RECEIVED);
-                Recibido recibido = new Recibido(msg.getIdMessage());
-                this.sendMessage(msg.getIdUser(), recibido);
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void handleMessageImage(MessageImage msg) {
-        try {
-            ui.onChatImage(msg.getIdUser(), msg.getIdMessage(), msg.getBase64Image());
-
-            if (Objects.equals(ui.getCurrentChatId(), msg.getIdUser())) {
-                Recibido recibido = new Recibido(msg.getIdMessage());
-                this.sendMessage(msg.getIdUser(), recibido);
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void handleRecibido(Recibido recibido) {
-        String messageId = recibido.getIdMessage();
-        String peerId = recibido.getIp() != null
-                ? peerController.getPeerIdByIp(recibido.getIp())
-                : null;
-        if (peerId != null) {
-            messageController.updateMessageStatus(messageId, MessageStatusType.RECEIVED);
-            messageController.saveReceipt(messageId, peerId);
-        }
-        ui.onMessageReceived(messageId);
-    }
-
-
-//    private void handleHelloAccept(SocketClient socketClient, HelloAccept helloAccept) {
-//        String peerId = helloAccept.getIdUser();
-//        connections.remove(helloAccept.getIp());
-//        connections.put(peerId, socketClient);
-//        ui.onHelloAccepted(peerId, false);
-//    }
-
-//    private void handleHelloReject(HelloReject helloReject) {
-//        connections.remove(helloReject.getIp());
-//        ui.onHelloRejected(helloReject.getIp());
-//    }
-
-    private void handleEliminarMensaje(EliminarMensaje eliminarMensaje) {
-        MessageController.getInstance().deleteMessage(eliminarMensaje.getIdMessage());
-    }
-
-    private void handleZumbido(Zumbido zumbido) {
-        Peer peer = PeerController.getInstance().getPeerById(zumbido.getIdUser());
-        SwingUtilities.invokeLater(() -> {
-            ui.addNotification("Zumbido recibido de " + peer.getDisplayName());
-        });
-    }
-
-    private void handleMensajeUnico(MensajeUnico mensajeUnico) {
-        try {
-            String conversationId = messageController.getConversationIdByPeerId(mensajeUnico.getIdUser());
-            messageController.saveMessage(mensajeUnico.getIdMessage(), conversationId, mensajeUnico.getIdUser(),
-                    mensajeUnico.getMessage(), true);
-            ui.onChatMessage(mensajeUnico.getIdUser(), mensajeUnico.getIdMessage(), mensajeUnico.getMessage(), true);
-
-//            if (Objects.equals(ui.getCurrentChatId(), mensajeUnico.getIdUser())) {
-//                MessageController.getInstance().updateMessageStatus(mensajeUnico.getIdMessage(),
-//                        MessageStatusType.RECEIVED);
-//                Recibido recibido = new Recibido(mensajeUnico.getIdMessage());
-//                this.sendMessage(mensajeUnico.getIdUser(), recibido);
-//            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void handleFijarMensaje(FijarMensaje fijarMensaje) {
-        boolean showPinMessage = ui.getShowPinnedMessage();
-        MessageController.getInstance().pinMessage(fijarMensaje.getIdMessage(), !showPinMessage);
-        MessageController.getInstance().pinMessage(fijarMensaje.getIdMessage(), true);
-    }
-
-    private void handleOffline(Offline offline) {
-        String userName = peerController.getPeerNameByIp(offline.getIp());
-        ui.onOfflineReceived(offline.getIdUser(), userName);
-    }
-
-    private void handleCambiarTema(CambiarTema cambiarTema) {
-        String themeId = cambiarTema.getIdTema();
-        SwingUtilities.invokeLater(() -> ui.onThemeChanged(themeId));
-    }
 
     @Override
     public void onClientDisconnected(SocketClient socketClient) {

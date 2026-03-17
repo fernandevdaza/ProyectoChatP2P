@@ -167,7 +167,7 @@ public class BubbleBubble extends JPanel {
 
         JMenuItem deleteItem = new JMenuItem("Eliminar para mí");
         deleteItem.addActionListener(e -> {
-            MessageController.getInstance().deleteMessage(this.idMessage);
+            MessageController.getInstance().deleteMessage(this.idMessage, true);
         });
 
         JMenuItem pinItem = new JMenuItem("Fijar mensaje");
@@ -182,7 +182,7 @@ public class BubbleBubble extends JPanel {
             fijarMensaje.setIdMessage(this.idMessage);
 
             ConnectionController.getInstance().sendMessage(senderPeerId, fijarMensaje);
-            MessageController.getInstance().pinMessage(this.idMessage, true);
+            MessageController.getInstance().pinMessage(this.idMessage, true, true);
         });
 
 
@@ -202,7 +202,7 @@ public class BubbleBubble extends JPanel {
                 }
                 eliminarMensaje.setIdMessage(this.idMessage);
                 ConnectionController.getInstance().sendMessage(senderPeerId, eliminarMensaje);
-                MessageController.getInstance().deleteMessage(this.idMessage);
+                MessageController.getInstance().deleteMessage(this.idMessage, true);
             });
 
             popupMenu.add(deleteEveryoneItem);

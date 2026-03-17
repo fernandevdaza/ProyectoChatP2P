@@ -313,7 +313,7 @@ public class RightPanel extends JPanel {
         pin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         pin.setToolTipText("Desfijar mensaje");
         pin.addActionListener(e -> {
-            MessageController.getInstance().pinMessage(pinnedMessageId, false);
+            MessageController.getInstance().pinMessage(pinnedMessageId, false, true);
         });
         pinMessageBox.add(pin, BorderLayout.WEST);
 

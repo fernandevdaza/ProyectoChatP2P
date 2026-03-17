@@ -117,6 +117,7 @@ public class MessageDAO implements IMessageDao {
         }
     }
 
+
     public List<Message> findMessagesBySenderPeerId(String senderPeerId) {
         try {
             String query = "SELECT * FROM messages WHERE sender_peer_id ='" + senderPeerId + "'";

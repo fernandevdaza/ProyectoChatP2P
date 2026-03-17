@@ -158,12 +158,12 @@ public class MessageController {
         messageDAO.updateStatus(msg, MessageStatusType.RECEIVED);
     }
 
-    public boolean deleteMessage(String messageId){
+    public boolean deleteMessage(String messageId, boolean repaintPanel){
         try {
             boolean onExist = messageDAO.existById(messageId);
             if(onExist){
                 messageDAO.deleteById(messageId);
-                view.repaintRightPanel();
+                if(repaintPanel) view.repaintRightPanel();
                 return true;
             }
         }catch (Exception e){
@@ -177,7 +177,7 @@ public class MessageController {
             boolean onExist = messageDAO.existById(messageId);
             if(onExist){
                 messageDAO.updateTextContent(messageId, textContent);
-                view.repaintRightPanel();
+//                view.repaintRightPanel();
                 return true;
             }
         }catch (Exception e){
@@ -186,13 +186,13 @@ public class MessageController {
         return false;
     }
 
-    public boolean pinMessage(String messageId, boolean isFixed){
+    public boolean pinMessage(String messageId, boolean isFixed, boolean paintFix){
         try{
             boolean onExist = messageDAO.existById(messageId);
             if(onExist){
                 messageDAO.updateFixedStatus(messageId, isFixed);
                 Message message = messageDAO.findMessageById(messageId);
-                view.setPinMessage(isFixed, message.getTextContent(), messageId);
+                if(paintFix) view.setPinMessage(isFixed, messageId);
                 return true;
             }
         }catch (Exception e){
