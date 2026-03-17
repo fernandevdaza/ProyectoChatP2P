@@ -60,7 +60,7 @@ jobs:
             --dest dist/linux/deb \
             --linux-shortcut \
             --vendor "UPB" \
-            --app-version "${{ github.run_number }}"
+            --app-version "1.0.${{ github.run_number }}"
 
       - name: Build RPM installer
         run: |
@@ -73,7 +73,7 @@ jobs:
             --dest dist/linux/rpm \
             --linux-shortcut \
             --vendor "UPB" \
-            --app-version "${{ github.run_number }}"
+            --app-version "1.0.${{ github.run_number }}"
 
       - name: Upload Linux installers
         uses: actions/upload-artifact@v4
@@ -149,7 +149,7 @@ jobs:
             --main-class "${{ env.MAIN_CLASS }}" `
             --dest dist/windows `
             --vendor "UPB" `
-            --app-version "${{ github.run_number }}" `
+            --app-version "1.0.${{ github.run_number }}" `
             --win-menu `
             --win-shortcut `
             --win-dir-chooser `
