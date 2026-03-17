@@ -41,6 +41,18 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     private int unreadNotificationsCount = 0;
 
+    private static Color COLOR_HEADER_BG = new Color(0, 168, 132);
+    private static Color COLOR_HEADER_FG = Color.WHITE;
+    private static Color COLOR_BG_CHAT = new Color(236, 229, 221);
+    private static Color COLOR_INPUT_PANEL_BG = new Color(240, 242, 245);
+    private static Color COLOR_SEND_BUTTON_BG = new Color(0, 168, 132);
+    private static Color COLOR_SEND_BUTTON_FG = Color.WHITE;
+    private static Color COLOR_BUBBLE_ME = new Color(220, 248, 198);
+    private static Color COLOR_BUBBLE_PEER = new Color(255, 255, 255);
+    private static Color COLOR_BUBBLE_TEXT_ME = Color.DARK_GRAY;
+    private static Color COLOR_BUBBLE_TEXT_PEER = Color.DARK_GRAY;
+    private static Color COLOR_GENERAL_BG = new Color(240, 242, 245);
+    private static Color COLOR_CHECK = new Color(53, 162, 235);
 
     public ChatUI() {
         setTitle("Chat P2P");
@@ -153,15 +165,15 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         return bubblesByMessageId;
     }
 
-    public List<String> getNotifications(){
+    public List<String> getNotifications() {
         return notifications;
     }
 
-    public int getUnreadNotificationsCount(){
+    public int getUnreadNotificationsCount() {
         return unreadNotificationsCount;
     }
 
-    public void setUnreadNotificationsCount(int unreadNotificationsCount){
+    public void setUnreadNotificationsCount(int unreadNotificationsCount) {
         this.unreadNotificationsCount = unreadNotificationsCount;
     }
 
@@ -177,7 +189,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         return this.rightPanel.getShowPinnedMessageBox();
     }
 
-    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received, boolean isOneTimeMessage) {
+    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received,
+            boolean isOneTimeMessage) {
         this.rightPanel.paintBubble(text, isMe, messageId, received, isOneTimeMessage);
     }
 
@@ -232,7 +245,7 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     }
 
-    public void addNotification(String text){
+    public void addNotification(String text) {
         this.getLeftPanel().addNotification(text);
         this.getLeftPanel().triggerBuzz();
     }
@@ -299,4 +312,103 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         SwingUtilities.invokeLater(() -> this.rightPanel.markMessageReceived(messageId));
     }
 
+    public void onThemeChanged(String themeId) {
+        ThemeManager.getInstance().applyTheme(themeId, this);
+    }
+
+    public static Color getCOLOR_HEADER_BG() {
+        return COLOR_HEADER_BG;
+    }
+
+    public static void setCOLOR_HEADER_BG(Color color) {
+        COLOR_HEADER_BG = color;
+    }
+
+    public static Color getCOLOR_HEADER_FG() {
+        return COLOR_HEADER_FG;
+    }
+
+    public static void setCOLOR_HEADER_FG(Color color) {
+        COLOR_HEADER_FG = color;
+    }
+
+    public static Color getCOLOR_BG_CHAT() {
+        return COLOR_BG_CHAT;
+    }
+
+    public static void setCOLOR_BG_CHAT(Color color) {
+        COLOR_BG_CHAT = color;
+    }
+
+    public static Color getCOLOR_INPUT_PANEL_BG() {
+        return COLOR_INPUT_PANEL_BG;
+    }
+
+    public static void setCOLOR_INPUT_PANEL_BG(Color color) {
+        COLOR_INPUT_PANEL_BG = color;
+    }
+
+    public static Color getCOLOR_SEND_BUTTON_BG() {
+        return COLOR_SEND_BUTTON_BG;
+    }
+
+    public static void setCOLOR_SEND_BUTTON_BG(Color color) {
+        COLOR_SEND_BUTTON_BG = color;
+    }
+
+    public static Color getCOLOR_SEND_BUTTON_FG() {
+        return COLOR_SEND_BUTTON_FG;
+    }
+
+    public static void setCOLOR_SEND_BUTTON_FG(Color color) {
+        COLOR_SEND_BUTTON_FG = color;
+    }
+
+    public static Color getCOLOR_BUBBLE_ME() {
+        return COLOR_BUBBLE_ME;
+    }
+
+    public static void setCOLOR_BUBBLE_ME(Color color) {
+        COLOR_BUBBLE_ME = color;
+    }
+
+    public static Color getCOLOR_BUBBLE_PEER() {
+        return COLOR_BUBBLE_PEER;
+    }
+
+    public static void setCOLOR_BUBBLE_PEER(Color color) {
+        COLOR_BUBBLE_PEER = color;
+    }
+
+    public static Color getCOLOR_BUBBLE_TEXT_ME() {
+        return COLOR_BUBBLE_TEXT_ME;
+    }
+
+    public static void setCOLOR_BUBBLE_TEXT_ME(Color color) {
+        COLOR_BUBBLE_TEXT_ME = color;
+    }
+
+    public static Color getCOLOR_BUBBLE_TEXT_PEER() {
+        return COLOR_BUBBLE_TEXT_PEER;
+    }
+
+    public static void setCOLOR_BUBBLE_TEXT_PEER(Color color) {
+        COLOR_BUBBLE_TEXT_PEER = color;
+    }
+
+    public static Color getCOLOR_GENERAL_BG() {
+        return COLOR_GENERAL_BG;
+    }
+
+    public static void setCOLOR_GENERAL_BG(Color color) {
+        COLOR_GENERAL_BG = color;
+    }
+
+    public static Color getCOLOR_CHECK() {
+        return COLOR_CHECK;
+    }
+
+    public static void setCOLOR_CHECK(Color color) {
+        COLOR_CHECK = color;
+    }
 }

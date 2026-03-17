@@ -1,6 +1,5 @@
 package com.fernandev.chatp2p.model.entities.command;
 
-import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.SocketClient;
@@ -12,10 +11,12 @@ public class CambiarTema extends MessageProtocol {
     private String idUsuario;
     private String idTema;
 
+
     public CambiarTema() {
         super("013");
     }
-    public CambiarTema(String idUsuario, String nombre) {
+
+    public CambiarTema(String idUsuario, String idTema) {
         super("013");
         this.idUsuario = idUsuario;
         this.idTema = idTema;
@@ -23,45 +24,40 @@ public class CambiarTema extends MessageProtocol {
 
     public static CambiarTema parse(String trama) {
         String[] split = trama.split(Pattern.quote("|"));
-        if(split.length != 3) {
-            throw new IllegalArgumentException("Formato de trama no valido");
+        if (split.length != 3) {
+            throw new IllegalArgumentException("Formato de trama CambiarTema inválido: " + trama);
         }
-        return new CambiarTema(split[1], split[2]);
+        CambiarTema ct = new CambiarTema(split[1], split[2]);
+        return ct;
     }
 
     @Override
     public String generarTrama() {
-        return getCodigo() +"|" +idUsuario +"|" + idTema + System.lineSeparator();
+        return getCodigo() + "|" + idUsuario + "|" + idTema + System.lineSeparator();
     }
 
     @Override
     public void execute(SocketClient client) {
         Peer me = PeerController.getInstance().getMyself();
-        this.setIdUsuario(me.getId());
-        this.setIdTema(me.getDisplayName());
+        if (me != null) {
+            this.idUsuario = me.getId();
+        }
         client.send(this);
-
-        PeerController.getInstance().savePeer(client.getIp(), client.getPeerId(), client.getDisplayName(), client.getPort());
-
-        String conversationId = MessageController.getInstance().createConversation();
-
-        MessageController.getInstance().setPeerToConversation(conversationId, client.getPeerId());
     }
 
     public String getIdUsuario() {
         return idUsuario;
     }
+
     public void setIdUsuario(String idUsuario) {
         this.idUsuario = idUsuario;
     }
+
     public String getIdTema() {
         return idTema;
     }
-    public void setIdTema(String nombre) {
+
+    public void setIdTema(String idTema) {
         this.idTema = idTema;
     }
-
-
-
-
 }
