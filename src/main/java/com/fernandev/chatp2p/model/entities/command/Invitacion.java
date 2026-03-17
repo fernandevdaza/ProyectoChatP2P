@@ -42,6 +42,12 @@ public class Invitacion extends MessageProtocol {
         client.send(this);
     }
 
+    @Override
+    public void onReceive(SocketClient client) {
+        client.setPeerId(this.getIdUsuario());
+        client.setDisplayName(this.getNombre());
+    }
+
     public String getIdUsuario() {
         return idUsuario;
     }

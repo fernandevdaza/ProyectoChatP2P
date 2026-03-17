@@ -25,7 +25,7 @@ public class Aceptar extends MessageProtocol {
     public static Aceptar parse(String trama) {
         String[] split = trama.split(Pattern.quote("|"));
         if(split.length != 3) {
-            throw new IllegalArgumentException("Formato de trama no valido");
+                                throw new IllegalArgumentException("Formato de trama no valido");
         }
         return new Aceptar(split[1], split[2]);
     }
@@ -47,6 +47,11 @@ public class Aceptar extends MessageProtocol {
         String conversationId = MessageController.getInstance().createConversation();
 
         MessageController.getInstance().setPeerToConversation(conversationId, client.getPeerId());
+    }
+
+    @Override
+    public void onReceive(SocketClient client) {
+        client.setPeerId(this.getIdUsuario());
     }
 
     public String getIdUsuario() {

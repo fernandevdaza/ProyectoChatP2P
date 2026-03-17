@@ -28,4 +28,9 @@ public class Rechazar extends MessageProtocol {
             client.close();
         }
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+        client.setRejected(true);
+    }
 }

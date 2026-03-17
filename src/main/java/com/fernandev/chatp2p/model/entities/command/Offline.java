@@ -43,4 +43,9 @@ public class Offline extends MessageProtocol {
         this.setIdUser(me.getId());
         client.send(this);
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
 }

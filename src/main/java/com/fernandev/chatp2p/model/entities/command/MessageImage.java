@@ -60,4 +60,9 @@ public class MessageImage extends MessageProtocol {
     public void execute(SocketClient client) {
         client.send(this);
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
 }

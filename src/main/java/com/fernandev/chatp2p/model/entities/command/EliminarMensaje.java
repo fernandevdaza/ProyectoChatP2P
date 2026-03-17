@@ -41,4 +41,9 @@ public class EliminarMensaje extends MessageProtocol {
         this.setIp(client.getHostIp());
         client.send(this);
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
 }

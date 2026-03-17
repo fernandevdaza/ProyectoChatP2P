@@ -6,6 +6,9 @@ package com.fernandev.chatp2p.model.network;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.model.entities.command.*;
+import com.fernandev.chatp2p.model.entities.protocol.parser.ProtocolParser;
+
+import lombok.*;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -18,6 +21,8 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.regex.Pattern;
 
+@Getter
+@Setter
 public class SocketClient extends Thread {
     private final Socket socket;
     private final String ip;
@@ -27,6 +32,7 @@ public class SocketClient extends Thread {
     private final BufferedReader br;
     private boolean isRejected = false;
     private SocketListener listener;
+    private MessageProtocol lastMessage;
 
     public SocketClient(Socket socket) throws IOException {
         this.socket = socket;
@@ -47,21 +53,6 @@ public class SocketClient extends Thread {
         this.listener = listener;
     }
 
-    public void setPeerId(String peerId) {
-        this.peerId = peerId;
-    }
-
-    public String getPeerId() {
-        return this.peerId;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getDisplayName() {
-        return this.displayName;
-    }
 
     @Override
     public void run() {
@@ -70,124 +61,131 @@ public class SocketClient extends Thread {
             while ((message = br.readLine()) != null) {
                 this.isRejected = false;
                 System.out.println(message);
-                String split[] = message.split(Pattern.quote("|"));
+                String[] split = message.split(Pattern.quote("|"));
                 if (split.length == 0) {
                     return;
                 }
-                System.out.println("Llego");
-                switch (split[0]) {
-                    case "001": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Es invitacion");
-                        Invitacion invitacion = Invitacion.parse(message);
-                        invitacion.setIp(this.getIp());
-                        this.setPeerId(invitacion.getIdUsuario());
-                        this.setDisplayName(invitacion.getNombre());
-                        notificar(this, invitacion);
-                        break;
-                    }
-                    case "002": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Conexión Aceptada");
-                        Aceptar aceptacion = Aceptar.parse(message);
-                        this.setPeerId(aceptacion.getIdUsuario());
-                        aceptacion.setIp(this.getIp());
-                        notificar(this, aceptacion);
-                        break;
-                    }
-                    case "003": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Conexión Rechazada");
-                        Rechazar rechazar = Rechazar.parse(message);
-                        rechazar.setIp(this.getIp());
-                        notificar(this, rechazar);
-                        this.isRejected = true;
-                        break;
-                    }
-                    case "004": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Recibido!");
-                        Hello hello = Hello.parse(message);
-                        hello.setIp(this.getIp());
-                        this.setPeerId(hello.getIdUser());
-                        notificar(this, hello);
-                        break;
-                    }
-                    case "005": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Aceptado!");
-                        HelloAccept helloAccept = HelloAccept.parse(message);
-                        helloAccept.setIp(this.getIp());
-                        notificar(this, helloAccept);
-                        break;
-                    }
-                    case "006": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Rechazado!");
-                        HelloReject helloReject = HelloReject.parse(message);
-                        helloReject.setIp(this.getIp());
-                        notificar(this, helloReject);
-                        break;
-                    }
-                    case "007": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Nuevo Mensaje!");
-                        Mensaje mensaje = Mensaje.parse(message);
-                        mensaje.setIp(this.getIp());
-                        notificar(this, mensaje);
-                        break;
-                    }
-                    case "008": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Recibido (ACK)!");
-                        Recibido recibido = Recibido.parse(message);
-                        recibido.setIp(this.getIp());
-                        notificar(this, recibido);
-                        break;
-                    }
-                    case "009": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Eliminado");
-                        EliminarMensaje eliminarMensaje = EliminarMensaje.parse(message);
-                        eliminarMensaje.setIp(this.getIp());
-                        notificar(this, eliminarMensaje);
-                        break;
-                    }
-                    case "010": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Zumbido");
-                        Zumbido zumbido = Zumbido.parse(message);
-                        zumbido.setIp(this.getIp());
-                        notificar(this, zumbido);
-                        break;
-                    }
-                    case "011": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Fijado");
-                        FijarMensaje fijarMensaje = FijarMensaje.parse(message);
-                        fijarMensaje.setIp(this.getIp());
-                        notificar(this, fijarMensaje);
-                        break;
-                    }
-                    case "012": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Único");
-                        MensajeUnico mensajeUnico = MensajeUnico.parse(message);
-                        mensajeUnico.setIp(this.getIp());
-                        notificar(this, mensajeUnico);
-                        break;
-                    }
-                    case "013": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Cambiar Tema");
-                        CambiarTema cambiarTema = CambiarTema.parse(message);
-                        cambiarTema.setIp(this.getIp());
-                        notificar(this, cambiarTema);
-                        break;
-                    }
-                    case "021": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Nueva Imágen!");
-                        MessageImage messageImage = MessageImage.parse(message);
-                        messageImage.setIp(this.getIp());
-                        notificar(this, messageImage);
-                        break;
-                    }
-                    case "0018": {
-                        System.out.println("[" + Thread.currentThread().getName() + "] Cliente " + this.getIp()
-                                + "está en modo Offline");
-                        Offline offline = Offline.parse(message);
-                        offline.setIp(this.getIp());
-                        notificar(this, offline);
-                        break;
-                    }
-                }
+                MessageProtocol messageProtocol = ProtocolParser.parse(message);
+                messageProtocol.setIp(this.getIp());
+                messageProtocol.onReceive(this);
+                this.setLastMessage(messageProtocol);
+                System.out.println("[" + Thread.currentThread().getName() + "] " + message);
+                notificar(this, messageProtocol);
+
+//                System.out.println("Llego");
+//                switch (split[0]) {
+//                    case "001": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Es invitacion");
+//                        Invitacion invitacion = Invitacion.parse(message);
+//                        invitacion.setIp(this.getIp());
+//                        this.setPeerId(invitacion.getIdUsuario());
+//                        this.setDisplayName(invitacion.getNombre());
+//                        notificar(this, invitacion);
+//                        break;
+//                    }
+//                    case "002": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Conexión Aceptada");
+//                        Aceptar aceptacion = Aceptar.parse(message);
+//                        this.setPeerId(aceptacion.getIdUsuario());
+//                        aceptacion.setIp(this.getIp());
+//                        notificar(this, aceptacion);
+//                        break;
+//                    }
+//                    case "003": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Conexión Rechazada");
+//                        Rechazar rechazar = Rechazar.parse(message);
+//                        rechazar.setIp(this.getIp());
+//                        notificar(this, rechazar);
+//                        this.isRejected = true;
+//                        break;
+//                    }
+//                    case "004": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Recibido!");
+//                        Hello hello = Hello.parse(message);
+//                        hello.setIp(this.getIp());
+//                        this.setPeerId(hello.getIdUser());
+//                        notificar(this, hello);
+//                        break;
+//                    }
+//                    case "005": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Aceptado!");
+//                        HelloAccept helloAccept = HelloAccept.parse(message);
+//                        helloAccept.setIp(this.getIp());
+//                        notificar(this, helloAccept);
+//                        break;
+//                    }
+//                    case "006": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Hello Rechazado!");
+//                        HelloReject helloReject = HelloReject.parse(message);
+//                        helloReject.setIp(this.getIp());
+//                        notificar(this, helloReject);
+//                        break;
+//                    }
+//                    case "007": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Nuevo Mensaje!");
+//                        Mensaje mensaje = Mensaje.parse(message);
+//                        mensaje.setIp(this.getIp());
+//                        notificar(this, mensaje);
+//                        break;
+//                    }
+//                    case "008": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Recibido (ACK)!");
+//                        Recibido recibido = Recibido.parse(message);
+//                        recibido.setIp(this.getIp());
+//                        notificar(this, recibido);
+//                        break;
+//                    }
+//                    case "009": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Eliminado");
+//                        EliminarMensaje eliminarMensaje = EliminarMensaje.parse(message);
+//                        eliminarMensaje.setIp(this.getIp());
+//                        notificar(this, eliminarMensaje);
+//                        break;
+//                    }
+//                    case "010": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Zumbido");
+//                        Zumbido zumbido = Zumbido.parse(message);
+//                        zumbido.setIp(this.getIp());
+//                        notificar(this, zumbido);
+//                        break;
+//                    }
+//                    case "011": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Fijado");
+//                        FijarMensaje fijarMensaje = FijarMensaje.parse(message);
+//                        fijarMensaje.setIp(this.getIp());
+//                        notificar(this, fijarMensaje);
+//                        break;
+//                    }
+//                    case "012": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Mensaje Único");
+//                        MensajeUnico mensajeUnico = MensajeUnico.parse(message);
+//                        mensajeUnico.setIp(this.getIp());
+//                        notificar(this, mensajeUnico);
+//                        break;
+//                    }
+//                    case "013": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Cambiar Tema");
+//                        CambiarTema cambiarTema = CambiarTema.parse(message);
+//                        cambiarTema.setIp(this.getIp());
+//                        notificar(this, cambiarTema);
+//                        break;
+//                    }
+//                    case "021": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Nueva Imágen!");
+//                        MessageImage messageImage = MessageImage.parse(message);
+//                        messageImage.setIp(this.getIp());
+//                        notificar(this, messageImage);
+//                        break;
+//                    }
+//                    case "0018": {
+//                        System.out.println("[" + Thread.currentThread().getName() + "] Cliente " + this.getIp()
+//                                + "está en modo Offline");
+//                        Offline offline = Offline.parse(message);
+//                        offline.setIp(this.getIp());
+//                        notificar(this, offline);
+//                        break;
+//                    }
+//                }
             }
             if (!isRejected) {
                 onDisconnect(this);
@@ -231,6 +229,22 @@ public class SocketClient extends Thread {
     public int getPort() {
         return this.socket.getPort();
     }
+
+//    public void setPeerId(String peerId) {
+//        this.peerId = peerId;
+//    }
+//
+//    public String getPeerId() {
+//        return this.peerId;
+//    }
+//
+//    public void setDisplayName(String displayName) {
+//        this.displayName = displayName;
+//    }
+//
+//    public String getDisplayName() {
+//        return this.displayName;
+//    }
 
     public boolean isClosed() {
         return socket.isClosed();

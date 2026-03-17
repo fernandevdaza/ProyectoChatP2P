@@ -74,4 +74,9 @@ public class Mensaje extends MessageProtocol {
 
         client.send(this);
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
 }

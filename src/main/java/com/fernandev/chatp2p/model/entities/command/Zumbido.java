@@ -49,4 +49,9 @@ public class Zumbido extends MessageProtocol {
         this.setIdUser(me.getId());
         client.send(this);
     }
+
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
 }

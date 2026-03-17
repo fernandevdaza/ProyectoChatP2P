@@ -45,6 +45,11 @@ public class CambiarTema extends MessageProtocol {
         client.send(this);
     }
 
+    @Override
+    public void onReceive(SocketClient client) {
+
+    }
+
     public String getIdUsuario() {
         return idUsuario;
     }
