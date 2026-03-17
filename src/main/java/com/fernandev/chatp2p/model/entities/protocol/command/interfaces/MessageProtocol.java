@@ -1,4 +1,4 @@
-package com.fernandev.chatp2p.model.entities.command;
+package com.fernandev.chatp2p.model.entities.protocol.command.interfaces;
 
 import com.fernandev.chatp2p.model.network.SocketClient;
 

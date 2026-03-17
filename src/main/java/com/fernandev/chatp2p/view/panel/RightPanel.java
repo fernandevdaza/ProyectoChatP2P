@@ -2,10 +2,12 @@ package com.fernandev.chatp2p.view.panel;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
-import com.fernandev.chatp2p.model.entities.command.Mensaje;
-import com.fernandev.chatp2p.model.entities.command.MensajeUnico;
-import com.fernandev.chatp2p.model.entities.command.Zumbido;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Mensaje;
+import com.fernandev.chatp2p.model.entities.protocol.messages.MensajeUnico;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Zumbido;
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.entities.protocol.messages.CambiarTema;
+import com.fernandev.chatp2p.model.entities.protocol.messages.MessageImage;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
@@ -210,13 +212,13 @@ public class RightPanel extends JPanel {
             try {
                 Peer me = mainView.getPeerController().getMyself();
                 String targetId = mainView.getCurrentChatId();
-                com.fernandev.chatp2p.model.entities.command.MessageImage mensajeImagen = new com.fernandev.chatp2p.model.entities.command.MessageImage(
+                MessageImage mensajeImagen = new MessageImage(
                         me.getId(), uuid, base64Image);
 
                 String hostIp = ConnectionController.getInstance().getHostIpByPeerId(targetId);
                 mensajeImagen.setIp(hostIp);
 
-                ConnectionController.getInstance().sendMessageById(targetId, mensajeImagen);
+                ConnectionController.getInstance().sendMessage(targetId, mensajeImagen);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -271,7 +273,7 @@ public class RightPanel extends JPanel {
                 if (mainView.getContactSelectedConected()) {
                     new Thread(() -> {
                         try {
-                            com.fernandev.chatp2p.model.entities.command.CambiarTema cmd = new com.fernandev.chatp2p.model.entities.command.CambiarTema();
+                            CambiarTema cmd = new CambiarTema();
                             cmd.setIdTema(themeId);
                             ConnectionController.getInstance().sendMessage(
                                     mainView.getCurrentChatId(), cmd);

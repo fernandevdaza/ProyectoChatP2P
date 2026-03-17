@@ -1,20 +1,20 @@
-package com.fernandev.chatp2p.model.entities.command;
+package com.fernandev.chatp2p.model.entities.protocol.messages;
 
-import com.fernandev.chatp2p.controller.MessageController;
+import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
 import com.fernandev.chatp2p.model.network.SocketClient;
 
 import java.util.regex.Pattern;
 
-public class Recibido extends MessageProtocol {
+public class EliminarMensaje extends MessageProtocol {
     public String idMessage;
 
-    public Recibido(String idMessage) {
-        super("008");
+    public EliminarMensaje(String idMessage) {
+        super("009");
         this.idMessage = idMessage;
     }
 
-    public Recibido(){
-        super("008");
+    public EliminarMensaje(){
+        super("009");
     }
 
     public String getIdMessage() {
@@ -26,10 +26,10 @@ public class Recibido extends MessageProtocol {
     }
 
 
-    public static Recibido parse(String message) {
+    public static EliminarMensaje parse(String message) {
         String[] split = message.split(Pattern.quote("|"));
         if (split.length != 2) throw new IllegalArgumentException("Formato de mensaje no válido");
-        return new Recibido(split[1]);
+        return new EliminarMensaje(split[1]);
     }
 
     @Override

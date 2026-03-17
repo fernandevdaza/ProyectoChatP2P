@@ -1,8 +1,8 @@
-package com.fernandev.chatp2p.model.entities.command;
+package com.fernandev.chatp2p.model.entities.protocol.messages;
 
-import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
 import com.fernandev.chatp2p.model.network.SocketClient;
 
 import java.util.regex.Pattern;

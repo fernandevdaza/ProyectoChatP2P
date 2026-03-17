@@ -2,13 +2,9 @@ package com.fernandev.chatp2p.view;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
-import com.fernandev.chatp2p.controller.PeerController;
-import com.fernandev.chatp2p.model.entities.command.EliminarMensaje;
-import com.fernandev.chatp2p.model.entities.command.FijarMensaje;
-import com.fernandev.chatp2p.model.entities.command.Recibido;
-import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.protocol.messages.EliminarMensaje;
+import com.fernandev.chatp2p.model.entities.protocol.messages.FijarMensaje;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
-import com.fernandev.chatp2p.model.entities.db.Peer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

@@ -4,12 +4,11 @@ import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
-import com.fernandev.chatp2p.model.entities.command.Hello;
-import com.fernandev.chatp2p.model.entities.command.Invitacion;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Hello;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Invitacion;
 import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
-import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
 

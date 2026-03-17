@@ -100,4 +100,9 @@ public class PeerController {
         }
         return peer;
     }
+
+    public void setPeerStatus(String peerId, boolean status){
+        Peer peer = peerDao.findById(peerId);
+        peer.setConnected(status);
+    }
 }

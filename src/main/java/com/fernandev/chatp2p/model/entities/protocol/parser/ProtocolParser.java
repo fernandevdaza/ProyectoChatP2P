@@ -1,6 +1,7 @@
 package com.fernandev.chatp2p.model.entities.protocol.parser;
 
-import com.fernandev.chatp2p.model.entities.command.*;
+import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
+import com.fernandev.chatp2p.model.entities.protocol.messages.*;
 
 import java.util.regex.Pattern;
 

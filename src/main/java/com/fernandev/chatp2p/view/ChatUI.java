@@ -8,6 +8,8 @@ import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Aceptar;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Rechazar;
 import com.fernandev.chatp2p.view.interfaces.IView;
 import com.fernandev.chatp2p.view.panel.LeftPanel;
 import com.fernandev.chatp2p.view.panel.RightPanel;
@@ -259,24 +261,33 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message));
     }
 
-    public boolean onInvitationReceived(String peerId, String nombre) {
+    public void onInvitationReceived(String peerId, String nombre) {
         int respuesta = JOptionPane.showConfirmDialog(this, "Llegó la invitación: " + nombre);
-        return respuesta == JOptionPane.YES_OPTION;
+        if(respuesta == JOptionPane.YES_OPTION){
+            try {
+                SwingUtilities.invokeLater(() -> {
+                    ConnectionController.getInstance().sendMessage(peerId, new Aceptar());
+                    Peer peer = PeerController.getInstance().getPeerById(peerId);
+                    this.addElementToPeerList(peer);
+                });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }else {
+            SwingUtilities.invokeLater(() -> {
+                ConnectionController.getInstance().sendMessage(peerId, new Rechazar());
+            });
+        }
     }
 
-    public void onInvitationAccepted(String peerId, String nombre, String ip, int peerPort) {
-        Peer peer = Peer.builder()
-                .id(peerId)
-                .displayName(nombre)
-                .isSelf(0)
-                .lastIpAddr(ip)
-                .lastPort(peerPort)
-                .lastSeenAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+    public void onInvitationAccepted(String peerId, String nombre) {
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this,
+                nombre + " aceptó la conexión."));
+        Peer peer = PeerController.getInstance().getPeerById(peerId);
+        this.addElementToPeerList(peer);
+    }
 
-        peer.setConnected(true);
+    public void addElementToPeerList(Peer peer){
         SwingUtilities.invokeLater(() -> peerDefaultListModel.addElement(peer));
     }
 

@@ -1,11 +1,8 @@
 package com.fernandev.chatp2p.controller;
 
-import com.fernandev.chatp2p.model.entities.command.Mensaje;
-import com.fernandev.chatp2p.model.entities.command.Recibido;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Recibido;
 import com.fernandev.chatp2p.model.entities.db.*;
 import com.fernandev.chatp2p.model.repository.*;
-import com.fernandev.chatp2p.view.BubbleData;
-import com.fernandev.chatp2p.view.ChatUI;
 import com.fernandev.chatp2p.view.interfaces.IView;
 
 import java.time.LocalDateTime;
@@ -154,7 +151,7 @@ public class MessageController {
     public void sendReceipt(Message msg){
         if(msg.getIsEphemeral() && !msg.getTextContent().equals("")) return;
         Recibido recibido = new Recibido(msg.getId());
-        ConnectionController.getInstance().sendMessageById(msg.getSenderPeerId(), recibido);
+        ConnectionController.getInstance().sendMessage(msg.getSenderPeerId(), recibido);
     }
 
     public void setReceived(Message msg){

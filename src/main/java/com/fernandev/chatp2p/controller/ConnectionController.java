@@ -1,15 +1,17 @@
 package com.fernandev.chatp2p.controller;
 
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
-import com.fernandev.chatp2p.model.entities.command.*;
-import com.fernandev.chatp2p.model.entities.db.Message;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
+import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.ProtocolCommand;
+import com.fernandev.chatp2p.model.entities.protocol.factory.ProtocolCommandFactory;
+import com.fernandev.chatp2p.model.entities.protocol.messages.*;
 import com.fernandev.chatp2p.model.network.SocketClient;
 import com.fernandev.chatp2p.model.network.SocketListener;
-import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.ChatUI;
 
+import lombok.*;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -18,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@Getter
+@Setter
 public class ConnectionController implements SocketListener {
     private static final ConnectionController instance = new ConnectionController();
     private final Map<String, SocketClient> connections = new HashMap<>();
@@ -31,25 +35,33 @@ public class ConnectionController implements SocketListener {
         return instance;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+//    public void setPort(int port) {
+//        this.port = port;
+//    }
+//
+//    public int getPort() {
+//        return this.port;
+//    }
+//
+//    public void setUI(ChatUI ui) {
+//        this.ui = ui;
+//    }
+//
+//    public void setPeerController(PeerController peerController) {
+//        this.peerController = peerController;
+//    }
+//
+//    public void setMessageController(MessageController messageController) {
+//        this.messageController = messageController;
+//    }
+
+    public boolean getOffline() {
+        return this.isOffline;
     }
 
-    public int getPort() {
-        return this.port;
-    }
-
-    public void setUI(ChatUI ui) {
-        this.ui = ui;
-    }
-
-    public void setPeerController(PeerController peerController) {
-        this.peerController = peerController;
-    }
-
-    public void setMessageController(MessageController messageController) {
-        this.messageController = messageController;
-    }
+//    public void setOffline(boolean isOffline) {
+//        this.isOffline = isOffline;
+//    }
 
     public SocketClient connectToPeer(String ip) throws UnreachableException {
         try {
@@ -79,14 +91,6 @@ public class ConnectionController implements SocketListener {
         messageProtocol.execute(socketClient);
     }
 
-    public void sendMessageById(String peerId, MessageProtocol messageProtocol) {
-        SocketClient socketClient = connections.get(peerId);
-        if (socketClient != null) {
-            sendMessageInternal(messageProtocol, socketClient);
-        } else {
-            System.out.println("[CONN] No hay conexión para peer: " + peerId);
-        }
-    }
 
     public String getHostIpByPeerId(String peerId) {
         SocketClient socketClient = connections.get(peerId);
@@ -107,19 +111,13 @@ public class ConnectionController implements SocketListener {
             Peer me = peerController.getMyself();
             Offline offline = new Offline(me.getId());
             connections.forEach((id, socketClient) -> {
-                this.sendMessageInternal(offline, socketClient);
+                this.sendMessage(id, offline);
             });
             this.setOffline(true);
         }
     }
 
-    public boolean getOffline() {
-        return this.isOffline;
-    }
 
-    public void setOffline(boolean isOffline) {
-        this.isOffline = isOffline;
-    }
 
     public void closeConnectionWithPeer(String id) {
         SocketClient socketClient = connections.get(id);
@@ -155,14 +153,26 @@ public class ConnectionController implements SocketListener {
         if (this.isOffline) {
             Peer me = peerController.getMyself();
             Offline offline = new Offline(me.getId());
-            this.sendMessageInternal(offline, socketClient);
+            this.sendMessage(socketClient.getPeerId(), offline);
             return;
         }
 
+        ProtocolCommand protocolCommand = ProtocolCommandFactory.create(messageProtocol);
+        protocolCommand.handle(socketClient, messageProtocol);
+
         if (messageProtocol instanceof Invitacion) {
-            handleInvitacion(socketClient, (Invitacion) messageProtocol);
+            SwingUtilities.invokeLater(() -> {
+                ui.onInvitationReceived(
+                        ((Invitacion) messageProtocol).getIdUsuario(),
+                        ((Invitacion) messageProtocol).getNombre()
+                );
+            });
         } else if (messageProtocol instanceof Aceptar) {
-            handleAceptar(socketClient, (Aceptar) messageProtocol);
+            SwingUtilities.invokeLater(() -> {
+                ui.onInvitationAccepted(
+                        ((Aceptar) messageProtocol).getIdUsuario(),
+                        ((Aceptar) messageProtocol).getNombre());
+            });
         } else if (messageProtocol instanceof Rechazar) {
             handleRechazar(socketClient, (Rechazar) messageProtocol);
         } else if (messageProtocol instanceof Mensaje) {
@@ -192,49 +202,6 @@ public class ConnectionController implements SocketListener {
         }
     }
 
-    private void handleInvitacion(SocketClient socketClient, Invitacion invitacion) {
-        String peerId = invitacion.getIdUsuario();
-        String nombre = invitacion.getNombre();
-        String ip = invitacion.getIp();
-
-        connections.put(peerId, socketClient);
-
-        boolean accepted = ui.onInvitationReceived(peerId, nombre);
-
-        if (accepted) {
-            try {
-                this.sendMessage(peerId, new Aceptar());
-                ui.onInvitationAccepted(peerId, nombre, ip, socketClient.getPort());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            this.sendMessage(peerId, new Rechazar());
-        }
-    }
-
-    private void handleAceptar(SocketClient socketClient, Aceptar aceptar) {
-        try {
-            String peerId = aceptar.getIdUsuario();
-            String nombre = aceptar.getNombre();
-            String ip = aceptar.getIp();
-
-            connections.remove(ip);
-            connections.put(peerId, socketClient);
-
-            peerController.savePeer(ip, peerId, nombre, port);
-
-            String conversationId = messageController.createConversation();
-            messageController.setPeerToConversation(conversationId, peerId);
-
-            ui.onInvitationAccepted(peerId, nombre, ip, socketClient.getPort());
-
-            javax.swing.SwingUtilities.invokeLater(() -> javax.swing.JOptionPane.showMessageDialog(ui,
-                    nombre + " aceptó la conexión."));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private void handleRechazar(SocketClient socketClient, Rechazar rechazar) {
         String ip = rechazar.getIp();

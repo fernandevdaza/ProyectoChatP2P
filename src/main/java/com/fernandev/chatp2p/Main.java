@@ -75,7 +75,7 @@ public class Main {
 
 
             final ChatUI chatUI = new ChatUI();
-            ConnectionController.getInstance().setUI(chatUI);
+            ConnectionController.getInstance().setUi(chatUI);
 
             final PeerController peerController = PeerController.getInstance();
             peerController.setView(chatUI);
