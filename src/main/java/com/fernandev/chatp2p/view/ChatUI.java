@@ -303,7 +303,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         SwingUtilities.invokeLater(() -> this.rightPanel.addImageMessage(base64Image, false, peerId, idMessage));
     }
 
-    public void onHelloAccepted(String peerId) {
+    public void onHelloAccepted(String peerId, boolean isRejected) {
+        if(isRejected) return;
         this.leftPanel.updatePeerStatus(peerId, true);
     }
 

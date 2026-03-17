@@ -100,10 +100,6 @@ public class ConnectionController implements SocketListener {
         return null;
     }
 
-    private void sendMessageInternal(MessageProtocol messageProtocol, SocketClient socketClient) {
-        socketClient.send(messageProtocol);
-    }
-
     public void onModeOffline() throws SQLException, ConnectException {
         if (isOffline) {
             this.setOffline(false);
@@ -160,58 +156,66 @@ public class ConnectionController implements SocketListener {
         ProtocolCommand protocolCommand = ProtocolCommandFactory.create(messageProtocol);
         protocolCommand.handle(socketClient, messageProtocol);
 
-        if (messageProtocol instanceof Invitacion) {
-            SwingUtilities.invokeLater(() -> {
-                ui.onInvitationReceived(
-                        ((Invitacion) messageProtocol).getIdUsuario(),
-                        ((Invitacion) messageProtocol).getNombre()
-                );
-            });
-        } else if (messageProtocol instanceof Aceptar) {
-            SwingUtilities.invokeLater(() -> {
-                ui.onInvitationAccepted(
-                        ((Aceptar) messageProtocol).getIdUsuario(),
-                        ((Aceptar) messageProtocol).getNombre());
-            });
-        } else if (messageProtocol instanceof Rechazar) {
-//            handleRechazar(socketClient, (Rechazar) messageProtocol);
-            SwingUtilities.invokeLater(() -> {
-                ui.onInvitationRejected(messageProtocol.getIp());
-            });
-        } else if (messageProtocol instanceof Mensaje) {
-            handleMensaje((Mensaje) messageProtocol);
-        } else if (messageProtocol instanceof MessageImage) {
-            handleMessageImage((MessageImage) messageProtocol);
-        } else if (messageProtocol instanceof Hello) {
-            handleHello(socketClient, (Hello) messageProtocol);
-        } else if (messageProtocol instanceof HelloAccept) {
-            handleHelloAccept(socketClient, (HelloAccept) messageProtocol);
-        } else if (messageProtocol instanceof HelloReject) {
-            handleHelloReject((HelloReject) messageProtocol);
-        } else if (messageProtocol instanceof Recibido) {
-            handleRecibido((Recibido) messageProtocol);
-        } else if (messageProtocol instanceof EliminarMensaje) {
-            handleEliminarMensaje((EliminarMensaje) messageProtocol);
-        } else if (messageProtocol instanceof Zumbido) {
-            handleZumbido((Zumbido) messageProtocol);
-        } else if (messageProtocol instanceof FijarMensaje) {
-            handleFijarMensaje((FijarMensaje) messageProtocol);
-        } else if (messageProtocol instanceof MensajeUnico) {
-            handleMensajeUnico((MensajeUnico) messageProtocol);
-        } else if (messageProtocol instanceof Offline) {
-            handleOffline((Offline) messageProtocol);
-        } else if (messageProtocol instanceof CambiarTema) {
-            handleCambiarTema((CambiarTema) messageProtocol);
-        }
+        SwingUtilities.invokeLater(() -> {
+            if (messageProtocol instanceof Invitacion) {
+
+                    ui.onInvitationReceived(
+                            ((Invitacion) messageProtocol).getIdUsuario(),
+                            ((Invitacion) messageProtocol).getNombre()
+                    );
+
+            } else if (messageProtocol instanceof Aceptar) {
+
+                    ui.onInvitationAccepted(
+                            ((Aceptar) messageProtocol).getIdUsuario(),
+                            ((Aceptar) messageProtocol).getNombre()
+                    );
+
+            } else if (messageProtocol instanceof Rechazar) {
+
+                    ui.onInvitationRejected(messageProtocol.getIp());
+
+            } else if (messageProtocol instanceof Hello) {
+
+                    ui.onHelloAccepted(
+                            ((Hello) messageProtocol).getIdUser(),
+                            socketClient.isRejected()
+                    );
+
+            } else if (messageProtocol instanceof HelloAccept) {
+
+                    ui.onHelloAccepted(
+                            ((HelloAccept) messageProtocol).getIdUser(),
+                            socketClient.isRejected()
+                    );
+
+            } else if (messageProtocol instanceof HelloReject) {
+
+                    ui.onHelloRejected(messageProtocol.getIp());
+
+            } else if (messageProtocol instanceof Mensaje) {
+                handleMensaje((Mensaje) messageProtocol);
+            } else if (messageProtocol instanceof MessageImage) {
+                handleMessageImage((MessageImage) messageProtocol);
+            } else if (messageProtocol instanceof Recibido) {
+                handleRecibido((Recibido) messageProtocol);
+            } else if (messageProtocol instanceof EliminarMensaje) {
+                handleEliminarMensaje((EliminarMensaje) messageProtocol);
+            } else if (messageProtocol instanceof Zumbido) {
+                handleZumbido((Zumbido) messageProtocol);
+            } else if (messageProtocol instanceof FijarMensaje) {
+                handleFijarMensaje((FijarMensaje) messageProtocol);
+            } else if (messageProtocol instanceof MensajeUnico) {
+                handleMensajeUnico((MensajeUnico) messageProtocol);
+            } else if (messageProtocol instanceof Offline) {
+                handleOffline((Offline) messageProtocol);
+            } else if (messageProtocol instanceof CambiarTema) {
+                handleCambiarTema((CambiarTema) messageProtocol);
+            }
+        });
+
     }
 
-
-    private void handleRechazar(SocketClient socketClient, Rechazar rechazar) {
-        String ip = rechazar.getIp();
-        connections.remove(ip);
-        ui.onInvitationRejected(ip);
-        // socketClient.close();
-    }
 
     private void handleMensaje(Mensaje msg) {
         try {
@@ -257,33 +261,18 @@ public class ConnectionController implements SocketListener {
         ui.onMessageReceived(messageId);
     }
 
-    private void handleHello(SocketClient socketClient, Hello hello) {
-        try {
-            String peerId = hello.getIdUser();
-            if (peerController.getPeerById(peerId) != null) {
-                this.addConnection(peerId, socketClient);
-                ConnectionController.getInstance().sendMessage(peerId, new HelloAccept());
-                ui.onHelloAccepted(peerId);
-            } else {
-                this.addConnection(peerId, socketClient);
-                ConnectionController.getInstance().sendMessage(peerId, new HelloReject());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    private void handleHelloAccept(SocketClient socketClient, HelloAccept helloAccept) {
-        String peerId = helloAccept.getIdUser();
-        connections.remove(helloAccept.getIp());
-        connections.put(peerId, socketClient);
-        ui.onHelloAccepted(peerId);
-    }
+//    private void handleHelloAccept(SocketClient socketClient, HelloAccept helloAccept) {
+//        String peerId = helloAccept.getIdUser();
+//        connections.remove(helloAccept.getIp());
+//        connections.put(peerId, socketClient);
+//        ui.onHelloAccepted(peerId, false);
+//    }
 
-    private void handleHelloReject(HelloReject helloReject) {
-        connections.remove(helloReject.getIp());
-        ui.onHelloRejected(helloReject.getIp());
-    }
+//    private void handleHelloReject(HelloReject helloReject) {
+//        connections.remove(helloReject.getIp());
+//        ui.onHelloRejected(helloReject.getIp());
+//    }
 
     private void handleEliminarMensaje(EliminarMensaje eliminarMensaje) {
         MessageController.getInstance().deleteMessage(eliminarMensaje.getIdMessage());
@@ -334,7 +323,7 @@ public class ConnectionController implements SocketListener {
     @Override
     public void onClientDisconnected(SocketClient socketClient) {
         Peer peer = peerController.getPeerByIp(socketClient.getIp());
-
+        this.removeConnection(socketClient.getPeerId(), true);
         if (peer == null) {
             ui.onDisconnect(socketClient.getIp());
             return;
