@@ -11,17 +11,19 @@ import com.fernandev.chatp2p.model.repository.IPeerDao;
 import com.fernandev.chatp2p.model.repository.PeerDao;
 import com.fernandev.chatp2p.view.ChatUI;
 
+import javax.sound.sampled.*;
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import javax.sound.sampled.*;
+
 
 public class Main {
 
     public static void main(String[] args) {
         DatabaseConnection.getInstance().initDatabase();
         int port = 1900;
-        ConnectionController.getInstance().setPort(1901);
+        ConnectionController.getInstance().setPort(1900);
         IPeerDao peerDao = new CachePeerDao(new PeerDao());
         java.awt.EventQueue.invokeLater(() -> {
             Thread.currentThread().setName("UI-Thread");
@@ -101,6 +103,35 @@ public class Main {
             chatServer.start();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+
+    public static void printAudioMixers() {
+        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+        System.out.println("=== MIXERS DISPONIBLES ===");
+
+        AudioFormat testFormat = new AudioFormat(
+                AudioFormat.Encoding.PCM_SIGNED,
+                22050.0f,
+                16,
+                1,
+                2,
+                22050.0f,
+                false
+        );
+
+        DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, testFormat);
+
+        for (int i = 0; i < mixers.length; i++) {
+            Mixer.Info info = mixers[i];
+            Mixer mixer = AudioSystem.getMixer(info);
+            boolean supported = mixer.isLineSupported(lineInfo);
+
+            System.out.println("[" + i + "] " + info.getName());
+            System.out.println("    Vendor: " + info.getVendor());
+            System.out.println("    Desc:   " + info.getDescription());
+            System.out.println("    Soporta SourceDataLine(22050 mono 16-bit): " + supported);
         }
     }
 }

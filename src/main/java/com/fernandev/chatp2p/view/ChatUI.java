@@ -31,6 +31,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     private boolean isContactSelected = false;
     private boolean isContactSelectedConnected = false;
 
+    private long lastBuzzMillis = 0;
+
     private String currentChatId = null;
 
     private LeftPanel leftPanel;
@@ -351,6 +353,13 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     }
 
     public void onBuzz(String peerId) {
+        long now = System.currentTimeMillis();
+        if (now - lastBuzzMillis < 3000) {
+            System.out.println("Buzz ignorado por anti-spam.");
+            return;
+        }
+        lastBuzzMillis = now;
+
         Peer peer = PeerController.getInstance().getPeerById(peerId);
         this.getLeftPanel().addNotification("Zumbido recibido de " + peer.getDisplayName());
         this.getLeftPanel().triggerBuzz();

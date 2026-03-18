@@ -68,8 +68,8 @@ public class SocketClient extends Thread {
                 MessageProtocol messageProtocol = ProtocolParser.parse(message);
                 messageProtocol.setIp(this.getIp());
 
-                messageProtocol.onReceive(this);
                 this.setLastMessage(messageProtocol);
+
                 System.out.println("[" + Thread.currentThread().getName() + "] " + message);
                 notificar(this, messageProtocol);
 

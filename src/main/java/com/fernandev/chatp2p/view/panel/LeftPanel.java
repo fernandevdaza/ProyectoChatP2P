@@ -30,17 +30,28 @@ public class LeftPanel extends JPanel {
 
     private ChatUI mainView;
     private static final Color COLOR_HEADER = new Color(0, 168, 132);
-    private final ImageIcon iconOnline = new ImageIcon(
-            new ImageIcon(getClass().getResource("/com/fernandev/chatp2p/view/resources/online.png"))
-                    .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+    private ImageIcon iconOnline;
+    private ImageIcon iconOffline;
 
-    private final ImageIcon iconOffline = new ImageIcon(
-            new ImageIcon(getClass().getResource("/com/fernandev/chatp2p/view/resources/offline.png"))
-                    .getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+    private ImageIcon loadIcon(String path) {
+        java.net.URL url = getClass().getResource(path);
+
+        if (url == null) {
+            System.err.println("No se encontró el recurso: " + path);
+            return new ImageIcon();
+        }
+
+        Image image = new ImageIcon(url).getImage()
+                .getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+
+        return new ImageIcon(image);
+    }
 
     public LeftPanel(ChatUI ui) {
         this.mainView = ui;
         this.setLayout(new BorderLayout());
+        this.iconOffline = loadIcon("/view/offline.png");
+        this.iconOnline = loadIcon("/view/online.png");
 
         buildNotificationPanel();
         buildHeader();
