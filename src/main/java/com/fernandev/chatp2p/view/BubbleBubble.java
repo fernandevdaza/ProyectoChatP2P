@@ -2,13 +2,9 @@ package com.fernandev.chatp2p.view;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
-import com.fernandev.chatp2p.controller.PeerController;
-import com.fernandev.chatp2p.model.entities.command.EliminarMensaje;
-import com.fernandev.chatp2p.model.entities.command.FijarMensaje;
-import com.fernandev.chatp2p.model.entities.command.Recibido;
-import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.protocol.messages.EliminarMensaje;
+import com.fernandev.chatp2p.model.entities.protocol.messages.FijarMensaje;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
-import com.fernandev.chatp2p.model.entities.db.Peer;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -171,7 +167,7 @@ public class BubbleBubble extends JPanel {
 
         JMenuItem deleteItem = new JMenuItem("Eliminar para mí");
         deleteItem.addActionListener(e -> {
-            MessageController.getInstance().deleteMessage(this.idMessage);
+            MessageController.getInstance().deleteMessage(this.idMessage, true);
         });
 
         JMenuItem pinItem = new JMenuItem("Fijar mensaje");
@@ -186,7 +182,7 @@ public class BubbleBubble extends JPanel {
             fijarMensaje.setIdMessage(this.idMessage);
 
             ConnectionController.getInstance().sendMessage(senderPeerId, fijarMensaje);
-            MessageController.getInstance().pinMessage(this.idMessage, true);
+            MessageController.getInstance().pinMessage(this.idMessage, true, true);
         });
 
 
@@ -206,7 +202,7 @@ public class BubbleBubble extends JPanel {
                 }
                 eliminarMensaje.setIdMessage(this.idMessage);
                 ConnectionController.getInstance().sendMessage(senderPeerId, eliminarMensaje);
-                MessageController.getInstance().deleteMessage(this.idMessage);
+                MessageController.getInstance().deleteMessage(this.idMessage, true);
             });
 
             popupMenu.add(deleteEveryoneItem);

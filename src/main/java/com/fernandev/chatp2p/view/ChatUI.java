@@ -7,7 +7,12 @@ package com.fernandev.chatp2p.view;
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
+import com.fernandev.chatp2p.model.entities.db.Message;
+import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Aceptar;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Rechazar;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Recibido;
 import com.fernandev.chatp2p.view.interfaces.IView;
 import com.fernandev.chatp2p.view.panel.LeftPanel;
 import com.fernandev.chatp2p.view.panel.RightPanel;
@@ -25,6 +30,8 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     private boolean isContactSelected = false;
     private boolean isContactSelectedConnected = false;
+
+    private long lastBuzzMillis = 0;
 
     private String currentChatId = null;
 
@@ -198,10 +205,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         this.rightPanel.setInputEnabled(enabled);
     }
 
-    public void setPinMessage(boolean isVisible, String message, String messageId) {
+    public void setPinMessage(boolean isVisible, String messageId) {
+        Message message = MessageController.getInstance().getMessageById(messageId);
         this.rightPanel.setPinnedMessageId(messageId);
         this.rightPanel.setShowPinnedMessageBox(isVisible);
-        this.rightPanel.setPinnedMessage(message);
+        this.rightPanel.setPinnedMessage(message.getTextContent());
     }
 
     @Override
@@ -259,24 +267,33 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message));
     }
 
-    public boolean onInvitationReceived(String peerId, String nombre) {
+    public void onInvitationReceived(String peerId, String nombre) {
         int respuesta = JOptionPane.showConfirmDialog(this, "Llegó la invitación: " + nombre);
-        return respuesta == JOptionPane.YES_OPTION;
+        if(respuesta == JOptionPane.YES_OPTION){
+            try {
+                SwingUtilities.invokeLater(() -> {
+                    ConnectionController.getInstance().sendMessage(peerId, new Aceptar());
+                    Peer peer = PeerController.getInstance().getPeerById(peerId);
+                    this.addElementToPeerList(peer);
+                });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }else {
+            SwingUtilities.invokeLater(() -> {
+                ConnectionController.getInstance().sendMessage(peerId, new Rechazar());
+            });
+        }
     }
 
-    public void onInvitationAccepted(String peerId, String nombre, String ip, int peerPort) {
-        Peer peer = Peer.builder()
-                .id(peerId)
-                .displayName(nombre)
-                .isSelf(0)
-                .lastIpAddr(ip)
-                .lastPort(peerPort)
-                .lastSeenAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+    public void onInvitationAccepted(String peerId, String nombre) {
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this,
+                nombre + " aceptó la conexión."));
+        Peer peer = PeerController.getInstance().getPeerById(peerId);
+        this.addElementToPeerList(peer);
+    }
 
-        peer.setConnected(true);
+    public void addElementToPeerList(Peer peer){
         SwingUtilities.invokeLater(() -> peerDefaultListModel.addElement(peer));
     }
 
@@ -285,14 +302,28 @@ public class ChatUI extends javax.swing.JFrame implements IView {
     }
 
     public void onChatMessage(String peerId, String idMessage, String message, boolean isEphemeral) {
-        SwingUtilities.invokeLater(() -> this.rightPanel.addMessage(message, false, peerId, idMessage, isEphemeral));
+        SwingUtilities.invokeLater(() -> {
+            this.rightPanel.addMessage(message, false, peerId, idMessage, isEphemeral);
+            if (Objects.equals(this.getCurrentChatId(), peerId) && !isEphemeral) {
+                MessageController.getInstance().updateMessageStatus(idMessage, MessageStatusType.RECEIVED);
+                Recibido recibido = new Recibido(idMessage);
+                ConnectionController.getInstance().sendMessage(peerId, recibido);
+            }
+        });
     }
 
     public void onChatImage(String peerId, String idMessage, String base64Image) {
-        SwingUtilities.invokeLater(() -> this.rightPanel.addImageMessage(base64Image, false, peerId, idMessage));
+        SwingUtilities.invokeLater(() -> {
+            this.rightPanel.addImageMessage(base64Image, false, peerId, idMessage);
+            if (Objects.equals(this.getCurrentChatId(), peerId)) {
+                Recibido recibido = new Recibido(idMessage);
+                ConnectionController.getInstance().sendMessage(peerId, recibido);
+            }
+        });
     }
 
-    public void onHelloAccepted(String peerId) {
+    public void onHelloAccepted(String peerId, boolean isRejected) {
+        if(isRejected) return;
         this.leftPanel.updatePeerStatus(peerId, true);
     }
 
@@ -300,10 +331,11 @@ public class ChatUI extends javax.swing.JFrame implements IView {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ip + " rechazó la conexión."));
     }
 
-    public void onOfflineReceived(String peerId, String userName) {
+    public void onOfflineReceived(String peerId) {
         javax.swing.SwingUtilities
                 .invokeLater(() -> {
-                    JOptionPane.showMessageDialog(this, userName + " está en modo Offline!");
+                    Peer peer = PeerController.getInstance().getPeerById(peerId);
+                    JOptionPane.showMessageDialog(this, peer.getDisplayName() + " está en modo Offline!");
                 });
         this.leftPanel.updatePeerStatus(peerId, false);
     }
@@ -314,6 +346,23 @@ public class ChatUI extends javax.swing.JFrame implements IView {
 
     public void onThemeChanged(String themeId) {
         ThemeManager.getInstance().applyTheme(themeId, this);
+    }
+
+    public void onMessageDeleted(){
+        this.repaintRightPanel();
+    }
+
+    public void onBuzz(String peerId) {
+        long now = System.currentTimeMillis();
+        if (now - lastBuzzMillis < 3000) {
+            System.out.println("Buzz ignorado por anti-spam.");
+            return;
+        }
+        lastBuzzMillis = now;
+
+        Peer peer = PeerController.getInstance().getPeerById(peerId);
+        this.getLeftPanel().addNotification("Zumbido recibido de " + peer.getDisplayName());
+        this.getLeftPanel().triggerBuzz();
     }
 
     public static Color getCOLOR_HEADER_BG() {

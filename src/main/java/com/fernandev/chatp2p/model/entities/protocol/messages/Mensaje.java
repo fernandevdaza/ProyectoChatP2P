@@ -1,26 +1,27 @@
-package com.fernandev.chatp2p.model.entities.command;
+package com.fernandev.chatp2p.model.entities.protocol.messages;
 
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
 import com.fernandev.chatp2p.model.network.SocketClient;
 
 import java.util.regex.Pattern;
 
-public class MensajeUnico extends MessageProtocol {
+public class Mensaje extends MessageProtocol {
     public String idUser;
     public String idMessage;
     public String message;
 
-    public MensajeUnico(String idUser, String idMessage, String message) {
-        super("012");
+    public Mensaje(String idUser, String idMessage, String message) {
+        super("007");
         this.idUser = idUser;
         this.idMessage = idMessage;
         this.message = message;
     }
 
-    public MensajeUnico(){
-        super("012");
+    public Mensaje(){
+        super("007");
     }
 
     public String getIdUser() {
@@ -47,10 +48,10 @@ public class MensajeUnico extends MessageProtocol {
         this.message = message;
     }
 
-    public static MensajeUnico parse(String message) {
+    public static Mensaje parse(String message) {
         String[] split = message.split(Pattern.quote("|"));
         if (split.length != 4) throw new IllegalArgumentException("Formato de mensaje no válido");
-        return new MensajeUnico(split[1], split[2], split[3]);
+        return new Mensaje(split[1], split[2], split[3]);
     }
 
     @Override
@@ -68,7 +69,7 @@ public class MensajeUnico extends MessageProtocol {
 
         this.setIdUser(me.getId());
 
-        MessageController.getInstance().saveMessage(this.getIdMessage(), conversationId, me.getId(), this.getMessage(), true);
+        MessageController.getInstance().saveMessage(this.getIdMessage(), conversationId, me.getId(), this.getMessage(), false);
 
         client.send(this);
     }
@@ -78,4 +79,3 @@ public class MensajeUnico extends MessageProtocol {
 
     }
 }
-

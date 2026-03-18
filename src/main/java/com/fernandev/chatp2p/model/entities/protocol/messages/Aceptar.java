@@ -1,9 +1,9 @@
-package com.fernandev.chatp2p.model.entities.command;
+package com.fernandev.chatp2p.model.entities.protocol.messages;
 
-import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
 import com.fernandev.chatp2p.model.network.SocketClient;
 
 import java.util.regex.Pattern;
@@ -47,6 +47,8 @@ public class Aceptar extends MessageProtocol {
         String conversationId = MessageController.getInstance().createConversation();
 
         MessageController.getInstance().setPeerToConversation(conversationId, client.getPeerId());
+        PeerController.getInstance().setPeerStatus(client.getPeerId(), true);
+
     }
 
     @Override

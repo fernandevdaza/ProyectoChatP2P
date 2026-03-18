@@ -1,11 +1,8 @@
 package com.fernandev.chatp2p.controller;
 
-import com.fernandev.chatp2p.model.entities.command.Mensaje;
-import com.fernandev.chatp2p.model.entities.command.Recibido;
+import com.fernandev.chatp2p.model.entities.protocol.messages.Recibido;
 import com.fernandev.chatp2p.model.entities.db.*;
 import com.fernandev.chatp2p.model.repository.*;
-import com.fernandev.chatp2p.view.BubbleData;
-import com.fernandev.chatp2p.view.ChatUI;
 import com.fernandev.chatp2p.view.interfaces.IView;
 
 import java.time.LocalDateTime;
@@ -154,19 +151,19 @@ public class MessageController {
     public void sendReceipt(Message msg){
         if(msg.getIsEphemeral() && !msg.getTextContent().equals("")) return;
         Recibido recibido = new Recibido(msg.getId());
-        ConnectionController.getInstance().sendMessageById(msg.getSenderPeerId(), recibido);
+        ConnectionController.getInstance().sendMessage(msg.getSenderPeerId(), recibido);
     }
 
     public void setReceived(Message msg){
         messageDAO.updateStatus(msg, MessageStatusType.RECEIVED);
     }
 
-    public boolean deleteMessage(String messageId){
+    public boolean deleteMessage(String messageId, boolean repaintPanel){
         try {
             boolean onExist = messageDAO.existById(messageId);
             if(onExist){
                 messageDAO.deleteById(messageId);
-                view.repaintRightPanel();
+                if(repaintPanel) view.repaintRightPanel();
                 return true;
             }
         }catch (Exception e){
@@ -180,7 +177,7 @@ public class MessageController {
             boolean onExist = messageDAO.existById(messageId);
             if(onExist){
                 messageDAO.updateTextContent(messageId, textContent);
-                view.repaintRightPanel();
+//                view.repaintRightPanel();
                 return true;
             }
         }catch (Exception e){
@@ -189,13 +186,13 @@ public class MessageController {
         return false;
     }
 
-    public boolean pinMessage(String messageId, boolean isFixed){
+    public boolean pinMessage(String messageId, boolean isFixed, boolean paintFix){
         try{
             boolean onExist = messageDAO.existById(messageId);
             if(onExist){
                 messageDAO.updateFixedStatus(messageId, isFixed);
                 Message message = messageDAO.findMessageById(messageId);
-                view.setPinMessage(isFixed, message.getTextContent(), messageId);
+                if(paintFix) view.setPinMessage(isFixed, messageId);
                 return true;
             }
         }catch (Exception e){
