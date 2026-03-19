@@ -5,6 +5,9 @@ import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.protocol.messages.EliminarMensaje;
 import com.fernandev.chatp2p.model.entities.protocol.messages.FijarMensaje;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
+import com.fernandev.chatp2p.view.state.State;
+import com.fernandev.chatp2p.view.state.StateListener;
+import com.fernandev.chatp2p.view.state.StateManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -19,7 +22,7 @@ import java.util.Date;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 
-public class BubbleBubble extends JPanel {
+public class BubbleBubble extends JPanel implements StateListener {
     private final String text;
     private final boolean isMe;
     private final String idMessage;
@@ -34,6 +37,7 @@ public class BubbleBubble extends JPanel {
     }
 
     public BubbleBubble(String content, boolean isMe, boolean isImage, String idMessage, boolean isEphemeral) {
+        StateManager.getInstance().subscribeToState(this);
         this.text = content;
         this.isMe = isMe;
         this.idMessage = idMessage;
@@ -144,7 +148,7 @@ public class BubbleBubble extends JPanel {
 
     public void setReceived(boolean received) {
         if (checkLabel != null) {
-            checkLabel.setForeground(received ? ChatUI.getCOLOR_CHECK() : Color.LIGHT_GRAY);
+            checkLabel.setForeground(received ? COLOR_CHECK : Color.LIGHT_GRAY);
             checkLabel.repaint();
         }
     }
@@ -154,7 +158,7 @@ public class BubbleBubble extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        g2.setColor(isMe ? ChatUI.getCOLOR_BUBBLE_ME() : ChatUI.getCOLOR_BUBBLE_PEER());
+        g2.setColor(isMe ? COLOR_MY_BUBBLE : COLOR_THEIR_BUBBLE);
 
         g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
 
@@ -237,5 +241,10 @@ public class BubbleBubble extends JPanel {
 
     public String getIdMessage(){
         return this.idMessage;
+    }
+
+    @Override
+    public void onChange(State newState) {
+
     }
 }

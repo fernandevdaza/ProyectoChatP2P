@@ -192,7 +192,7 @@ public class MessageController {
             if(onExist){
                 messageDAO.updateFixedStatus(messageId, isFixed);
                 Message message = messageDAO.findMessageById(messageId);
-                if(paintFix) view.setPinMessage(isFixed, messageId);
+                if(paintFix) view.onPinMessageReceived(isFixed, messageId);
                 return true;
             }
         }catch (Exception e){

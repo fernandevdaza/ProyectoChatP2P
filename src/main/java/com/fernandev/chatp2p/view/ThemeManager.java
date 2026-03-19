@@ -135,30 +135,30 @@ public class ThemeManager {
     }
 
 
-    public void applyThemeToWindow(String themeId, Window window) {
-        Theme theme = THEMES.get(themeId);
-        if (theme == null)
-            return;
-        SwingUtilities.invokeLater(() -> {
-            applyToComponent(theme, window);
-            window.repaint();
-            window.revalidate();
-        });
-    }
+//    public void applyThemeToWindow(String themeId, Window window) {
+//        Theme theme = THEMES.get(themeId);
+//        if (theme == null)
+//            return;
+//        SwingUtilities.invokeLater(() -> {
+//            applyToComponent(theme, window);
+//            window.repaint();
+//            window.revalidate();
+//        });
+//    }
 
-    private void applyToComponent(Theme t, Component comp) {
+    private void applyToComponent(Theme t, ChatUI view) {
 
-          ChatUI.setCOLOR_HEADER_BG(t.headerBg);
-          ChatUI.setCOLOR_HEADER_FG(t.headerFg);
-          ChatUI.setCOLOR_BG_CHAT(t.chatBg);
-          ChatUI.setCOLOR_INPUT_PANEL_BG(t.inputPanelBg);
-          ChatUI.setCOLOR_SEND_BUTTON_BG(t.sendButtonBg);
-          ChatUI.setCOLOR_SEND_BUTTON_FG(t.sendButtonFg);
-          ChatUI.setCOLOR_BUBBLE_ME(t.bubbleMe);
-          ChatUI.setCOLOR_BUBBLE_PEER(t.bubblePeer);
-          ChatUI.setCOLOR_BUBBLE_TEXT_ME(t.bubbleTextMe);
-          ChatUI.setCOLOR_BUBBLE_TEXT_PEER(t.bubbleTextPeer);
-          ChatUI.setCOLOR_GENERAL_BG(t.generalBg);
+          view.setCOLOR_HEADER_BG(t.headerBg);
+          view.setCOLOR_HEADER_FG(t.headerFg);
+          view.setCOLOR_BG_CHAT(t.chatBg);
+          view.setCOLOR_INPUT_PANEL_BG(t.inputPanelBg);
+          view.setCOLOR_SEND_BUTTON_BG(t.sendButtonBg);
+          view.setCOLOR_SEND_BUTTON_FG(t.sendButtonFg);
+          view.setCOLOR_BUBBLE_ME(t.bubbleMe);
+          view.setCOLOR_BUBBLE_PEER(t.bubblePeer);
+          view.setCOLOR_BUBBLE_TEXT_ME(t.bubbleTextMe);
+          view.setCOLOR_BUBBLE_TEXT_PEER(t.bubbleTextPeer);
+          view.setCOLOR_GENERAL_BG(t.generalBg);
 
 //        String name = comp.getName() != null ? comp.getName() : "";
 //

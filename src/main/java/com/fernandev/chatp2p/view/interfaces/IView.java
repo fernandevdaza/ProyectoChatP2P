@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IView {
-    void onLoad(List<Peer> peers);
+    void renderPeers(List<Peer> peers);
     void setRightPanel(RightPanel rightPanel);
     RightPanel getRightPanel();
     void setLeftPanel(LeftPanel leftPanel);
@@ -19,7 +19,8 @@ public interface IView {
     Map<String, List<BubbleData>> getChatHistory();
     Map<String, BubbleBubble> getBubblesByMessageId();
     void repaintRightPanel();
-    void setPinMessage(boolean isVisible, String messageId);
+    void repaintLeftPanel();
+    void onPinMessageReceived(boolean isVisible, String messageId);
     boolean getShowPinnedMessage();
-    void addNotification(String text);
+    void onBuzz(String text);
 }

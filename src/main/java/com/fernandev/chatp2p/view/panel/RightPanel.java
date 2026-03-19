@@ -11,6 +11,9 @@ import com.fernandev.chatp2p.model.entities.protocol.messages.MessageImage;
 import com.fernandev.chatp2p.view.BubbleBubble;
 import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.ChatUI;
+import com.fernandev.chatp2p.view.state.State;
+import com.fernandev.chatp2p.view.state.StateListener;
+import com.fernandev.chatp2p.view.state.StateManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -22,7 +25,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class RightPanel extends JPanel {
+public class RightPanel extends JPanel implements StateListener {
     private JPanel header = new JPanel(new BorderLayout());
     private JPanel pinMessageBox = new JPanel();
     private JPanel chatPanel = new JPanel();
@@ -43,6 +46,7 @@ public class RightPanel extends JPanel {
     private BubbleBubble bubbleBubble;
     private ChatUI mainView;
     public RightPanel(ChatUI ui) {
+        StateManager.getInstance().subscribeToState(this);
         this.setLayout(new BorderLayout());
 
         this.mainView = ui;
@@ -505,5 +509,10 @@ public class RightPanel extends JPanel {
 
     public void setMainView(ChatUI mainView) {
         this.mainView = mainView;
+    }
+
+    @Override
+    public void onChange(State newState) {
+
     }
 }

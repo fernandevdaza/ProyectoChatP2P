@@ -25,56 +25,56 @@ public class Cliente2 {
 
         IPeerDao peerDao = new CachePeerDao(new PeerDao());
 
-        java.awt.EventQueue.invokeLater(() -> {
-            Thread.currentThread().setName("UI-Thread-Client-2");
-            Peer myself = peerDao.findMe();
-            if (myself == null) {
-                String displayName = JOptionPane.showInputDialog(null,
-                        "Bienvenido! Ingresa tu nombre de usuario:",
-                        "Registro de usuario",
-                        JOptionPane.QUESTION_MESSAGE);
+        Peer myself = peerDao.findMe();
+        if (myself == null) {
+            String displayName = JOptionPane.showInputDialog(null,
+                    "Bienvenido! Ingresa tu nombre de usuario:",
+                    "Registro de usuario",
+                    JOptionPane.QUESTION_MESSAGE);
 
-                if (displayName == null || displayName.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(null,
-                            "Debes ingresar un nombre para continuar.",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    System.exit(0);
-                }
-
-                if (displayName.trim().length() > 60) {
-                    JOptionPane.showMessageDialog(null,
-                            "El nombre no puede superar los 60 caracteres.",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    System.exit(0);
-                }
-
-                LocalDateTime now = LocalDateTime.now();
-                Peer selfPeer = Peer.builder()
-                        .id(UUID.randomUUID().toString())
-                        .displayName(displayName.trim())
-                        .isSelf(1)
-                        .lastIpAddr("127.0.0.1")
-                        .lastPort(port)
-                        .lastSeenAt(now)
-                        .createdAt(now)
-                        .updatedAt(now)
-                        .build();
-
-                try {
-                    peerDao.save(selfPeer);
-                    System.out.println("Se creó el peer propio: " + selfPeer.getDisplayName());
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null,
-                            "Error al guardar el usuario: " + e.getMessage(),
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+            if (displayName == null || displayName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "Debes ingresar un nombre para continuar.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
             }
 
+            if (displayName.trim().length() > 60) {
+                JOptionPane.showMessageDialog(null,
+                        "El nombre no puede superar los 60 caracteres.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            Peer selfPeer = Peer.builder()
+                    .id(UUID.randomUUID().toString())
+                    .displayName(displayName.trim())
+                    .isSelf(1)
+                    .lastIpAddr("127.0.0.1")
+                    .lastPort(port)
+                    .lastSeenAt(now)
+                    .createdAt(now)
+                    .updatedAt(now)
+                    .build();
+
+            try {
+                peerDao.save(selfPeer);
+                System.out.println("Se creó el peer propio: " + selfPeer.getDisplayName());
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null,
+                        "Error al guardar el usuario: " + e.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+
+        java.awt.EventQueue.invokeLater(() -> {
+            Thread.currentThread().setName("UI-Thread-Client-2");
 
             final ChatUI chatUI = new ChatUI();
             ConnectionController.getInstance().setUi(chatUI);
@@ -92,9 +92,9 @@ public class Cliente2 {
             ConnectionController.getInstance().setPeerController(peerController);
             ConnectionController.getInstance().setMessageController(messageController);
 
-            peerController.onLoad();
-
-            chatUI.setVisible(true);
+            new Thread(() -> {
+                peerController.onLoad();
+            }, "Initial-Load-Thread").start();
 
         });
         try {

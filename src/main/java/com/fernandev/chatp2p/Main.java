@@ -17,64 +17,63 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import javax.sound.sampled.*;
 
-
 public class Main {
 
     public static void main(String[] args) {
         DatabaseConnection.getInstance().initDatabase();
         int port = 1900;
-        ConnectionController.getInstance().setPort(1900);
+        ConnectionController.getInstance().setPort(1901);
         IPeerDao peerDao = new CachePeerDao(new PeerDao());
-        java.awt.EventQueue.invokeLater(() -> {
-            Thread.currentThread().setName("UI-Thread");
-            Peer myself = peerDao.findMe();
-            if (myself == null) {
-                String displayName = JOptionPane.showInputDialog(null,
-                        "Bienvenido! Ingresa tu nombre de usuario:",
-                        "Registro de usuario",
-                        JOptionPane.QUESTION_MESSAGE);
+        Peer myself = peerDao.findMe();
+        if (myself == null) {
+            String displayName = JOptionPane.showInputDialog(null,
+                    "Bienvenido! Ingresa tu nombre de usuario:",
+                    "Registro de usuario",
+                    JOptionPane.QUESTION_MESSAGE);
 
-                if (displayName == null || displayName.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(null,
-                            "Debes ingresar un nombre para continuar.",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    System.exit(0);
-                }
-
-                if (displayName.trim().length() > 60) {
-                    JOptionPane.showMessageDialog(null,
-                            "El nombre no puede superar los 60 caracteres.",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    System.exit(0);
-                }
-
-                LocalDateTime now = LocalDateTime.now();
-                Peer selfPeer = Peer.builder()
-                        .id(UUID.randomUUID().toString())
-                        .displayName(displayName.trim())
-                        .isSelf(1)
-                        .lastIpAddr("127.0.0.1")
-                        .lastPort(port)
-                        .lastSeenAt(now)
-                        .createdAt(now)
-                        .updatedAt(now)
-                        .build();
-
-                try {
-                    peerDao.save(selfPeer);
-                    System.out.println("Se creó el peer propio: " + selfPeer.getDisplayName());
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null,
-                            "Error al guardar el usuario: " + e.getMessage(),
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+            if (displayName == null || displayName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "Debes ingresar un nombre para continuar.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
             }
 
+            if (displayName.trim().length() > 60) {
+                JOptionPane.showMessageDialog(null,
+                        "El nombre no puede superar los 60 caracteres.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            Peer selfPeer = Peer.builder()
+                    .id(UUID.randomUUID().toString())
+                    .displayName(displayName.trim())
+                    .isSelf(1)
+                    .lastIpAddr("127.0.0.1")
+                    .lastPort(port)
+                    .lastSeenAt(now)
+                    .createdAt(now)
+                    .updatedAt(now)
+                    .build();
+
+            try {
+                peerDao.save(selfPeer);
+                System.out.println("Se creó el peer propio: " + selfPeer.getDisplayName());
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null,
+                        "Error al guardar el usuario: " + e.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+
+        java.awt.EventQueue.invokeLater(() -> {
+            Thread.currentThread().setName("UI-Thread");
 
             final ChatUI chatUI = new ChatUI();
             ConnectionController.getInstance().setUi(chatUI);
@@ -92,9 +91,15 @@ public class Main {
             ConnectionController.getInstance().setPeerController(peerController);
             ConnectionController.getInstance().setMessageController(messageController);
 
-            peerController.onLoad();
 
-            chatUI.setVisible(true);
+
+            new Thread(() -> {
+                peerController.onLoad();
+            }, "Initial-Load-Thread").start();
+
+
+//            chatUI.setVisible(true);
+
 
         });
         try {
@@ -105,7 +110,6 @@ public class Main {
             e.printStackTrace();
         }
     }
-
 
     public static void printAudioMixers() {
         Mixer.Info[] mixers = AudioSystem.getMixerInfo();
@@ -118,8 +122,7 @@ public class Main {
                 1,
                 2,
                 22050.0f,
-                false
-        );
+                false);
 
         DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, testFormat);
 
