@@ -38,6 +38,9 @@ public class PeerDao implements IPeerDao{
         if (existColumn(result, Peer.Column.LAST_SEEN_AT)) {
             peer.setLastSeenAt(LocalDateTime.parse(result.getString(Peer.Column.LAST_SEEN_AT)));
         }
+        if(existColumn(result, Peer.Column.THEME_ID)){
+            peer.setThemeId(result.getInt(Peer.Column.THEME_ID));
+        }
         if (existColumn(result, Peer.Column.CREATED_AT)) {
             peer.setCreatedAt(LocalDateTime.parse(result.getString(Peer.Column.CREATED_AT)));
         }
@@ -149,34 +152,42 @@ public class PeerDao implements IPeerDao{
         helper.update(query, null);
     }
     @Override
-    public void save(Peer peer) throws Exception {
-        String query = "INSERT INTO peers(id, display_name, is_self, last_ip_addr, last_port, last_seen_at, created_at, updated_at) values (?,?,?,?,?,?,?,?)";
-        QueryParameters params = new QueryParameters() {
-            @Override
-            public void setParameters(PreparedStatement pst) throws SQLException {
-                pst.setString(1, peer.getId());
-                pst.setString(2, peer.getDisplayName());
-                pst.setString(3, peer.getIsSelf().toString());
-                pst.setString(4, peer.getLastIpAddr());
-                pst.setString(5, peer.getLastPort().toString());
-                pst.setString(6, peer.getLastSeenAt().toString());
-                pst.setString(7, peer.getCreatedAt().toString());
-                pst.setString(8, peer.getUpdatedAt().toString());
-            }
-        };
-        helper.insert(query, params, peer);
+    public void save(Peer peer) {
+        try {
+            String query = "INSERT INTO peers(id, display_name, is_self, last_ip_addr, last_port, last_seen_at, created_at, updated_at) values (?,?,?,?,?,?,?,?)";
+            QueryParameters params = new QueryParameters() {
+                @Override
+                public void setParameters(PreparedStatement pst) throws SQLException {
+                    pst.setString(1, peer.getId());
+                    pst.setString(2, peer.getDisplayName());
+                    pst.setString(3, peer.getIsSelf().toString());
+                    pst.setString(4, peer.getLastIpAddr());
+                    pst.setString(5, peer.getLastPort().toString());
+                    pst.setString(6, peer.getLastSeenAt().toString());
+                    pst.setString(7, peer.getCreatedAt().toString());
+                    pst.setString(8, peer.getUpdatedAt().toString());
+                }
+            };
+            helper.insert(query, params, peer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     @Override
-    public void update(Peer peer) throws Exception {
-        String query = "UPDATE contact SET last_ip_addr=? WHERE id=?";
-        QueryParameters params = new QueryParameters() {
-            @Override
-            public void setParameters(PreparedStatement pst) throws SQLException {
-                pst.setString(1, peer.getLastIpAddr());
-                pst.setString(2, peer.getId());
-            }
-        };
-        helper.update(query, params);
+    public void update(Peer peer) {
+        try{
+            String query = "UPDATE contact SET last_ip_addr=? WHERE id=?";
+            QueryParameters params = new QueryParameters() {
+                @Override
+                public void setParameters(PreparedStatement pst) throws SQLException {
+                    pst.setString(1, peer.getLastIpAddr());
+                    pst.setString(2, peer.getId());
+                }
+            };
+            helper.update(query, params);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
     @Override
     public void update(String query, String conditionWhere) throws Exception {

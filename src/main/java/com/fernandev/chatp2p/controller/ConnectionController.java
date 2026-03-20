@@ -173,10 +173,10 @@ public class ConnectionController implements SocketListener {
 
             } else if (messageProtocol instanceof Mensaje) {
 
-                ui.oneMessageReceived(
+                ui.onMessageReceived(
                         ((Mensaje) messageProtocol).getIdUser(),
                         ((Mensaje) messageProtocol).getIdMessage(),
-                        ((Mensaje) messageProtocol).getMessage(),
+                        false,
                         false
                 );
 
@@ -186,7 +186,9 @@ public class ConnectionController implements SocketListener {
                 );
 
             } else if (messageProtocol instanceof EliminarMensaje) {
-                ui.onDeleteMessageReceived();
+                ui.onDeleteMessageReceived(
+                        ((EliminarMensaje) messageProtocol).getIdMessage()
+                );
             }
             else if (messageProtocol instanceof Zumbido) {
                 ui.onBuzz(
@@ -201,11 +203,11 @@ public class ConnectionController implements SocketListener {
 
             } else if (messageProtocol instanceof MensajeUnico) {
 
-                ui.oneMessageReceived(
+                ui.onMessageReceived(
                         ((MensajeUnico) messageProtocol).getIdUser(),
                         ((MensajeUnico) messageProtocol).getIdMessage(),
-                        ((MensajeUnico) messageProtocol).getMessage(),
-                        true
+                        true,
+                        false
                 );
 
             }else if (messageProtocol instanceof CambiarTema) {
@@ -216,7 +218,12 @@ public class ConnectionController implements SocketListener {
                 ui.onOfflineReceived(((Offline) messageProtocol).getIdUser());
 
             } else if (messageProtocol instanceof MessageImage) {
-                ui.onImageReceived(((MessageImage) messageProtocol).getIdUser(), ((MessageImage) messageProtocol).getIdMessage(), ((MessageImage) messageProtocol).getBase64Image());
+                ui.onMessageReceived((
+                        (MessageImage) messageProtocol).getIdUser(),
+                        ((MessageImage) messageProtocol).getIdMessage(),
+                        false,
+                        true
+                );
             }
         });
 

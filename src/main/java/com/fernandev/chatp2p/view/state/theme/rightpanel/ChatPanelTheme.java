@@ -8,7 +8,7 @@ import java.awt.*;
 @Getter
 @Setter
 public class ChatPanelTheme {
-    private static Color COLOR_BG_CHAT = new Color(236, 229, 221);
+    private Color COLOR_BG_CHAT = new Color(236, 229, 221);
 
     public ChatPanelTheme(){
 

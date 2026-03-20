@@ -139,16 +139,24 @@ public class CachePeerDao implements IPeerDao{
     }
 
     @Override
-    public void save(Peer peer) throws Exception {
-        iPeerDao.save(peer);
-        peers.put(peer.getId(), peer);
+    public void save(Peer peer) {
+       try{
+           iPeerDao.save(peer);
+           peers.put(peer.getId(), peer);
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
     }
 
     @Override
-    public void update(Peer peer) throws Exception {
-        iPeerDao.update(peer);
-        for (Peer singlePeer : peers.values()){
-            peers.replace(singlePeer.getId(), peer);
+    public void update(Peer peer) {
+        try {
+            iPeerDao.update(peer);
+            for (Peer singlePeer : peers.values()){
+                peers.replace(singlePeer.getId(), peer);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 

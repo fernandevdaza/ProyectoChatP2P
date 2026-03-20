@@ -26,14 +26,15 @@ public class PeerController {
         return peerController;
     }
 
-    public void onLoad() {
+    public List<Peer> findAllExceptMe() {
         List<Peer> peers = peerDao.findAllExceptMe();
-        if (peers != null) {
-            System.out.println("[" + Thread.currentThread().getName() + "] Peers encontrados: " + peers.size());
-            view.renderPeers(peers);
-        } else {
-            System.err.println("[" + Thread.currentThread().getName() + "] No se encontraron peers");
-        }
+        return peers;
+//        if (peers != null) {
+//            System.out.println("[" + Thread.currentThread().getName() + "] Peers encontrados: " + peers.size());
+//            view.renderPeers(peers);
+//        } else {
+//            System.err.println("[" + Thread.currentThread().getName() + "] No se encontraron peers");
+//        }
     }
 
     public Peer getMyself() {
@@ -104,5 +105,11 @@ public class PeerController {
     public void setPeerStatus(String peerId, boolean status){
         Peer peer = peerDao.findById(peerId);
         peer.setConnected(status);
+    }
+
+    public void setPeerTheme(String peerId, int themeId){
+        Peer peer = peerDao.findById(peerId);
+        peer.setThemeId(themeId);
+        peerDao.update(peer);
     }
 }

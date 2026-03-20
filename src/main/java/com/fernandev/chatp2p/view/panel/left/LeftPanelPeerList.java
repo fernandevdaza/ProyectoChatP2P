@@ -1,24 +1,25 @@
 package com.fernandev.chatp2p.view.panel.left;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
-import com.fernandev.chatp2p.controller.exception.UnreachableException;
+import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.entities.protocol.messages.Hello;
-import com.fernandev.chatp2p.model.entities.protocol.messages.Invitacion;
 import com.fernandev.chatp2p.view.ChatUI;
-import com.fernandev.chatp2p.view.panel.LeftPanel;
+import com.fernandev.chatp2p.view.panel.right.ChatPanel;
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateListener;
 import com.fernandev.chatp2p.view.state.StateManager;
+import com.fernandev.chatp2p.view.state.message.ChatPanelState;
+import com.fernandev.chatp2p.view.state.peer.LeftPanelPeerListState;
 import com.fernandev.chatp2p.view.state.peer.SelectedPeerState;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -60,13 +61,13 @@ public class LeftPanelPeerList extends JList<Peer> implements StateListener {
 
     }
 
-    private Peer[] getPeerList(){
+    private Peer[] getPeerList() {
         State state = stateManager.getCurrentState();
-        List<Peer> peersList = state.getPeersList();
-        return peersList.toArray(new Peer[0]);
+        Map<String, Peer> peerMap = state.getPeerMap();
+        return peerMap.values().toArray(new Peer[0]);
     }
 
-    private void buildCellRenderer(){
+    private void buildCellRenderer() {
         this.setCellRenderer((list, c, index, isSelected, cellHasFocus) -> {
             JPanel panel = new JPanel(new BorderLayout(10, 0));
             panel.setBorder(BorderFactory.createCompoundBorder(
@@ -97,7 +98,7 @@ public class LeftPanelPeerList extends JList<Peer> implements StateListener {
         });
     }
 
-    public void buildOnSelectAction(){
+    public void buildOnSelectAction() {
         State state = stateManager.getCurrentState();
         this.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -106,10 +107,14 @@ public class LeftPanelPeerList extends JList<Peer> implements StateListener {
                     String id = selection.getId();
 
                     SelectedPeerState selectedPeerState = state.getSelectedPeer();
+                    ChatPanelState chatPanelState = state.getChatPanelState();
+                    LeftPanelPeerListState leftPanelPeerListState = state.getLeftPanelPeerListState();
                     selectedPeerState.setPeerId(id);
                     selectedPeerState.setPeer(selection);
                     selectedPeerState.setSelected(true);
                     selectedPeerState.setConnected(selection.getConnected());
+                    chatPanelState.setLoading(true);
+                    leftPanelPeerListState.setPeerItemClicked(true);
 
                     stateManager.setNewState(state, List.of(ChatUI.class));
                 }
@@ -117,7 +122,7 @@ public class LeftPanelPeerList extends JList<Peer> implements StateListener {
         });
     }
 
-    public void buildOnSendHelloAction(){
+    public void buildOnSendHelloAction() {
         State state = stateManager.getCurrentState();
         this.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -144,14 +149,52 @@ public class LeftPanelPeerList extends JList<Peer> implements StateListener {
         });
     }
 
+    public void renderPeers() {
+        Map<String, Peer> validPeers = stateManager.getCurrentState().getPeerMap();
+        if (!validPeers.isEmpty()) {
+            new Thread(() -> {
+                this.setListData(validPeers.values().toArray(new Peer[0]));
+            }, "load-contacts-thread").start();
+        } else {
+
+            List<Peer> peers = PeerController.getInstance().findAllExceptMe();
+
+            for (Peer p : peers) {
+                if (p.getIsSelf() == 0) {
+                    String ip = p.getLastIpAddr();
+                    if (ip == null || ip.isBlank()) {
+                        System.out.println("[DB] Peer sin IP válida: " + p.getId());
+                        continue;
+                    }
+                    p.setConnected(false);
+                    validPeers.put(p.getId(), p);
+                }
+            }
+
+            new Thread(() -> {
+                SwingUtilities.invokeLater(() -> {
+
+                    State state = stateManager.getCurrentState();
+
+                    state.setPeerMap(validPeers);
+
+                    stateManager.setNewState(state, List.of());
+
+                    this.setListData(validPeers.values().toArray(new Peer[0]));
+
+                });
+
+            }, "load-contacts-thread").start();
+
+        }
+    }
 
     @Override
     public void onChange(State newState) {
-        List<Peer> peersList = newState.getPeersList();
-        Peer[] peers = peersList.toArray(new Peer[0]);
-        this.setListData(peers);
-
-        newState.setPeerListRendered(true);
-        stateManager.setNewState(newState, List.of(ChatUI.class));
+        LeftPanelPeerListState leftPanelPeerListState = newState.getLeftPanelPeerListState();
+        renderPeers();
+        leftPanelPeerListState.setLoading(false);
+        leftPanelPeerListState.setPeerListRendered(true);
+        stateManager.setNewState(newState, List.of());
     }
 }

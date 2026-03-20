@@ -1,4 +1,4 @@
-package com.fernandev.chatp2p.view.panel.notification;
+package com.fernandev.chatp2p.view.panel.left.notification;
 
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateListener;

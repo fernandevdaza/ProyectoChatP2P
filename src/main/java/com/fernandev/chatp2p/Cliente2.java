@@ -93,9 +93,10 @@ public class Cliente2 {
             ConnectionController.getInstance().setMessageController(messageController);
 
             new Thread(() -> {
-                peerController.onLoad();
+                chatUI.renderPeers();
             }, "Initial-Load-Thread").start();
 
+            chatUI.setVisible(true);
         });
         try {
             ChatServer chatServer = new ChatServer(port);

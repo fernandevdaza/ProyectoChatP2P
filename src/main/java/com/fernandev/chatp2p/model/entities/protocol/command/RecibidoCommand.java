@@ -12,9 +12,10 @@ public class RecibidoCommand implements ProtocolCommand {
     @Override
     public void handle(SocketClient socketClient, MessageProtocol messageProtocol) {
         String messageId = ((Recibido) messageProtocol).getIdMessage();
-        String peerId = messageProtocol.getIp() != null
-                ? PeerController.getInstance().getPeerIdByIp(messageProtocol.getIp())
-                : null;
+        String peerId = socketClient.getPeerId();
+        if (peerId == null && messageProtocol.getIp() != null) {
+            peerId = PeerController.getInstance().getPeerIdByIp(messageProtocol.getIp());
+        }
         if (peerId != null) {
             MessageController.getInstance().updateMessageStatus(messageId, MessageStatusType.RECEIVED);
             MessageController.getInstance().saveReceipt(messageId, peerId);

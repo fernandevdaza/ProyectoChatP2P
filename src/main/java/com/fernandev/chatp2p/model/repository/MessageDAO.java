@@ -63,6 +63,9 @@ public class MessageDAO implements IMessageDao {
         if (existColumn(result, Message.Column.IS_FIXED)) {
             message.setFixed(result.getBoolean(Message.Column.IS_FIXED));
         }
+        if (existColumn(result, Message.Column.IS_IMAGE)) {
+            message.setImage(result.getBoolean(Message.Column.IS_IMAGE));
+        }
         return message;
     };
 
@@ -117,7 +120,6 @@ public class MessageDAO implements IMessageDao {
         }
     }
 
-
     public List<Message> findMessagesBySenderPeerId(String senderPeerId) {
         try {
             String query = "SELECT * FROM messages WHERE sender_peer_id ='" + senderPeerId + "'";
@@ -159,7 +161,7 @@ public class MessageDAO implements IMessageDao {
     }
 
     public void save(Message message) throws Exception {
-        String query = "INSERT INTO messages(id, conversation_id, sender_peer_id, type, text_content, sent_at, received_at, is_ephemeral, expires_at, status, created_at, updated_at) values (?,?,?,?,?,?,?,?,?,?,?,?)";
+        String query = "INSERT INTO messages(id, conversation_id, sender_peer_id, type, text_content, sent_at, received_at, is_ephemeral, expires_at, status, created_at, updated_at, is_fixed, is_image) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         QueryParameters params = new QueryParameters() {
             @Override
             public void setParameters(PreparedStatement pst) throws SQLException {
@@ -175,6 +177,8 @@ public class MessageDAO implements IMessageDao {
                 pst.setString(10, message.getStatus().toString());
                 pst.setString(11, message.getCreatedAt().toString());
                 pst.setString(12, message.getUpdatedAt().toString());
+                pst.setString(13, String.valueOf(message.getIsFixed() ? 1 : 0));
+                pst.setString(14, String.valueOf(message.getIsImage() ? 1 : 0));
             }
         };
         helper.insert(query, params, message);
@@ -210,6 +214,21 @@ public class MessageDAO implements IMessageDao {
                 public void setParameters(PreparedStatement pst) throws SQLException {
                     pst.setString(1, String.valueOf(isFixedInteger));
                     pst.setString(2, messageId);
+                }
+            };
+            helper.update(query, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void unpinAllInConversation(String conversationId) {
+        try {
+            String query = "UPDATE messages SET is_fixed=0 WHERE conversation_id=? AND is_fixed=1";
+            QueryParameters params = new QueryParameters() {
+                @Override
+                public void setParameters(PreparedStatement pst) throws SQLException {
+                    pst.setString(1, conversationId);
                 }
             };
             helper.update(query, params);

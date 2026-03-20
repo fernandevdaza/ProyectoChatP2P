@@ -93,12 +93,10 @@ public class Main {
 
 
 
-            new Thread(() -> {
-                peerController.onLoad();
-            }, "Initial-Load-Thread").start();
+            new Thread(chatUI::renderPeers, "Initial-Load-Thread").start();
 
 
-//            chatUI.setVisible(true);
+            chatUI.setVisible(true);
 
 
         });

@@ -31,6 +31,10 @@ public class StateManager {
             this.state = newState;
         }
 
+        if(stateListeners.isEmpty()){
+            return;
+        }
+
         for (StateListener listener : listeners) {
             if (isInstanceOf(listener, stateListeners)) {
                 listener.onChange(newState);

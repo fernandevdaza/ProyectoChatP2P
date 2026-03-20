@@ -21,7 +21,7 @@ public class MensajeCommand implements ProtocolCommand {
             String messageContent = ((Mensaje) messageProtocol).getMessage();
             String conversationId = MessageController.getInstance().getConversationIdByPeerId(peerId);
             MessageController.getInstance().saveMessage(messageId, conversationId, peerId,
-                    messageContent, false);
+                    messageContent, false, false);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -37,7 +37,7 @@ public class MensajeCommand implements ProtocolCommand {
 
         ((Mensaje) messageProtocol).setIdUser(me.getId());
 
-        MessageController.getInstance().saveMessage(((Mensaje) messageProtocol).getIdMessage(), conversationId, me.getId(), ((Mensaje) messageProtocol).getMessage(), false);
+        MessageController.getInstance().saveMessage(((Mensaje) messageProtocol).getIdMessage(), conversationId, me.getId(), ((Mensaje) messageProtocol).getMessage(), false, false);
 
         socketClient.send(messageProtocol);
     }

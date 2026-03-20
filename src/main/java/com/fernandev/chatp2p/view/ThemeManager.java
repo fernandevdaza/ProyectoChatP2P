@@ -1,6 +1,11 @@
 package com.fernandev.chatp2p.view;
 
 import com.fernandev.chatp2p.view.interfaces.IView;
+import com.fernandev.chatp2p.view.state.State;
+import com.fernandev.chatp2p.view.state.StateManager;
+import com.fernandev.chatp2p.view.state.theme.leftpanel.LeftPanelHeaderTheme;
+import com.fernandev.chatp2p.view.state.theme.leftpanel.LeftPanelTheme;
+import com.fernandev.chatp2p.view.state.theme.rightpanel.*;
 
 import java.awt.*;
 import java.util.LinkedHashMap;
@@ -11,6 +16,8 @@ import javax.swing.*;
 public class ThemeManager {
 
     private static final ThemeManager INSTANCE = new ThemeManager();
+
+    private StateManager stateManager = StateManager.getInstance();
 
     private ThemeManager() {
     }
@@ -114,76 +121,46 @@ public class ThemeManager {
     }
 
 
-    public void applyTheme(String themeId, ChatUI view) {
+    public void applyTheme(String themeId) {
         Theme theme = THEMES.get(themeId);
         if (theme == null) {
             System.out.println("[ThemeManager] Tema desconocido: " + themeId);
             return;
         }
 
-        if (view == null) {
-            System.out.println("[ThemeManager] No se encontró ventana para aplicar el tema.");
-            return;
-        }
 
         SwingUtilities.invokeLater(() -> {
-            applyToComponent(theme, view);
-            view.repaintRightPanel();
-            view.repaint();
-            view.revalidate();
+            applyToComponent(theme);
         });
     }
 
 
-//    public void applyThemeToWindow(String themeId, Window window) {
-//        Theme theme = THEMES.get(themeId);
-//        if (theme == null)
-//            return;
-//        SwingUtilities.invokeLater(() -> {
-//            applyToComponent(theme, window);
-//            window.repaint();
-//            window.revalidate();
-//        });
-//    }
 
-    private void applyToComponent(Theme t, ChatUI view) {
+    private void applyToComponent(Theme theme) {
 
-          view.setCOLOR_HEADER_BG(t.headerBg);
-          view.setCOLOR_HEADER_FG(t.headerFg);
-          view.setCOLOR_BG_CHAT(t.chatBg);
-          view.setCOLOR_INPUT_PANEL_BG(t.inputPanelBg);
-          view.setCOLOR_SEND_BUTTON_BG(t.sendButtonBg);
-          view.setCOLOR_SEND_BUTTON_FG(t.sendButtonFg);
-          view.setCOLOR_BUBBLE_ME(t.bubbleMe);
-          view.setCOLOR_BUBBLE_PEER(t.bubblePeer);
-          view.setCOLOR_BUBBLE_TEXT_ME(t.bubbleTextMe);
-          view.setCOLOR_BUBBLE_TEXT_PEER(t.bubbleTextPeer);
-          view.setCOLOR_GENERAL_BG(t.generalBg);
+        State state = stateManager.getCurrentState();
+        RightPanelTheme rightPanelTheme = state.getTheme().getRightPanelTheme();
+        RightPanelHeaderTheme rightPanelHeaderTheme = rightPanelTheme.getHeaderTheme();
+        ChatPanelTheme chatPanelTheme = rightPanelTheme.getChatPanelTheme();
+        ChatInputPanelTheme chatInputPanelTheme = rightPanelTheme.getChatInputPanelTheme();
+        BubbleMessageTheme bubbleMessageTheme = rightPanelTheme.getBubbleMessageTheme();
 
-//        String name = comp.getName() != null ? comp.getName() : "";
-//
-//        if ("theme-header".equals(name)) {
-//            comp.setBackground(t.headerBg);
-//            comp.setForeground(t.headerFg);
-//        }
-//        else if ("theme-chat-bg".equals(name)) {
-//            comp.setBackground(t.chatBg);
-//        }
-//        else if ("theme-input-panel".equals(name)) {
-//            comp.setBackground(t.inputPanelBg);
-//        }
-//        else if ("theme-send-btn".equals(name)) {
-//            comp.setBackground(t.sendButtonBg);
-//            comp.setForeground(t.sendButtonFg);
-//        }
-//        else if ("theme-general-bg".equals(name)) {
-//            comp.setBackground(t.generalBg);
-//        }
-//
-//        if (comp instanceof Container) {
-//            for (Component child : ((Container) comp).getComponents()) {
-//                applyToComponent(t, child);
-//            }
-//        }
+
+        LeftPanelTheme leftPanelTheme = state.getTheme().getLeftPanelTheme();
+        LeftPanelHeaderTheme leftPanelHeaderTheme = leftPanelTheme.getHeaderTheme();
+
+
+        rightPanelHeaderTheme.setCOLOR_HEADER_BG(theme.headerBg);
+        rightPanelHeaderTheme.setCOLOR_HEADER_FG(theme.headerFg);
+        chatPanelTheme.setCOLOR_BG_CHAT(theme.chatBg);
+        chatInputPanelTheme.setCOLOR_INPUT_PANEL_BG(theme.inputPanelBg);
+        chatInputPanelTheme.setCOLOR_SEND_BUTTON_BG(theme.sendButtonBg);
+        chatInputPanelTheme.setCOLOR_SEND_BUTTON_FG(theme.sendButtonFg);
+        bubbleMessageTheme.setCOLOR_BUBBLE_ME(theme.bubbleMe);
+        bubbleMessageTheme.setCOLOR_BUBBLE_PEER(theme.bubblePeer);
+        bubbleMessageTheme.setCOLOR_BUBBLE_TEXT_ME(theme.bubbleTextMe);
+        bubbleMessageTheme.setCOLOR_BUBBLE_TEXT_PEER(theme.bubbleTextPeer);
+        leftPanelHeaderTheme.setCOLOR_GENERAL_BG(theme.generalBg);
+
     }
 }

@@ -14,12 +14,18 @@ import com.fernandev.chatp2p.model.entities.protocol.messages.Aceptar;
 import com.fernandev.chatp2p.model.entities.protocol.messages.Rechazar;
 import com.fernandev.chatp2p.model.entities.protocol.messages.Recibido;
 import com.fernandev.chatp2p.view.interfaces.IView;
-import com.fernandev.chatp2p.view.panel.LeftPanel;
-import com.fernandev.chatp2p.view.panel.RightPanel;
+import com.fernandev.chatp2p.view.panel.left.LeftPanel;
+import com.fernandev.chatp2p.view.panel.left.notification.NotificationButton;
+import com.fernandev.chatp2p.view.panel.left.notification.NotificationPanel;
+import com.fernandev.chatp2p.view.panel.right.*;
 import com.fernandev.chatp2p.view.panel.left.LeftPanelPeerList;
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateListener;
 import com.fernandev.chatp2p.view.state.StateManager;
+import com.fernandev.chatp2p.view.state.message.ChatPanelState;
+import com.fernandev.chatp2p.view.state.message.PinnedMessageState;
+import com.fernandev.chatp2p.view.state.notification.NotificationState;
+import com.fernandev.chatp2p.view.state.peer.LeftPanelPeerListState;
 import com.fernandev.chatp2p.view.state.peer.SelectedPeerState;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +51,7 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
     private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
 
-    private Map<String, BubbleBubble> bubblesByMessageId = new HashMap<>();
+    private Map<String, MessageBubble> bubblesByMessageId = new HashMap<>();
 
     private final List<String> notifications = new ArrayList<>();
 
@@ -76,7 +82,7 @@ public class ChatUI extends JFrame implements IView, StateListener {
         this.leftPanel = new LeftPanel(this);
         add(leftPanel, BorderLayout.WEST);
 
-        this.rightPanel = new RightPanel(this);
+        this.rightPanel = new RightPanel();
         add(rightPanel, BorderLayout.CENTER);
 
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -137,33 +143,53 @@ public class ChatUI extends JFrame implements IView, StateListener {
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, ip + " rechazó la conexión."));
     }
 
-    public void oneMessageReceived(String peerId, String idMessage, String message, boolean isEphemeral) {
+    public void onMessageReceived(String peerId, String messageId, boolean isEphemeral, boolean isImage) {
         SwingUtilities.invokeLater(() -> {
-            this.rightPanel.addMessage(message, false, peerId, idMessage, isEphemeral);
-            if (Objects.equals(this.getCurrentChatId(), peerId) && !isEphemeral) {
-                MessageController.getInstance().updateMessageStatus(idMessage, MessageStatusType.RECEIVED);
-                Recibido recibido = new Recibido(idMessage);
-                ConnectionController.getInstance().sendMessage(peerId, recibido);
-            }
-        });
-    }
+            State state = stateManager.getCurrentState();
+            ChatPanelState chatPanelState = state.getChatPanelState();
 
-    public void onImageReceived(String peerId, String idMessage, String base64Image) {
-        SwingUtilities.invokeLater(() -> {
-            this.rightPanel.addImageMessage(base64Image, false, peerId, idMessage);
-            if (Objects.equals(this.getCurrentChatId(), peerId)) {
-                Recibido recibido = new Recibido(idMessage);
-                ConnectionController.getInstance().sendMessage(peerId, recibido);
+            chatPanelState.setLastReceivedMessageId(messageId);
+            chatPanelState.setLastReceivedMessageSenderId(peerId);
+
+            String selectedPeerId = state.getSelectedPeer().getPeerId();
+
+            if (Objects.equals(selectedPeerId, peerId)) {
+                stateManager.setNewState(state, List.of(ChatPanel.class));
+
+                if (!isEphemeral) {
+                    MessageController.getInstance().updateMessageStatus(messageId, MessageStatusType.RECEIVED);
+                    Recibido recibido = new Recibido(messageId);
+                    ConnectionController.getInstance().sendMessage(peerId, recibido);
+                }
+
+            } else {
+                System.out.println("Mensaje recibido de " + peerId + " (en segundo plano)");
             }
         });
     }
 
     public void onReceiptReceived(String messageId) {
-        SwingUtilities.invokeLater(() -> this.rightPanel.markMessageReceived(messageId));
+        SwingUtilities.invokeLater(() -> {
+            State state = stateManager.getCurrentState();
+            Map<String, MessageBubble> messageBubbleMap = state.getMessageBubbleMap();
+
+            MessageBubble bubble = messageBubbleMap.get(messageId);
+            if (bubble != null) {
+                bubble.setReceived(true);
+            }
+        });
     }
 
-    public void onDeleteMessageReceived() {
-        this.repaintRightPanel();
+
+    public void onDeleteMessageReceived(String messageId) {
+        State state = stateManager.getCurrentState();
+        ChatPanelState chatPanelState = state.getChatPanelState();
+        Map<String, MessageBubble> messageBubbleMap = state.getMessageBubbleMap();
+
+        messageBubbleMap.remove(messageId);
+        chatPanelState.setLoading(true);
+
+        stateManager.setNewState(state, List.of(ChatPanel.class));
     }
 
     public void onBuzz(String peerId) {
@@ -175,19 +201,30 @@ public class ChatUI extends JFrame implements IView, StateListener {
         lastBuzzMillis = now;
 
         Peer peer = PeerController.getInstance().getPeerById(peerId);
-        this.getLeftPanel().addNotification("Zumbido recibido de " + peer.getDisplayName());
-        this.getLeftPanel().triggerBuzz();
+        this.addNotification("Zumbido recibido de " + peer.getDisplayName());
+        this.shakeWindow(this);
     }
 
     public void onPinMessageReceived(boolean isVisible, String messageId) {
         Message message = MessageController.getInstance().getMessageById(messageId);
-        this.rightPanel.setPinnedMessageId(messageId);
-        this.rightPanel.setShowPinnedMessageBox(isVisible);
-        this.rightPanel.setPinnedMessage(message.getTextContent());
+        State state = stateManager.getCurrentState();
+        PinnedMessageState pinnedMessageState = state.getPinnedMessage();
+        if(isVisible){
+            pinnedMessageState.setPinnedMessageId(messageId);
+            pinnedMessageState.setShowPinnedMessageBox(true);
+            pinnedMessageState.setPinnedMessageContent(message.getTextContent());
+        }else{
+            pinnedMessageState.setPinnedMessageId(null);
+            pinnedMessageState.setShowPinnedMessageBox(false);
+            pinnedMessageState.setPinnedMessageContent(null);
+        }
+
+
+        stateManager.setNewState(state, List.of(PinnedMessageBox.class));
     }
 
     public void onChangeThemeReceived(String themeId) {
-        ThemeManager.getInstance().applyTheme(themeId, this);
+        ThemeManager.getInstance().applyTheme(themeId);
     }
 
     public void onOfflineReceived(String peerId) {
@@ -202,9 +239,8 @@ public class ChatUI extends JFrame implements IView, StateListener {
     public void addElementToPeerList(Peer peer) {
         SwingUtilities.invokeLater(() -> {
             State state = stateManager.getCurrentState();
-            List<Peer> peersList = state.getPeersList();
-            peersList.add(peer);
-//            Peer[] peers = peersList.toArray(new Peer[0]);
+            Map<String, Peer> peersList = state.getPeerMap();
+            peersList.put(peer.getId(), peer);
             stateManager.setNewState(state, List.of(LeftPanelPeerList.class));
         });
     }
@@ -212,14 +248,14 @@ public class ChatUI extends JFrame implements IView, StateListener {
     public void repaintRightPanel() {
 
         if (this.rightPanel != null) {
-            StateManager.getInstance().unsubscribeToState(this.rightPanel);
+            this.rightPanel.unsubscribeAll();
         }
 
         this.remove(this.rightPanel);
 
-        this.setRightPanel(new RightPanel(this));
+        this.setRightPanel(new RightPanel());
 
-        this.getLeftPanel().loadSelectedChat(this.getCurrentChatId());
+        this.loadSelectedChat();
 
         this.add(this.rightPanel, BorderLayout.CENTER);
 
@@ -245,68 +281,13 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
     }
 
+    public void renderPeers() {
 
-    public String getCurrentChatId() {
-        return stateManager.getCurrentState().getSelectedPeer().getPeerId();
-    }
+        State state = stateManager.getCurrentState();
+        LeftPanelPeerListState leftPanelPeerListState = state.getLeftPanelPeerListState();
+        leftPanelPeerListState.setLoading(true);
 
-    public boolean getContactSelected() {
-
-        return stateManager.getCurrentState().getSelectedPeer().isSelected();
-    }
-
-    public boolean getContactSelectedConected() {
-        return stateManager.getCurrentState().getSelectedPeer().isConnected();
-    }
-
-    public boolean getShowPinnedMessage() {
-        return this.rightPanel.getShowPinnedMessageBox();
-    }
-
-    public void paintBubbleInRightPanel(String text, boolean isMe, String messageId, boolean received,
-            boolean isOneTimeMessage) {
-        this.rightPanel.paintBubble(text, isMe, messageId, received, isOneTimeMessage);
-    }
-
-    public void setInputEnabledInRightPanel(boolean enabled) {
-        this.rightPanel.setInputEnabled(enabled);
-    }
-
-    @Override
-    public void renderPeers(List<Peer> peers) {
-
-        List<Peer> validPeers = new ArrayList<>();
-
-        for (Peer p : peers) {
-            if (p.getIsSelf() == 0) {
-                String ip = p.getLastIpAddr();
-                if (ip == null || ip.isBlank()) {
-                    System.out.println("[DB] Peer sin IP válida: " + p.getId());
-                    continue;
-                }
-                p.setConnected(false);
-                validPeers.add(p);
-            }
-        }
-
-        new Thread(() -> {
-            SwingUtilities.invokeLater(() -> {
-
-                State state = stateManager.getCurrentState();
-
-                state.setPeersList(validPeers);
-
-                stateManager.setNewState(state,
-                        List.of(LeftPanelPeerList.class));
-
-                if (!this.isVisible()) {
-                    this.setVisible(true);
-                }
-
-            });
-
-        }, "load-contacts-thread").start();
-
+        stateManager.setNewState(state, List.of(LeftPanelPeerList.class));
 
     }
 
@@ -314,149 +295,81 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
         SwingUtilities.invokeLater(() -> {
             State state = stateManager.getCurrentState();
-            List<Peer> peers = state.getPeersList();
+            Map<String, Peer> peers = state.getPeerMap();
+            SelectedPeerState selectedPeerState = state.getSelectedPeer();
 
-            for (Peer p : peers) {
-                if (Objects.equals(p.getId(), id)) {
-                    p.setConnected(isOnline);
+            Peer onUpdateStatusPeer = peers.get(id);
 
-                    if (Objects.equals(state.getSelectedPeer().getPeerId(), p.getId())) {
-                        this.setSelectedPeerStatus(isOnline, p.getId());
-                    }
-                    break;
+            if (onUpdateStatusPeer != null) {
+                onUpdateStatusPeer.setConnected(isOnline);
+
+                if (Objects.equals(selectedPeerState.getPeerId(), onUpdateStatusPeer.getId())) {
+                    selectedPeerState.setConnected(isOnline);
                 }
+
+                stateManager.setNewState(state,
+                        List.of(LeftPanelPeerList.class, RightPanelHeader.class, InputPanel.class));
             }
-            stateManager.setNewState(state, List.of(LeftPanelPeerList.class));
+
         });
 
     }
 
-
-    public void setSelectedPeerStatus(boolean connected, String id) {
+    public void loadSelectedChat() {
         State state = stateManager.getCurrentState();
-        String selectedPeerId = state.getSelectedPeer().getPeerId();
-        if (!Objects.equals(selectedPeerId, id))
-            return;
-        this.getRightPanel().getBuzzButton().setEnabled(connected);
-        this.getRightPanel().getThemeButton().setEnabled(connected);
-        SwingUtilities.invokeLater(() -> {
-            this.setInputEnabledInRightPanel(connected);
-        });
+        state.getChatPanelState().setLoading(true);
+        stateManager.setNewState(state, List.of(ChatPanel.class));
     }
 
+    public void addNotification(String text) {
+        State state = stateManager.getCurrentState();
+        NotificationState notificationState = state.getNotificationState();
+        List<String> notifications = notificationState.getNotifications();
+        int unreadNotificationsCount = notificationState.getUnreadNotificationsCount();
 
+        notifications.addFirst(text);
+
+        notificationState.setUnreadNotificationsCount(unreadNotificationsCount + 1);
+
+        stateManager.setNewState(state, List.of(NotificationButton.class, NotificationPanel.class));
+    }
+
+    private void shakeWindow(JFrame frame) {
+        Point original = frame.getLocation();
+        int distance = 10;
+        int times = 12;
+        int delay = 25;
+
+        new Thread(() -> {
+            try {
+                for (int i = 0; i < times; i++) {
+                    int x = original.x + (i % 2 == 0 ? distance : -distance);
+                    SwingUtilities.invokeLater(() -> frame.setLocation(x, original.y));
+                    Thread.sleep(delay);
+                }
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            } finally {
+                SwingUtilities.invokeLater(() -> frame.setLocation(original));
+            }
+        }).start();
+    }
 
     public void onUnexpectedDisconnection(String ip) {
         String message = "Conexión con cliente de ip: " + ip + " cerrada";
         javax.swing.SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, message));
     }
 
-
-
-//    public static Color getCOLOR_HEADER_BG() {
-//        return COLOR_HEADER_BG;
-//    }
-//
-//    public static void setCOLOR_HEADER_BG(Color color) {
-//        COLOR_HEADER_BG = color;
-//    }
-//
-//    public static Color getCOLOR_HEADER_FG() {
-//        return COLOR_HEADER_FG;
-//    }
-//
-//    public static void setCOLOR_HEADER_FG(Color color) {
-//        COLOR_HEADER_FG = color;
-//    }
-//
-//    public static Color getCOLOR_BG_CHAT() {
-//        return COLOR_BG_CHAT;
-//    }
-//
-//    public static void setCOLOR_BG_CHAT(Color color) {
-//        COLOR_BG_CHAT = color;
-//    }
-//
-//    public static Color getCOLOR_INPUT_PANEL_BG() {
-//        return COLOR_INPUT_PANEL_BG;
-//    }
-//
-//    public static void setCOLOR_INPUT_PANEL_BG(Color color) {
-//        COLOR_INPUT_PANEL_BG = color;
-//    }
-//
-//    public static Color getCOLOR_SEND_BUTTON_BG() {
-//        return COLOR_SEND_BUTTON_BG;
-//    }
-//
-//    public static void setCOLOR_SEND_BUTTON_BG(Color color) {
-//        COLOR_SEND_BUTTON_BG = color;
-//    }
-//
-//    public static Color getCOLOR_SEND_BUTTON_FG() {
-//        return COLOR_SEND_BUTTON_FG;
-//    }
-//
-//    public static void setCOLOR_SEND_BUTTON_FG(Color color) {
-//        COLOR_SEND_BUTTON_FG = color;
-//    }
-//
-//    public static Color getCOLOR_BUBBLE_ME() {
-//        return COLOR_BUBBLE_ME;
-//    }
-//
-//    public static void setCOLOR_BUBBLE_ME(Color color) {
-//        COLOR_BUBBLE_ME = color;
-//    }
-//
-//    public static Color getCOLOR_BUBBLE_PEER() {
-//        return COLOR_BUBBLE_PEER;
-//    }
-//
-//    public static void setCOLOR_BUBBLE_PEER(Color color) {
-//        COLOR_BUBBLE_PEER = color;
-//    }
-//
-//    public static Color getCOLOR_BUBBLE_TEXT_ME() {
-//        return COLOR_BUBBLE_TEXT_ME;
-//    }
-//
-//    public static void setCOLOR_BUBBLE_TEXT_ME(Color color) {
-//        COLOR_BUBBLE_TEXT_ME = color;
-//    }
-//
-//    public static Color getCOLOR_BUBBLE_TEXT_PEER() {
-//        return COLOR_BUBBLE_TEXT_PEER;
-//    }
-//
-//    public static void setCOLOR_BUBBLE_TEXT_PEER(Color color) {
-//        COLOR_BUBBLE_TEXT_PEER = color;
-//    }
-//
-//    public static Color getCOLOR_GENERAL_BG() {
-//        return COLOR_GENERAL_BG;
-//    }
-//
-//    public static void setCOLOR_GENERAL_BG(Color color) {
-//        COLOR_GENERAL_BG = color;
-//    }
-//
-//    public static Color getCOLOR_CHECK() {
-//        return COLOR_CHECK;
-//    }
-//
-//    public static void setCOLOR_CHECK(Color color) {
-//        COLOR_CHECK = color;
-//    }
-
     @Override
     public void onChange(State newState) {
 
         SelectedPeerState selectedPeerState = newState.getSelectedPeer();
-        if (selectedPeerState.isSelected()) {
+        LeftPanelPeerListState leftPanelPeerListState = newState.getLeftPanelPeerListState();
+        if (selectedPeerState.isSelected() && leftPanelPeerListState.isPeerItemClicked()) {
             this.repaintRightPanel();
-            return;
+            leftPanelPeerListState.setPeerItemClicked(false);
         }
+        stateManager.setNewState(newState, List.of());
 
     }
 }

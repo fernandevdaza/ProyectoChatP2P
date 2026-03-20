@@ -28,6 +28,7 @@ public class Message implements Serializable, Model {
         public static final String CREATED_AT = "created_at";
         public static final String UPDATED_AT = "updated_at";
         public static final String IS_FIXED = "is_fixed";
+        public static final String IS_IMAGE = "is_image";
     }
 
     @Override
@@ -46,6 +47,7 @@ public class Message implements Serializable, Model {
     public boolean getIsFixed(){
         return this.isFixed;
     }
+    public boolean getIsImage() { return this.isImage; }
 
     private String id;
     private String conversationId;
@@ -62,5 +64,6 @@ public class Message implements Serializable, Model {
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt;
     private boolean isFixed = false;
+    private boolean isImage = false;
 }
 

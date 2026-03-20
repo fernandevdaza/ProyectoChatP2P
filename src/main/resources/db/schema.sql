@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS "peers" (
   "last_ip_addr" TEXT,
   "last_port" INTEGER,
   "last_seen_at" DATETIME,
+  "theme_id" INTEGER NOT NULL DEFAULT 1,
   "created_at" DATETIME NOT NULL,
   "updated_at" DATETIME
 );
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS "messages" (
   "received_at" DATETIME NOT NULL,
   "is_ephemeral" INTEGER NOT NULL DEFAULT 0,
   "is_fixed" INTEGER NOT NULL DEFAULT 0,
+  "is_image" INTEGER NOT NULL DEFAULT 0,
   "expires_at" DATETIME,
   "status" TEXT NOT NULL DEFAULT 'RECEIVED' CHECK ("status" IN ('PENDING', 'SENT', 'DELIVERED', 'READ', 'RECEIVED', 'FAILED')),
   "created_at" DATETIME NOT NULL,

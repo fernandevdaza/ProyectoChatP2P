@@ -2,8 +2,7 @@ package com.fernandev.chatp2p.view.panel.left;
 
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
-import com.fernandev.chatp2p.view.ChatUI;
-import com.fernandev.chatp2p.view.panel.notification.NotificationButton;
+import com.fernandev.chatp2p.view.panel.left.notification.NotificationButton;
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateListener;
 import com.fernandev.chatp2p.view.state.StateManager;

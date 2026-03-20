@@ -1,4 +1,4 @@
-package com.fernandev.chatp2p.view;
+package com.fernandev.chatp2p.view.panel.right;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 
-public class BubbleBubble extends JPanel implements StateListener {
+public class MessageBubble extends JPanel implements StateListener {
     private final String text;
     private final boolean isMe;
     private final String idMessage;
@@ -32,11 +32,7 @@ public class BubbleBubble extends JPanel implements StateListener {
     private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255);
     private static final Color COLOR_CHECK = new Color(53, 162, 235);
 
-    public BubbleBubble(String content, boolean isMe, String idMessage, boolean isEphemeral) {
-        this(content, isMe, false, idMessage, isEphemeral);
-    }
-
-    public BubbleBubble(String content, boolean isMe, boolean isImage, String idMessage, boolean isEphemeral) {
+    public MessageBubble(String content, boolean isMe, String idMessage, boolean isEphemeral,  boolean isImage) {
         StateManager.getInstance().subscribeToState(this);
         this.text = content;
         this.isMe = isMe;
@@ -245,6 +241,7 @@ public class BubbleBubble extends JPanel implements StateListener {
 
     @Override
     public void onChange(State newState) {
+
 
     }
 }

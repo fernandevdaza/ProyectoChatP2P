@@ -8,8 +8,8 @@ import java.awt.*;
 @Getter
 @Setter
 public class RightPanelHeaderTheme {
-    private static Color COLOR_HEADER_BG = new Color(0, 168, 132);
-    private static Color COLOR_HEADER_FG = Color.WHITE;
+    private Color COLOR_HEADER_BG = new Color(0, 168, 132);
+    private Color COLOR_HEADER_FG = Color.WHITE;
 
     public RightPanelHeaderTheme(){
     }

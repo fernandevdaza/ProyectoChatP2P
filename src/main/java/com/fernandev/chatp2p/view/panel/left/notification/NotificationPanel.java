@@ -1,6 +1,5 @@
-package com.fernandev.chatp2p.view.panel.notification;
+package com.fernandev.chatp2p.view.panel.left.notification;
 
-import com.fernandev.chatp2p.view.ChatUI;
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateListener;
 import com.fernandev.chatp2p.view.state.StateManager;
@@ -10,7 +9,6 @@ import lombok.Setter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
 import java.util.List;
 
 @Getter
