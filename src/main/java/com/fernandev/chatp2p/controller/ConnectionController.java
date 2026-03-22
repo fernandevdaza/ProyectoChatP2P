@@ -41,7 +41,7 @@ public class ConnectionController implements SocketListener {
         try {
             SocketClient connection = new SocketClient(ip, port);
             connection.addListener(this);
-            connection.setName("SocketClient-" + connection.getIp());
+            connection.setName("SocketClient-" + connection.getSocketIp());
             connection.start();
             return connection;
         } catch (IOException e) {
@@ -131,11 +131,12 @@ public class ConnectionController implements SocketListener {
 
         SwingUtilities.invokeLater(() -> {
             if (messageProtocol instanceof Invitacion) {
-
-                ui.onInvitationReceived(
-                        ((Invitacion) messageProtocol).getIdUsuario(),
-                        ((Invitacion) messageProtocol).getNombre());
-
+                Peer me = peerController.getMyself();
+                if(!((Invitacion) messageProtocol).getIdUsuario().equals(me.getId())){
+                    ui.onInvitationReceived(
+                            ((Invitacion) messageProtocol).getIdUsuario(),
+                            ((Invitacion) messageProtocol).getNombre());
+                }
             } else if (messageProtocol instanceof Aceptar) {
 
                 ui.onAcceptedReceived(
@@ -214,10 +215,10 @@ public class ConnectionController implements SocketListener {
 
     @Override
     public void onClientDisconnected(SocketClient socketClient) {
-        Peer peer = peerController.getPeerByIp(socketClient.getIp());
+        Peer peer = peerController.getPeerByIp(socketClient.getSocketIp());
         this.removeConnection(socketClient.getPeerId(), true);
         if (peer == null) {
-            ui.onUnexpectedDisconnection(socketClient.getIp());
+            ui.onUnexpectedDisconnection(socketClient.getSocketIp());
             return;
         }
         ui.updatePeerStatus(peer.getId(), false);

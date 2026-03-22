@@ -1,6 +1,7 @@
 package com.fernandev.chatp2p.controller;
 
 import com.fernandev.chatp2p.model.entities.db.Peer;
+import com.fernandev.chatp2p.model.network.NetworkUtils;
 import com.fernandev.chatp2p.model.repository.CachePeerDao;
 import com.fernandev.chatp2p.model.repository.IPeerDao;
 import com.fernandev.chatp2p.model.repository.PeerDao;
@@ -116,5 +117,9 @@ public class PeerController {
 
     public void updatePeer(Peer peer){
         peerDao.update(peer);
+    }
+
+    public String getCurrentWifiLanIp(){
+        return NetworkUtils.getWifiLanIp();
     }
 }

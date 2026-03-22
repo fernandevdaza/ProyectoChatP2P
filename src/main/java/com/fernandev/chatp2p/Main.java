@@ -72,7 +72,7 @@ public class Main {
                 System.exit(1);
             }
         }
-        myself.setLastIpAddr(NetworkUtils.getWifiLanIp());
+        myself.setLastIpAddr(PeerController.getInstance().getCurrentWifiLanIp());
         PeerController.getInstance().updatePeer(myself);
 
         java.awt.EventQueue.invokeLater(() -> {

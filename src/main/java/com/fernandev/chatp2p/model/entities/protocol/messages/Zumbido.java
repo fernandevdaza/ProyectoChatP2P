@@ -41,7 +41,7 @@ public class Zumbido extends MessageProtocol {
     @Override
     public void execute(SocketClient client) {
         Peer me = PeerController.getInstance().getMyself();
-        String peerId = PeerController.getInstance().getPeerByIp(client.getIp()) != null ? PeerController.getInstance().getPeerByIp(client.getIp()).getId()
+        String peerId = PeerController.getInstance().getPeerByIp(client.getSocketIp()) != null ? PeerController.getInstance().getPeerByIp(client.getSocketIp()).getId()
                 : null;
         if (me == null || peerId == null || client == null) {
             System.out.println("[" + Thread.currentThread().getName() + "]Hubo un problema al enviar el Zumbido");

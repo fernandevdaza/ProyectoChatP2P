@@ -8,6 +8,7 @@ import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateListener;
 import com.fernandev.chatp2p.view.state.StateManager;
+import com.fernandev.chatp2p.view.state.peer.SelectedPeerState;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -29,6 +30,8 @@ public class MessageBubble extends JPanel implements StateListener {
     private final boolean isEphemeral;
     private JLabel checkLabel;
     private static final Color COLOR_CHECK = new Color(53, 162, 235);
+    private final StateManager stateManager = StateManager.getInstance();
+    private final boolean isImage;
 
     public MessageBubble(String content, boolean isMe, String idMessage, boolean isEphemeral, boolean isImage) {
         StateManager.getInstance().subscribeToState(this);
@@ -36,6 +39,7 @@ public class MessageBubble extends JPanel implements StateListener {
         this.isMe = isMe;
         this.idMessage = idMessage;
         this.isEphemeral = isEphemeral;
+        this.isImage = isImage;
 
         setLayout(new BorderLayout(0, 2));
         setOpaque(false);
@@ -167,29 +171,16 @@ public class MessageBubble extends JPanel implements StateListener {
 
     private void setupContextMenu() {
         JPopupMenu popupMenu = new JPopupMenu();
+        State state = stateManager.getCurrentState();
+        SelectedPeerState selectedPeerState = state.getSelectedPeer();
 
         JMenuItem deleteItem = new JMenuItem("Eliminar para mí");
         deleteItem.addActionListener(e -> {
             MessageController.getInstance().deleteMessage(this.idMessage, true);
         });
 
-        JMenuItem pinItem = new JMenuItem("Fijar mensaje");
-        pinItem.addActionListener(e -> {
-            FijarMensaje fijarMensaje = new FijarMensaje();
-            String senderPeerId = "";
-            if (isMe) {
-                senderPeerId = MessageController.getInstance().getReceiverPeerIdByMessageID(this.idMessage);
-            } else {
-                senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
-            }
-            fijarMensaje.setIdMessage(this.idMessage);
-
-            ConnectionController.getInstance().sendMessage(senderPeerId, fijarMensaje);
-            MessageController.getInstance().pinMessage(this.idMessage, true, true);
-        });
-
         popupMenu.add(deleteItem);
-        if (isMe) {
+        if (isMe && !isEphemeral && selectedPeerState.isConnected()) {
             JMenuItem deleteEveryoneItem = new JMenuItem("Eliminar para todos");
 
             deleteEveryoneItem.addActionListener(e -> {
@@ -210,8 +201,25 @@ public class MessageBubble extends JPanel implements StateListener {
 
         }
 
-        popupMenu.add(new JSeparator());
-        popupMenu.add(pinItem);
+        if(!isEphemeral && selectedPeerState.isConnected() && !isImage){
+            JMenuItem pinItem = new JMenuItem("Fijar mensaje");
+            pinItem.addActionListener(e -> {
+                FijarMensaje fijarMensaje = new FijarMensaje();
+                String senderPeerId = "";
+                if (isMe) {
+                    senderPeerId = MessageController.getInstance().getReceiverPeerIdByMessageID(this.idMessage);
+                } else {
+                    senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
+                }
+                fijarMensaje.setIdMessage(this.idMessage);
+
+                ConnectionController.getInstance().sendMessage(senderPeerId, fijarMensaje);
+                MessageController.getInstance().pinMessage(this.idMessage, true, true);
+            });
+            popupMenu.add(new JSeparator());
+            popupMenu.add(pinItem);
+        }
+
 
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -248,6 +256,7 @@ public class MessageBubble extends JPanel implements StateListener {
                 c.setForeground(isMe ? theme.getCOLOR_BUBBLE_TEXT_ME() : theme.getCOLOR_BUBBLE_TEXT_PEER());
             }
         }
+        this.setupContextMenu();
         this.revalidate();
         this.repaint();
     }

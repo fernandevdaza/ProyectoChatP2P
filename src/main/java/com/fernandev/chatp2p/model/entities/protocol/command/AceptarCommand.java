@@ -9,8 +9,6 @@ import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.Protocol
 import com.fernandev.chatp2p.model.entities.protocol.messages.Aceptar;
 import com.fernandev.chatp2p.model.network.SocketClient;
 
-import java.time.LocalDateTime;
-
 public class AceptarCommand implements ProtocolCommand {
     @Override
     public void handle(SocketClient socketClient, MessageProtocol messageProtocol) {
@@ -38,7 +36,7 @@ public class AceptarCommand implements ProtocolCommand {
         ((Aceptar) messageProtocol).setNombre(me.getDisplayName());
         socketClient.send(messageProtocol);
 
-        PeerController.getInstance().savePeer(socketClient.getIp(), socketClient.getPeerId(), socketClient.getDisplayName(), socketClient.getPort());
+        PeerController.getInstance().savePeer(socketClient.getSocketIp(), socketClient.getPeerId(), socketClient.getDisplayName(), socketClient.getPort());
 
         String conversationId = MessageController.getInstance().createConversation();
 

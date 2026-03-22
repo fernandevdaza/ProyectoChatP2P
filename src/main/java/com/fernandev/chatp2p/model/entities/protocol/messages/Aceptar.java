@@ -42,7 +42,7 @@ public class Aceptar extends MessageProtocol {
         this.setNombre(me.getDisplayName());
         client.send(this);
 
-        PeerController.getInstance().savePeer(client.getIp(), client.getPeerId(), client.getDisplayName(), client.getPort());
+        PeerController.getInstance().savePeer(client.getSocketIp(), client.getPeerId(), client.getDisplayName(), client.getPort());
 
         String conversationId = MessageController.getInstance().createConversation();
 

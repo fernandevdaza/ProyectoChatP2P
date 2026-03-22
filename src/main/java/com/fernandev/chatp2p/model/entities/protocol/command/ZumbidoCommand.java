@@ -16,7 +16,7 @@ public class ZumbidoCommand implements ProtocolCommand {
     @Override
     public void send(SocketClient socketClient, MessageProtocol messageProtocol) {
         Peer me = PeerController.getInstance().getMyself();
-        String peerId = PeerController.getInstance().getPeerByIp(socketClient.getIp()) != null ? PeerController.getInstance().getPeerByIp(socketClient.getIp()).getId()
+        String peerId = PeerController.getInstance().getPeerByIp(socketClient.getSocketIp()) != null ? PeerController.getInstance().getPeerByIp(socketClient.getSocketIp()).getId()
                 : null;
         if (me == null || peerId == null || socketClient == null) {
             System.out.println("[" + Thread.currentThread().getName() + "]Hubo un problema al enviar el Zumbido");

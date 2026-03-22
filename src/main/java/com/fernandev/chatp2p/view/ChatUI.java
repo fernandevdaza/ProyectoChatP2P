@@ -177,11 +177,11 @@ public class ChatUI extends JFrame implements IView, StateListener {
             return;
         }
         state.setLastBuzzMillis(now);
+        stateManager.setNewState(state, List.of());
 
         Peer peer = PeerController.getInstance().getPeerById(peerId);
-        this.addNotification("Zumbido recibido de " + peer.getDisplayName());
         this.shakeWindow(this);
-        stateManager.setNewState(state, List.of());
+        this.addNotification("Zumbido recibido de " + peer.getDisplayName());
     }
 
     public void onPinMessageReceived(boolean isVisible, String messageId) {
@@ -203,6 +203,8 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
     public void onChangeThemeReceived(String peerId, String themeId) {
         String currentPeerId = stateManager.getCurrentState().getSelectedPeer().getPeerId();
+        Peer peer = PeerController.getInstance().getPeerById(peerId);
+        this.addNotification(peer.getDisplayName() + " cambió el tema del chat");
         if (currentPeerId != null && currentPeerId.equals(peerId)) {
             ThemeManager.getInstance().applyTheme(themeId);
         }
@@ -283,14 +285,14 @@ public class ChatUI extends JFrame implements IView, StateListener {
             Peer onUpdateStatusPeer = peers.get(id);
 
             if (onUpdateStatusPeer != null) {
-
-//                if (Objects.equals(selectedPeerState.getPeerId(), onUpdateStatusPeer.getId())) {
-                    onUpdateStatusPeer.setConnected(isOnline);
-                    PeerController.getInstance().updatePeer(onUpdateStatusPeer);
-//                }
+                onUpdateStatusPeer.setConnected(isOnline);
+                PeerController.getInstance().updatePeer(onUpdateStatusPeer);
+                if (Objects.equals(selectedPeerState.getPeerId(), onUpdateStatusPeer.getId())) {
+                    selectedPeerState.setConnected(isOnline);
+                }
 
                 stateManager.setNewState(state,
-                        List.of(LeftPanelPeerList.class, RightPanelHeader.class, InputPanel.class));
+                        List.of(LeftPanelPeerList.class, RightPanelHeader.class, InputPanel.class, MessageBubble.class));
             }
 
         });
