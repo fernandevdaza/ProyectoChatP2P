@@ -6,8 +6,6 @@ package com.fernandev.chatp2p.model.network;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
-import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.ProtocolCommand;
-import com.fernandev.chatp2p.model.entities.protocol.factory.ProtocolCommandFactory;
 import com.fernandev.chatp2p.model.entities.protocol.parser.ProtocolParser;
 
 import lombok.*;
@@ -33,6 +31,7 @@ public class SocketClient extends Thread {
     private boolean isRejected = false;
     private SocketListener listener;
     private MessageProtocol lastMessage;
+    private boolean wasDeleted = false;
 
     public SocketClient(Socket socket) throws IOException {
         this.socket = socket;
@@ -66,7 +65,7 @@ public class SocketClient extends Thread {
                     return;
                 }
                 MessageProtocol messageProtocol = ProtocolParser.parse(message);
-                messageProtocol.setIp(this.getIp());
+                messageProtocol.setIp(this.getSocketIp());
 
                 this.setLastMessage(messageProtocol);
 
@@ -74,7 +73,7 @@ public class SocketClient extends Thread {
                 notificar(this, messageProtocol);
 
             }
-            if (!isRejected) {
+            if (!isRejected && !wasDeleted) {
                 onDisconnect(this);
             }
             close();
@@ -104,7 +103,7 @@ public class SocketClient extends Thread {
         }
     }
 
-    public String getIp() {
+    public String getSocketIp() {
         return this.socket.getInetAddress().toString().replace("/", "");
     }
 

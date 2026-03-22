@@ -41,6 +41,7 @@ public class InputPanel extends JPanel implements StateListener {
     public InputPanel() {
         stateManager.subscribeToState(this);
 
+        boolean hasSelectedPeer = stateManager.getCurrentState().getSelectedPeer().getPeerId() != null;
         boolean isPeerConnected = stateManager.getCurrentState().getSelectedPeer().isConnected();
 
         applyTheme();
@@ -64,7 +65,7 @@ public class InputPanel extends JPanel implements StateListener {
         sendButtonsPanel.add(sendOneTimeMessageButton, BorderLayout.WEST);
         sendButtonsPanel.add(sendMessageButton, BorderLayout.EAST);
 
-        this.enablePanel(isPeerConnected);
+        this.enablePanel(hasSelectedPeer && isPeerConnected, hasSelectedPeer);
         this.add(sendButtonsPanel, BorderLayout.EAST);
     }
 
@@ -194,28 +195,33 @@ public class InputPanel extends JPanel implements StateListener {
         this.theme = stateManager.getCurrentState().getTheme().getRightPanelTheme().getChatInputPanelTheme();
     }
 
-    public void enablePanel(boolean enable) {
+    public void enablePanel(boolean enableActions, boolean visible) {
+        this.setVisible(visible);
 
-//        SwingUtilities.invokeLater(() -> {
-            this.setVisible(enable);
+        if (messageTextField != null) {
+            messageTextField.setEnabled(enableActions);
+        }
+        if (sendMessageButton != null) {
+            sendMessageButton.setEnabled(enableActions);
+        }
+        if (sendImageButton != null) {
+            sendImageButton.setEnabled(enableActions);
+        }
+        if (sendOneTimeMessageButton != null) {
+            sendOneTimeMessageButton.setEnabled(enableActions);
+        }
 
-            if (messageTextField != null) {
-                messageTextField.setEnabled(enable);
-            }
-            if (sendMessageButton != null) {
-                sendMessageButton.setEnabled(enable);
-            }
-            if (sendImageButton != null) {
-                sendImageButton.setEnabled(enable);
-            }
-            if (sendOneTimeMessageButton != null) {
-                sendOneTimeMessageButton.setEnabled(enable);
-            }
+        this.revalidate();
+        this.repaint();
+    }
 
-            this.revalidate();
-            this.repaint();
-//        });
+    public void clearInput() {
+        if (messageTextField != null) {
+            messageTextField.setText("");
+        }
 
+        this.revalidate();
+        this.repaint();
     }
 
     @Override
@@ -228,10 +234,18 @@ public class InputPanel extends JPanel implements StateListener {
         if (sendButtonsPanel != null) {
             sendButtonsPanel.setBackground(theme.getCOLOR_INPUT_PANEL_BG());
         }
+
+        boolean hasSelectedPeer = selectedPeerState.getPeerId() != null;
+        boolean enable = hasSelectedPeer && selectedPeerState.isConnected();
+
+        enablePanel(enable, hasSelectedPeer);
+
         this.revalidate();
         this.repaint();
 
-        enablePanel(selectedPeerState.isConnected());
+        if (!hasSelectedPeer) {
+            return;
+        }
 
         if (inputPanelState.isSendMessageButtonClicked() || inputPanelState.isSendMessageEnterKeyPressed()) {
             enviarMensaje();

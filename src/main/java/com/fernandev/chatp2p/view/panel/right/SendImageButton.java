@@ -35,7 +35,7 @@ public class SendImageButton extends JButton implements StateListener {
         this.setText("📷");
         this.setBackground(theme.getCOLOR_IMAGE_BUTTON_BG());
         this.setForeground(theme.getCOLOR_IMAGE_BUTTON_FG());
-        this.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        this.setFont(new Font(Font.DIALOG, Font.PLAIN, 20));
         this.setBorderPainted(false);
         this.setFocusPainted(false);
         this.setPreferredSize(new Dimension(60, 40));

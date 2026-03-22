@@ -6,6 +6,7 @@ import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.ProtocolCommand;
 import com.fernandev.chatp2p.model.entities.protocol.messages.Invitacion;
+import com.fernandev.chatp2p.model.network.NetworkUtils;
 import com.fernandev.chatp2p.model.network.SocketClient;
 
 public class InvitacionCommand implements ProtocolCommand {

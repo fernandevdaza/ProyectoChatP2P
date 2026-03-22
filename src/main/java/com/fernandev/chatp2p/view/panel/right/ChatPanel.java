@@ -38,8 +38,12 @@ public class ChatPanel extends JPanel implements StateListener {
         messagesContainer.setLayout(new BoxLayout(messagesContainer, BoxLayout.Y_AXIS));
         messagesContainer.setBackground(theme.getCOLOR_BG_CHAT());
 
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(theme.getCOLOR_BG_CHAT());
+        wrapper.add(messagesContainer, BorderLayout.NORTH);
+
         scrollPane = new JScrollPane();
-        scrollPane.setViewportView(messagesContainer);
+        scrollPane.setViewportView(wrapper);
         scrollPane.setBorder(null);
         this.scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -167,12 +171,26 @@ public class ChatPanel extends JPanel implements StateListener {
 
         applyTheme();
         messagesContainer.setBackground(theme.getCOLOR_BG_CHAT());
+        if (scrollPane.getViewport().getView() instanceof JPanel wrapper) {
+            wrapper.setBackground(theme.getCOLOR_BG_CHAT());
+        }
         this.revalidate();
         this.repaint();
+
+        if (selectedPeerState.getPeerId() == null) {
+            clearMessages();
+            this.revalidate();
+            this.repaint();
+            stateManager.setNewState(newState, List.of());
+            return;
+        }
+
+        this.setVisible(true);
 
         String meId = PeerController.getInstance().getMyself().getId();
 
         if (chatPanelState.isLoading()) {
+            clearMessages();
             loadSelectedChat(selectedPeerState.getPeerId(), true);
             chatPanelState.setLoading(false);
         } else {

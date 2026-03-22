@@ -13,6 +13,8 @@ public class BuzzButton extends JButton implements StateListener {
 
     private StateManager stateManager = StateManager.getInstance();
 
+    private long lastSentBuzzMillis = 0;
+
     public BuzzButton(){
         String peerId = stateManager.getCurrentState().getSelectedPeer().getPeerId();
         boolean isPeerConnected = stateManager.getCurrentState().getSelectedPeer().isConnected();
@@ -21,6 +23,11 @@ public class BuzzButton extends JButton implements StateListener {
         this.setFont(new Font("Segoe UI", Font.BOLD, 14));
         this.setPreferredSize(new Dimension(50, 50));
         this.addActionListener(e -> {
+            long now = System.currentTimeMillis();
+            if (now - lastSentBuzzMillis < 3000) {
+                return;
+            }
+            lastSentBuzzMillis = now;
             Zumbido zumbido = new Zumbido();
             ConnectionController.getInstance().sendMessage(peerId, zumbido);
         });

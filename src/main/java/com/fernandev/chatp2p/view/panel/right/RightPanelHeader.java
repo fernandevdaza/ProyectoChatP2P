@@ -16,23 +16,21 @@ import java.awt.*;
 @Setter
 public class RightPanelHeader extends JPanel implements StateListener {
 
-    private StateManager stateManager = StateManager.getInstance();
-    JButton buzzButton;
-    JButton changeThemeButton;
-    JLabel peerNameLabel;
-    JPanel rightButtons;
-    RightPanelHeaderTheme theme;
+    private final StateManager stateManager = StateManager.getInstance();
+    private JButton buzzButton;
+    private JButton changeThemeButton;
+    private JLabel peerNameLabel;
+    private JPanel rightButtons;
+    private RightPanelHeaderTheme theme;
 
     public RightPanelHeader() {
         stateManager.subscribeToState(this);
-        boolean isPeerConnected = stateManager.getCurrentState().getSelectedPeer().isConnected();
 
         applyTheme();
 
         this.setLayout(new BorderLayout());
         this.setBackground(theme.getCOLOR_HEADER_BG());
         this.setForeground(theme.getCOLOR_HEADER_FG());
-        this.setLayout(new BorderLayout());
         this.setPreferredSize(new Dimension(0, 50));
         this.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
         this.setName("theme-header");
@@ -44,31 +42,39 @@ public class RightPanelHeader extends JPanel implements StateListener {
 
         buildRightButtons();
 
-        enableRightButtons(isPeerConnected);
+        SelectedPeerState selectedPeerState = stateManager.getCurrentState().getSelectedPeer();
+        boolean hasSelectedPeer = selectedPeerState != null && selectedPeerState.getPeerId() != null;
+        boolean enableButtons = hasSelectedPeer && selectedPeerState.isConnected();
+
+        enableRightButtons(enableButtons);
 
         this.add(peerNameLabel, BorderLayout.WEST);
         this.add(rightButtons, BorderLayout.EAST);
-
     }
 
-    public void buildPeerNameLabel() {
-
-        State state = stateManager.getCurrentState();
-        Peer peer = state.getSelectedPeer().getPeer();
-        if (peer == null)
-            return;
-        String labelContactString = peer.getDisplayName();
-
-        this.peerNameLabel = new JLabel("  " + labelContactString);
+    private void buildPeerNameLabel() {
+        this.peerNameLabel = new JLabel("  ");
         this.peerNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         this.peerNameLabel.setVerticalAlignment(JLabel.CENTER);
         this.peerNameLabel.setHorizontalAlignment(JLabel.LEFT);
 
+        updatePeerNameLabel();
+    }
+
+    private void updatePeerNameLabel() {
+        State state = stateManager.getCurrentState();
+        Peer peer = state.getSelectedPeer().getPeer();
+
+        if (peer == null) {
+            this.peerNameLabel.setText("  ");
+            return;
+        }
+
+        this.peerNameLabel.setText("  " + peer.getDisplayName());
     }
 
     public void buildRightButtons() {
-        this.rightButtons = new JPanel();
-        this.rightButtons.setLayout(new BorderLayout());
+        this.rightButtons = new JPanel(new BorderLayout());
         this.rightButtons.setOpaque(false);
         this.rightButtons.setPreferredSize(new Dimension(150, 50));
         this.rightButtons.add(changeThemeButton, BorderLayout.WEST);
@@ -76,32 +82,54 @@ public class RightPanelHeader extends JPanel implements StateListener {
     }
 
     public void enableRightButtons(boolean enabled) {
-//        SwingUtilities.invokeLater(() -> {
-            if (changeThemeButton != null) {
-                changeThemeButton.setEnabled(enabled);
-            }
-            if (buzzButton != null) {
-                buzzButton.setEnabled(enabled);
-            }
+        if (changeThemeButton != null) {
+            changeThemeButton.setEnabled(enabled);
+        }
+        if (buzzButton != null) {
+            buzzButton.setEnabled(enabled);
+        }
 
-            this.revalidate();
-            this.repaint();
-//        });
+        this.revalidate();
+        this.repaint();
     }
 
     public void applyTheme() {
-        this.theme = stateManager.getCurrentState().getTheme().getRightPanelTheme().getHeaderTheme();
+        this.theme = stateManager.getCurrentState()
+                .getTheme()
+                .getRightPanelTheme()
+                .getHeaderTheme();
+    }
+
+    public void clearHeader() {
+        if (peerNameLabel != null) {
+            peerNameLabel.setText("  ");
+        }
+
+        enableRightButtons(false);
+        this.revalidate();
+        this.repaint();
     }
 
     @Override
     public void onChange(State newState) {
         SelectedPeerState selectedPeerState = newState.getSelectedPeer();
 
-        enableRightButtons(selectedPeerState.isConnected());
+        boolean hasSelectedPeer =
+                selectedPeerState != null &&
+                        selectedPeerState.getPeerId() != null;
 
         applyTheme();
         this.setBackground(theme.getCOLOR_HEADER_BG());
         this.setForeground(theme.getCOLOR_HEADER_FG());
+
+        if (!hasSelectedPeer) {
+            clearHeader();
+            return;
+        }
+
+        updatePeerNameLabel();
+        enableRightButtons(selectedPeerState.isConnected());
+
         this.revalidate();
         this.repaint();
     }

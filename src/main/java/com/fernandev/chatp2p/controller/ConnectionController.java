@@ -41,7 +41,7 @@ public class ConnectionController implements SocketListener {
         try {
             SocketClient connection = new SocketClient(ip, port);
             connection.addListener(this);
-            connection.setName("SocketClient-" + connection.getIp());
+            connection.setName("SocketClient-" + connection.getSocketIp());
             connection.start();
             return connection;
         } catch (IOException e) {
@@ -90,7 +90,12 @@ public class ConnectionController implements SocketListener {
 
     public void closeConnectionWithPeer(String id) {
         SocketClient socketClient = connections.get(id);
+        Peer peer = PeerController.getInstance().getPeerById(id);
         if (socketClient != null) {
+            if(peer == null){
+                socketClient.setWasDeleted(true);
+            }
+            socketClient.close();
             socketClient.interrupt();
         }
     }
@@ -131,11 +136,12 @@ public class ConnectionController implements SocketListener {
 
         SwingUtilities.invokeLater(() -> {
             if (messageProtocol instanceof Invitacion) {
-
-                ui.onInvitationReceived(
-                        ((Invitacion) messageProtocol).getIdUsuario(),
-                        ((Invitacion) messageProtocol).getNombre());
-
+                Peer me = peerController.getMyself();
+                if(!((Invitacion) messageProtocol).getIdUsuario().equals(me.getId())){
+                    ui.onInvitationReceived(
+                            ((Invitacion) messageProtocol).getIdUsuario(),
+                            ((Invitacion) messageProtocol).getNombre());
+                }
             } else if (messageProtocol instanceof Aceptar) {
 
                 ui.onAcceptedReceived(
@@ -214,12 +220,12 @@ public class ConnectionController implements SocketListener {
 
     @Override
     public void onClientDisconnected(SocketClient socketClient) {
-        Peer peer = peerController.getPeerByIp(socketClient.getIp());
+        Peer peer = peerController.getPeerByIp(socketClient.getSocketIp());
         this.removeConnection(socketClient.getPeerId(), true);
-        if (peer == null) {
-            ui.onUnexpectedDisconnection(socketClient.getIp());
+        if (peer == null && !socketClient.isRejected() && !socketClient.isWasDeleted()) {
+            ui.onUnexpectedDisconnection(socketClient.getSocketIp());
             return;
         }
-        ui.updatePeerStatus(peer.getId(), false);
+        if(peer != null) ui.updatePeerStatus(peer.getId(), false);
     }
 }

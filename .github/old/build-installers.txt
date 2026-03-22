@@ -73,51 +73,11 @@ jobs:
             --vendor "UPB" \
             --app-version "1.0.${{ github.run_number }}"
 
-      - name: Build AppImage
-        run: |
-          mkdir -p dist/linux/app-image
-          jpackage \
-            --type app-image \
-            --name "${{ env.APP_NAME }}" \
-            --input target \
-            --main-jar "${{ env.JAR_FILE }}" \
-            --main-class "${{ env.MAIN_CLASS }}" \
-            --dest dist/linux/app-image \
-            --vendor "UPB" \
-            --app-version "1.0.${{ github.run_number }}"
-          
-          wget -c "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
-          chmod +x appimagetool-x86_64.AppImage
-          
-          mkdir -p AppDir/usr
-          cp -r dist/linux/app-image/${{ env.APP_NAME }}/* AppDir/usr/
-          
-          cat <<EOF > AppDir/AppRun
-          #!/bin/bash
-          HERE="\$(dirname "\$(readlink -f "\${0}")")"
-          exec "\${HERE}/usr/bin/${{ env.APP_NAME }}" "\$@"
-          EOF
-          chmod +x AppDir/AppRun
-          
-          cp src/main/resources/view/favicon.png AppDir/${{ env.APP_NAME }}.png
-          
-          cat <<EOF > AppDir/${{ env.APP_NAME }}.desktop
-          [Desktop Entry]
-          Name=${{ env.APP_NAME }}
-          Exec=${{ env.APP_NAME }}
-          Icon=${{ env.APP_NAME }}
-          Type=Application
-          Categories=Network;Chat;
-          EOF
-          
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir dist/linux/${{ env.APP_NAME }}-Linux-x86_64.AppImage
-
       - name: Prepare Linux release assets
         run: |
           mkdir -p release-assets
           cp dist/linux/deb/*.deb release-assets/ChatP2P-Linux.deb
           cp dist/linux/rpm/*.rpm release-assets/ChatP2P-Linux.rpm
-          cp dist/linux/*.AppImage release-assets/ChatP2P-Linux-x86_64.AppImage
 
       - name: Upload Linux assets artifact
         uses: actions/upload-artifact@v4
@@ -153,67 +113,53 @@ jobs:
             exit 1
           }
 
-      - name: Install Inno Setup
-        run: choco install innosetup --no-progress
-
-      - name: Convert icon to ICO
+      - name: Add WiX to PATH if present
         shell: pwsh
         run: |
-          magick src/main/resources/view/favicon.png src/main/resources/view/favicon.ico
+          $wixPaths = @(
+            "C:\Program Files (x86)\WiX Toolset v3.14\bin",
+            "C:\Program Files (x86)\WiX Toolset v3.11\bin"
+          )
 
-      - name: Build Windows App Image
+          $found = $false
+          foreach ($path in $wixPaths) {
+            if (Test-Path $path) {
+              $path | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+              Write-Host "WiX encontrado en: $path"
+              $found = $true
+              break
+            }
+          }
+
+          if (-not $found) {
+            Write-Error "WiX no fue encontrado"
+            exit 1
+          }
+
+      - name: Build Windows EXE installer
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist/windows | Out-Null
           jpackage `
-            --type app-image `
+            --type exe `
             --name "${{ env.APP_NAME }}" `
             --input target `
             --main-jar "${{ env.JAR_FILE }}" `
             --main-class "${{ env.MAIN_CLASS }}" `
             --dest dist/windows `
             --vendor "UPB" `
-            --app-version "1.0.${{ github.run_number }}"
+            --app-version "1.0.${{ github.run_number }}" `
+            --win-menu `
+            --win-shortcut `
+            --win-dir-chooser `
+            --win-per-user-install
 
-      - name: Create Inno Setup Script
+      - name: Prepare Windows release asset
         shell: pwsh
         run: |
-          $appName = "${{ env.APP_NAME }}"
-          $appVersion = "1.0.${{ github.run_number }}"
-          $issContent = @"
-          [Setup]
-          AppName=`$appName
-          AppVersion=`$appVersion
-          DefaultDirName={localappdata}\Programs\`$appName
-          DefaultGroupName=`$appName
-          OutputDir=release-assets
-          OutputBaseFilename=ChatP2P-Windows-Setup
-          Compression=lzma2
-          SolidCompression=yes
-          ArchitecturesAllowed=x64
-          ArchitecturesInstallIn64BitMode=x64
-          PrivilegesRequired=lowest
-          SetupIconFile=src\main\resources\view\favicon.ico
-          
-          [Files]
-          Source: `"dist\windows\`$appName\*`"; DestDir: `"{app}`"; Flags: ignoreversion recursesubdirs createallsubdirs
-
-          [Icons]
-          Name: `"{autoprograms}\`$appName`"; Filename: `"{app}\`$appName.exe`"
-          Name: `"{autodesktop}\`$appName`"; Filename: `"{app}\`$appName.exe`"; Tasks: desktopicon
-
-          [Tasks]
-          Name: `"desktopicon`"; Description: `"Crear un acceso directo en el escritorio`"; GroupDescription: `"Iconos adicionales:`"
-
-          [Run]
-          Filename: `"{app}\`$appName.exe`"; Description: `"Ejecutar `$appName`"; Flags: nowait postinstall skipifsilent
-          "@
-          Set-Content -Path "installer.iss" -Value $issContent
-
-      - name: Build Windows EXE installer
-        shell: pwsh
-        run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          $exe = Get-ChildItem dist/windows/*.exe | Select-Object -First 1
+          Copy-Item $exe.FullName "release-assets/ChatP2P-Windows-Setup.exe"
 
       - name: Upload Windows assets artifact
         uses: actions/upload-artifact@v4
@@ -290,5 +236,4 @@ jobs:
             ./release-assets/ChatP2P-Windows-Setup.exe#Windows\ Installer \
             ./release-assets/ChatP2P-Linux.deb#Linux\ DEB \
             ./release-assets/ChatP2P-Linux.rpm#Linux\ RPM \
-            ./release-assets/ChatP2P-Linux-x86_64.AppImage#Linux\ AppImage \
             --clobber

@@ -1,7 +1,6 @@
 package com.fernandev.chatp2p.view.interfaces;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.view.panel.right.MessageBubble;
-import com.fernandev.chatp2p.view.BubbleData;
 import com.fernandev.chatp2p.view.panel.left.LeftPanel;
 import com.fernandev.chatp2p.view.panel.right.RightPanel;
 

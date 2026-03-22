@@ -209,4 +209,22 @@ public class PeerDao implements IPeerDao {
         }
         helper.update(query, null);
     }
+
+    @Override
+    public void delete(String id) {
+        try {
+            String query = "DELETE FROM peers WHERE id=?";
+            QueryParameters params = new QueryParameters() {
+                @Override
+                public void setParameters(PreparedStatement pst) throws SQLException {
+                    pst.setString(1, id);
+                }
+            };
+            helper.update(query, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
