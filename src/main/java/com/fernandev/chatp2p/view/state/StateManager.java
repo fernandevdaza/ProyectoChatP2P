@@ -2,9 +2,10 @@ package com.fernandev.chatp2p.view.state;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class StateManager {
-    private List<StateListener> listeners = new ArrayList<>();
+    private List<StateListener> listeners = new CopyOnWriteArrayList<>();
     private State state = new State();
     private final Object stateLock = new Object();
     private static final StateManager stateManager = new StateManager();
@@ -22,8 +23,7 @@ public class StateManager {
     }
 
     public void unsubscribeToState(StateListener listener) {
-        this.listeners = this.listeners.stream().filter(subscriber -> subscriber != listener)
-                .collect(java.util.stream.Collectors.toList());
+        this.listeners.remove(listener);
     }
 
     public void setNewState(State newState, List<Class<? extends StateListener>> stateListeners) {

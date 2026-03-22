@@ -202,8 +202,15 @@ public class ChatUI extends JFrame implements IView, StateListener {
     }
 
     public void onChangeThemeReceived(String peerId, String themeId) {
-        String currentPeerId = stateManager.getCurrentState().getSelectedPeer().getPeerId();
+        State state = stateManager.getCurrentState();
+        String currentPeerId = state.getSelectedPeer().getPeerId();
         Peer peer = PeerController.getInstance().getPeerById(peerId);
+        
+        Peer memPeer = state.getPeerMap().get(peerId);
+        if (memPeer != null) {
+            memPeer.setThemeId(Integer.parseInt(themeId));
+        }
+
         this.addNotification(peer.getDisplayName() + " cambió el tema del chat");
         if (currentPeerId != null && currentPeerId.equals(peerId)) {
             ThemeManager.getInstance().applyTheme(themeId);

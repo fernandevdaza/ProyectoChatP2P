@@ -7,42 +7,26 @@ public class NetworkUtils {
 
     public static String getWifiLanIp() {
         try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            try (DatagramSocket socket = new DatagramSocket()) {
+                socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+                String ip = socket.getLocalAddress().getHostAddress();
+                if (ip != null && !ip.equals("0.0.0.0") && !ip.startsWith("127.")) {
+                    return ip;
+                }
+            } catch (Exception ignore) {}
 
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = interfaces.nextElement();
 
-                if (!networkInterface.isUp() || networkInterface.isLoopback()) {
-                    continue;
-                }
-
-                String name = networkInterface.getName() != null
-                        ? networkInterface.getName().toLowerCase()
-                        : "";
-
-                String displayName = networkInterface.getDisplayName() != null
-                        ? networkInterface.getDisplayName().toLowerCase()
-                        : "";
-
-                boolean isWifi =
-                        name.startsWith("wlan") ||
-                                name.startsWith("wlp") ||
-                                name.contains("wifi") ||
-                                name.contains("wi-fi") ||
-                                displayName.contains("wifi") ||
-                                displayName.contains("wi-fi") ||
-                                displayName.contains("wireless");
-
-                if (!isWifi) {
+                if (!networkInterface.isUp() || networkInterface.isLoopback() || networkInterface.isVirtual()) {
                     continue;
                 }
 
                 Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
-
                 while (addresses.hasMoreElements()) {
                     InetAddress address = addresses.nextElement();
-
-                    if (address instanceof Inet4Address && !address.isLoopbackAddress()) {
+                    if (address instanceof Inet4Address && !address.isLoopbackAddress() && address.isSiteLocalAddress()) {
                         return address.getHostAddress();
                     }
                 }

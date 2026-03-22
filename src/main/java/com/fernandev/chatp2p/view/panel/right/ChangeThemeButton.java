@@ -2,6 +2,7 @@ package com.fernandev.chatp2p.view.panel.right;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.PeerController;
+import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.entities.protocol.messages.CambiarTema;
 import com.fernandev.chatp2p.view.ThemeManager;
 import com.fernandev.chatp2p.view.state.State;
@@ -59,9 +60,21 @@ public class ChangeThemeButton extends JButton implements StateListener {
                 State state = stateManager.getCurrentState();
                 SelectedPeerState selectedPeerState = state.getSelectedPeer();
                 boolean isConnected = selectedPeerState.isConnected();
+                String peerId = selectedPeerState.getPeerId();
+
+                if (peerId != null) {
+                    Peer memPeer = state.getPeerMap().get(peerId);
+                    if (memPeer != null) {
+                        memPeer.setThemeId(Integer.parseInt(themeId));
+                    }
+                    if (selectedPeerState.getPeer() != null) {
+                        selectedPeerState.getPeer().setThemeId(Integer.parseInt(themeId));
+                    }
+                }
+
                 ThemeManager.getInstance().applyTheme(themeId);
-                if (isConnected) {
-                    PeerController.getInstance().setPeerTheme(selectedPeerState.getPeerId(), Integer.parseInt(themeId));
+                if (isConnected && peerId != null) {
+                    PeerController.getInstance().setPeerTheme(peerId, Integer.parseInt(themeId));
                     new Thread(() -> {
                         try {
                             CambiarTema cambiarTema = new CambiarTema();
