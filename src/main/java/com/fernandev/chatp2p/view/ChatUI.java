@@ -50,8 +50,11 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
     public ChatUI() {
         StateManager.getInstance().subscribeToState(this);
-
         setTitle("Handshake");
+        ImageIcon appIcon = new ImageIcon(
+                Objects.requireNonNull(getClass().getResource("/view/favicon.png"))
+        );
+        setIconImage(appIcon.getImage());
         setSize(1000, 700);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
