@@ -170,4 +170,10 @@ public class CachePeerDao implements IPeerDao{
             }
         }
     }
+
+    @Override
+    public void delete(String id) {
+        iPeerDao.delete(id);
+        peers.remove(id);
+    }
 }

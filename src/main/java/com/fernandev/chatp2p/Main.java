@@ -23,7 +23,7 @@ public class Main {
     public static void main(String[] args) {
         DatabaseConnection.getInstance().initDatabase();
         int port = 1900;
-        ConnectionController.getInstance().setPort(1900);
+        ConnectionController.getInstance().setPort(1901);
         IPeerDao peerDao = new CachePeerDao(new PeerDao());
         Peer myself = peerDao.findMe();
         if (myself == null) {

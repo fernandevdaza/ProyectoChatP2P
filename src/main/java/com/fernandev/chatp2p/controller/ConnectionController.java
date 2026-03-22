@@ -90,7 +90,12 @@ public class ConnectionController implements SocketListener {
 
     public void closeConnectionWithPeer(String id) {
         SocketClient socketClient = connections.get(id);
+        Peer peer = PeerController.getInstance().getPeerById(id);
         if (socketClient != null) {
+            if(peer == null){
+                socketClient.setWasDeleted(true);
+            }
+            socketClient.close();
             socketClient.interrupt();
         }
     }
@@ -217,10 +222,10 @@ public class ConnectionController implements SocketListener {
     public void onClientDisconnected(SocketClient socketClient) {
         Peer peer = peerController.getPeerByIp(socketClient.getSocketIp());
         this.removeConnection(socketClient.getPeerId(), true);
-        if (peer == null) {
+        if (peer == null && !socketClient.isRejected() && !socketClient.isWasDeleted()) {
             ui.onUnexpectedDisconnection(socketClient.getSocketIp());
             return;
         }
-        ui.updatePeerStatus(peer.getId(), false);
+        if(peer != null) ui.updatePeerStatus(peer.getId(), false);
     }
 }

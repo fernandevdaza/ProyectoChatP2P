@@ -65,6 +65,12 @@ public class PinnedMessageBox extends JPanel implements StateListener {
         labelPinnedMessage.setForeground(Color.white);
     }
 
+    public void clearPinnedMessage() {
+        this.removeAll();
+        this.revalidate();
+        this.repaint();
+    }
+
     @Override
     public void onChange(State newState) {
         PinnedMessageState pinnedMessageState = newState.getPinnedMessage();

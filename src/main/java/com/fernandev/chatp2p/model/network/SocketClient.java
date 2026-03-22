@@ -31,6 +31,7 @@ public class SocketClient extends Thread {
     private boolean isRejected = false;
     private SocketListener listener;
     private MessageProtocol lastMessage;
+    private boolean wasDeleted = false;
 
     public SocketClient(Socket socket) throws IOException {
         this.socket = socket;
@@ -72,7 +73,7 @@ public class SocketClient extends Thread {
                 notificar(this, messageProtocol);
 
             }
-            if (!isRejected) {
+            if (!isRejected && !wasDeleted) {
                 onDisconnect(this);
             }
             close();

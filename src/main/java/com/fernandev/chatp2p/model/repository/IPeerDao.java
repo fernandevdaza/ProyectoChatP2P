@@ -21,4 +21,5 @@ public interface IPeerDao {
     void save(Peer peer);
     void update(Peer peer);
     void update(String query, String conditionWhere) throws Exception;
+    void delete(String id);
     }

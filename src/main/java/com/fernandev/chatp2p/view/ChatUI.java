@@ -276,7 +276,6 @@ public class ChatUI extends JFrame implements IView, StateListener {
     }
 
     public void updatePeerStatus(String id, boolean isOnline) {
-
         SwingUtilities.invokeLater(() -> {
             State state = stateManager.getCurrentState();
             Map<String, Peer> peers = state.getPeerMap();

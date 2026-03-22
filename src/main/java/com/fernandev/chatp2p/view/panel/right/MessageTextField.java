@@ -29,6 +29,7 @@ public class MessageTextField extends JTextField implements StateListener {
 
 
 
+
     @Override
     public void onChange(State newState) {
 

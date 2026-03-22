@@ -115,6 +115,10 @@ public class PeerController {
         peerDao.update(peer);
     }
 
+    public void deletePeer(String peerId){
+        peerDao.delete(peerId);
+    }
+
     public void updatePeer(Peer peer){
         peerDao.update(peer);
     }

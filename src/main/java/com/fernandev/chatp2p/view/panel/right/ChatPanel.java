@@ -170,9 +170,20 @@ public class ChatPanel extends JPanel implements StateListener {
         this.revalidate();
         this.repaint();
 
+        if (selectedPeerState.getPeerId() == null) {
+            clearMessages();
+            this.revalidate();
+            this.repaint();
+            stateManager.setNewState(newState, List.of());
+            return;
+        }
+
+        this.setVisible(true);
+
         String meId = PeerController.getInstance().getMyself().getId();
 
         if (chatPanelState.isLoading()) {
+            clearMessages();
             loadSelectedChat(selectedPeerState.getPeerId(), true);
             chatPanelState.setLoading(false);
         } else {
