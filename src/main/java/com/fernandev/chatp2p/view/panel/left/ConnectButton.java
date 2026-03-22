@@ -25,8 +25,6 @@ public class ConnectButton extends JButton implements StateListener {
         applyTheme();
 
         this.setText("Nueva conexión (+)");
-        this.setBackground(theme.getCOLOR_CONNECT_BUTTON());
-        this.setForeground(Color.WHITE);
         this.addActionListener(e -> {
             this.setEnabled(false);
             String ip = JOptionPane.showInputDialog(this, "Ingresa IP:");
@@ -51,11 +49,13 @@ public class ConnectButton extends JButton implements StateListener {
 
     private void applyTheme(){
         this.theme = stateManager.getCurrentState().getTheme().getLeftPanelTheme().getConnectButtonTheme();
+        this.setBackground(theme.getCOLOR_CONNECT_BUTTON());
+        this.setForeground(Color.WHITE);
     }
 
 
     @Override
     public void onChange(State newState) {
-
+        this.applyTheme();
     }
 }

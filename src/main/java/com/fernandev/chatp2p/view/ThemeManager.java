@@ -1,8 +1,10 @@
 package com.fernandev.chatp2p.view;
 
 import com.fernandev.chatp2p.view.interfaces.IView;
+import com.fernandev.chatp2p.view.panel.left.ConnectButton;
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateManager;
+import com.fernandev.chatp2p.view.state.theme.leftpanel.ConnectButtonTheme;
 import com.fernandev.chatp2p.view.state.theme.leftpanel.LeftPanelHeaderTheme;
 import com.fernandev.chatp2p.view.state.theme.leftpanel.LeftPanelTheme;
 import com.fernandev.chatp2p.view.state.theme.rightpanel.*;
@@ -90,13 +92,14 @@ public class ThemeManager {
                 new Color(40, 20, 60), new Color(40, 20, 60),
                 new Color(250, 247, 255)));
         THEMES.put("4", new Theme(
-                "4", "Modo Oscuro Premium",
-                new Color(32, 34, 37), new Color(240, 240, 240),
-                new Color(47, 49, 54), new Color(54, 57, 63),
-                new Color(88, 101, 242), Color.WHITE,
-                new Color(88, 101, 242), new Color(64, 68, 75),
-                Color.WHITE, new Color(230, 230, 230),
-                new Color(32, 34, 37)));
+                "4", "Aurora Nocturna",
+                new Color(99, 102, 241), Color.WHITE,
+                new Color(224, 231, 255), new Color(248, 250, 252),
+                new Color(99, 102, 241), Color.WHITE,
+                new Color(230, 221, 255), new Color(255, 255, 255),
+                Color.DARK_GRAY, Color.DARK_GRAY,
+                new Color(248, 250, 252)
+        ));
         THEMES.put("5", new Theme(
                 "5", "Sakura Vibrante",
                 new Color(233, 30, 99), Color.WHITE,
@@ -142,6 +145,7 @@ public class ThemeManager {
 
         LeftPanelTheme leftPanelTheme = state.getTheme().getLeftPanelTheme();
         LeftPanelHeaderTheme leftPanelHeaderTheme = leftPanelTheme.getHeaderTheme();
+        ConnectButtonTheme connectButtonTheme = leftPanelTheme.getConnectButtonTheme();
 
         rightPanelHeaderTheme.setCOLOR_HEADER_BG(theme.headerBg);
         rightPanelHeaderTheme.setCOLOR_HEADER_FG(theme.headerFg);
@@ -154,9 +158,10 @@ public class ThemeManager {
         bubbleMessageTheme.setCOLOR_BUBBLE_TEXT_ME(theme.bubbleTextMe);
         bubbleMessageTheme.setCOLOR_BUBBLE_TEXT_PEER(theme.bubbleTextPeer);
         leftPanelHeaderTheme.setCOLOR_GENERAL_BG(theme.generalBg);
+        connectButtonTheme.setCOLOR_CONNECT_BUTTON(theme.headerBg);
 
         state.getTheme().setThemeChanged(true);
 
-        stateManager.setNewState( state, java.util.List.of(ChatUI.class));
+        stateManager.setNewState( state, java.util.List.of(ChatUI.class, ConnectButton.class));
     }
 }
