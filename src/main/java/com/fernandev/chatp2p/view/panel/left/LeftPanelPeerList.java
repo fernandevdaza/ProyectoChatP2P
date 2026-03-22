@@ -5,6 +5,7 @@ import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.entities.protocol.messages.Hello;
 import com.fernandev.chatp2p.view.ChatUI;
+import com.fernandev.chatp2p.view.ThemeManager;
 import com.fernandev.chatp2p.view.panel.right.ChatPanel;
 import com.fernandev.chatp2p.view.state.State;
 import com.fernandev.chatp2p.view.state.StateListener;
@@ -116,7 +117,10 @@ public class LeftPanelPeerList extends JList<Peer> implements StateListener {
                     chatPanelState.setLoading(true);
                     leftPanelPeerListState.setPeerItemClicked(true);
 
-                    stateManager.setNewState(state, List.of(ChatUI.class));
+                    Integer themeId = selection.getThemeId();
+                    ThemeManager.getInstance().applyTheme(String.valueOf(themeId != null ? themeId : 1));
+
+//                    stateManager.setNewState(state, List.of(ChatUI.class));
                 }
             }
         });
@@ -166,7 +170,7 @@ public class LeftPanelPeerList extends JList<Peer> implements StateListener {
                         System.out.println("[DB] Peer sin IP válida: " + p.getId());
                         continue;
                     }
-                    p.setConnected(false);
+                    p.setConnected(p.getConnected());
                     validPeers.put(p.getId(), p);
                 }
             }

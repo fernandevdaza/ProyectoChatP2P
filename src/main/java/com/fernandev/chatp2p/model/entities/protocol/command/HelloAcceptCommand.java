@@ -7,6 +7,7 @@ import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageP
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.ProtocolCommand;
 import com.fernandev.chatp2p.model.entities.protocol.messages.HelloAccept;
 import com.fernandev.chatp2p.model.network.SocketClient;
+import com.fernandev.chatp2p.model.repository.PeerDao;
 
 public class HelloAcceptCommand implements ProtocolCommand {
 
@@ -15,6 +16,8 @@ public class HelloAcceptCommand implements ProtocolCommand {
         String peerId = ((HelloAccept) messageProtocol).getIdUser();
         ConnectionController.getInstance().removeConnection(messageProtocol.getIp(), true);
         ConnectionController.getInstance().addConnection(peerId, socketClient);
+        Peer peer = PeerController.getInstance().getPeerById(peerId);
+        peer.setConnected(true);
     }
 
     @Override

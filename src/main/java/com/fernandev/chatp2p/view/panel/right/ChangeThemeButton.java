@@ -1,6 +1,7 @@
 package com.fernandev.chatp2p.view.panel.right;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
+import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.protocol.messages.CambiarTema;
 import com.fernandev.chatp2p.view.ThemeManager;
 import com.fernandev.chatp2p.view.state.State;
@@ -22,7 +23,7 @@ public class ChangeThemeButton extends JButton implements StateListener {
     private JPopupMenu themeMenu = new JPopupMenu();
     Map<String, String> themeEntries = ThemeManager.getInstance().getThemeMenuEntries();
 
-    public ChangeThemeButton(){
+    public ChangeThemeButton() {
         boolean isPeerConnected = stateManager.getCurrentState().getSelectedPeer().isConnected();
 
         this.setText("Tema");
@@ -44,8 +45,7 @@ public class ChangeThemeButton extends JButton implements StateListener {
 
     }
 
-    public void buildThemeMenu(){
-        State state = stateManager.getCurrentState();
+    public void buildThemeMenu() {
         for (Map.Entry<String, String> entry : themeEntries.entrySet()) {
             String themeId = entry.getKey();
             String label = entry.getValue();
@@ -53,12 +53,15 @@ public class ChangeThemeButton extends JButton implements StateListener {
             JMenuItem item = new JMenuItem(label);
             item.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-            SelectedPeerState selectedPeerState = state.getSelectedPeer();
-            boolean isConnected = selectedPeerState.isConnected();
+
 
             item.addActionListener(e -> {
-            ThemeManager.getInstance().applyTheme(themeId);
+                State state = stateManager.getCurrentState();
+                SelectedPeerState selectedPeerState = state.getSelectedPeer();
+                boolean isConnected = selectedPeerState.isConnected();
+                ThemeManager.getInstance().applyTheme(themeId);
                 if (isConnected) {
+                    PeerController.getInstance().setPeerTheme(selectedPeerState.getPeerId(), Integer.parseInt(themeId));
                     new Thread(() -> {
                         try {
                             CambiarTema cambiarTema = new CambiarTema();
@@ -73,7 +76,6 @@ public class ChangeThemeButton extends JButton implements StateListener {
             themeMenu.add(item);
         }
     }
-
 
     @Override
     public void onChange(State newState) {

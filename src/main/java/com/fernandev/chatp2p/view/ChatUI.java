@@ -27,6 +27,7 @@ import com.fernandev.chatp2p.view.state.message.PinnedMessageState;
 import com.fernandev.chatp2p.view.state.notification.NotificationState;
 import com.fernandev.chatp2p.view.state.peer.LeftPanelPeerListState;
 import com.fernandev.chatp2p.view.state.peer.SelectedPeerState;
+import com.fernandev.chatp2p.view.state.theme.Theme;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -180,7 +181,6 @@ public class ChatUI extends JFrame implements IView, StateListener {
         });
     }
 
-
     public void onDeleteMessageReceived(String messageId) {
         State state = stateManager.getCurrentState();
         ChatPanelState chatPanelState = state.getChatPanelState();
@@ -209,22 +209,25 @@ public class ChatUI extends JFrame implements IView, StateListener {
         Message message = MessageController.getInstance().getMessageById(messageId);
         State state = stateManager.getCurrentState();
         PinnedMessageState pinnedMessageState = state.getPinnedMessage();
-        if(isVisible){
+        if (isVisible) {
             pinnedMessageState.setPinnedMessageId(messageId);
             pinnedMessageState.setShowPinnedMessageBox(true);
             pinnedMessageState.setPinnedMessageContent(message.getTextContent());
-        }else{
+        } else {
             pinnedMessageState.setPinnedMessageId(null);
             pinnedMessageState.setShowPinnedMessageBox(false);
             pinnedMessageState.setPinnedMessageContent(null);
         }
 
-
         stateManager.setNewState(state, List.of(PinnedMessageBox.class));
     }
 
-    public void onChangeThemeReceived(String themeId) {
-        ThemeManager.getInstance().applyTheme(themeId);
+    public void onChangeThemeReceived(String peerId, String themeId) {
+        String currentPeerId = stateManager.getCurrentState().getSelectedPeer().getPeerId();
+        if (currentPeerId != null && currentPeerId.equals(peerId)) {
+            ThemeManager.getInstance().applyTheme(themeId);
+        }
+
     }
 
     public void onOfflineReceived(String peerId) {
@@ -301,7 +304,6 @@ public class ChatUI extends JFrame implements IView, StateListener {
             Peer onUpdateStatusPeer = peers.get(id);
 
             if (onUpdateStatusPeer != null) {
-                onUpdateStatusPeer.setConnected(isOnline);
 
                 if (Objects.equals(selectedPeerState.getPeerId(), onUpdateStatusPeer.getId())) {
                     selectedPeerState.setConnected(isOnline);
@@ -362,13 +364,16 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
     @Override
     public void onChange(State newState) {
-
+        Theme themeState = newState.getTheme();
         SelectedPeerState selectedPeerState = newState.getSelectedPeer();
         LeftPanelPeerListState leftPanelPeerListState = newState.getLeftPanelPeerListState();
         if (selectedPeerState.isSelected() && leftPanelPeerListState.isPeerItemClicked()) {
             this.repaintRightPanel();
             leftPanelPeerListState.setPeerItemClicked(false);
+        }else if(themeState.isThemeChanged()){
+            this.repaintRightPanel();
         }
+        themeState.setThemeChanged(false);
         stateManager.setNewState(newState, List.of());
 
     }

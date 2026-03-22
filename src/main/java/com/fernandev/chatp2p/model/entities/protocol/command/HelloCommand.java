@@ -15,10 +15,11 @@ public class HelloCommand implements ProtocolCommand {
     public void handle(SocketClient socketClient, MessageProtocol messageProtocol) {
         String peerId = ((Hello) messageProtocol).getIdUser();
         socketClient.setPeerId(peerId);
-
-        if (PeerController.getInstance().getPeerById(peerId) != null) {
+        Peer peer = PeerController.getInstance().getPeerById(peerId);
+        if (peer != null) {
             ConnectionController.getInstance().addConnection(peerId, socketClient);
             ConnectionController.getInstance().sendMessage(peerId, new HelloAccept());
+            peer.setConnected(true);
         } else {
             ConnectionController.getInstance().addConnection(peerId, socketClient);
             ConnectionController.getInstance().sendMessage(peerId, new HelloReject());

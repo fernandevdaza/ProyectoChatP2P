@@ -33,11 +33,9 @@ public class ConnectionController implements SocketListener {
         return instance;
     }
 
-
     public boolean getOffline() {
         return this.isOffline;
     }
-
 
     public SocketClient connectToPeer(String ip) throws UnreachableException {
         try {
@@ -66,9 +64,8 @@ public class ConnectionController implements SocketListener {
         }
         ProtocolCommand protocolCommand = ProtocolCommandFactory.create(messageProtocol);
         protocolCommand.send(socketClient, messageProtocol);
-//        messageProtocol.execute(socketClient);
+        // messageProtocol.execute(socketClient);
     }
-
 
     public String getHostIpByPeerId(String peerId) {
         SocketClient socketClient = connections.get(peerId);
@@ -90,8 +87,6 @@ public class ConnectionController implements SocketListener {
             this.setOffline(true);
         }
     }
-
-
 
     public void closeConnectionWithPeer(String id) {
         SocketClient socketClient = connections.get(id);
@@ -137,39 +132,35 @@ public class ConnectionController implements SocketListener {
         SwingUtilities.invokeLater(() -> {
             if (messageProtocol instanceof Invitacion) {
 
-                    ui.onInvitationReceived(
-                            ((Invitacion) messageProtocol).getIdUsuario(),
-                            ((Invitacion) messageProtocol).getNombre()
-                    );
+                ui.onInvitationReceived(
+                        ((Invitacion) messageProtocol).getIdUsuario(),
+                        ((Invitacion) messageProtocol).getNombre());
 
             } else if (messageProtocol instanceof Aceptar) {
 
-                    ui.onAcceptedReceived(
-                            ((Aceptar) messageProtocol).getIdUsuario(),
-                            ((Aceptar) messageProtocol).getNombre()
-                    );
+                ui.onAcceptedReceived(
+                        ((Aceptar) messageProtocol).getIdUsuario(),
+                        ((Aceptar) messageProtocol).getNombre());
 
             } else if (messageProtocol instanceof Rechazar) {
 
-                    ui.onRejectReceived(messageProtocol.getIp());
+                ui.onRejectReceived(messageProtocol.getIp());
 
             } else if (messageProtocol instanceof Hello) {
 
-                    ui.onHelloAcceptReceived(
-                            ((Hello) messageProtocol).getIdUser(),
-                            socketClient.isRejected()
-                    );
+                ui.onHelloAcceptReceived(
+                        ((Hello) messageProtocol).getIdUser(),
+                        socketClient.isRejected());
 
             } else if (messageProtocol instanceof HelloAccept) {
 
-                    ui.onHelloAcceptReceived(
-                            ((HelloAccept) messageProtocol).getIdUser(),
-                            socketClient.isRejected()
-                    );
+                ui.onHelloAcceptReceived(
+                        ((HelloAccept) messageProtocol).getIdUser(),
+                        socketClient.isRejected());
 
             } else if (messageProtocol instanceof HelloReject) {
 
-                    ui.onHelloRejectReceived(messageProtocol.getIp());
+                ui.onHelloRejectReceived(messageProtocol.getIp());
 
             } else if (messageProtocol instanceof Mensaje) {
 
@@ -177,29 +168,23 @@ public class ConnectionController implements SocketListener {
                         ((Mensaje) messageProtocol).getIdUser(),
                         ((Mensaje) messageProtocol).getIdMessage(),
                         false,
-                        false
-                );
+                        false);
 
             } else if (messageProtocol instanceof Recibido) {
                 ui.onReceiptReceived(
-                        ((Recibido) messageProtocol).getIdMessage()
-                );
+                        ((Recibido) messageProtocol).getIdMessage());
 
             } else if (messageProtocol instanceof EliminarMensaje) {
                 ui.onDeleteMessageReceived(
-                        ((EliminarMensaje) messageProtocol).getIdMessage()
-                );
-            }
-            else if (messageProtocol instanceof Zumbido) {
+                        ((EliminarMensaje) messageProtocol).getIdMessage());
+            } else if (messageProtocol instanceof Zumbido) {
                 ui.onBuzz(
-                        ((Zumbido) messageProtocol).getIdUser()
-                );
+                        ((Zumbido) messageProtocol).getIdUser());
             } else if (messageProtocol instanceof FijarMensaje) {
 
                 ui.onPinMessageReceived(
                         true,
-                        ((FijarMensaje) messageProtocol).getIdMessage()
-                );
+                        ((FijarMensaje) messageProtocol).getIdMessage());
 
             } else if (messageProtocol instanceof MensajeUnico) {
 
@@ -207,28 +192,25 @@ public class ConnectionController implements SocketListener {
                         ((MensajeUnico) messageProtocol).getIdUser(),
                         ((MensajeUnico) messageProtocol).getIdMessage(),
                         true,
-                        false
-                );
+                        false);
 
-            }else if (messageProtocol instanceof CambiarTema) {
-
-                ui.onChangeThemeReceived(((CambiarTema) messageProtocol).getIdTema());
+            } else if (messageProtocol instanceof CambiarTema) {
+                String themeId = ((CambiarTema) messageProtocol).getIdTema();
+                PeerController.getInstance().setPeerTheme(socketClient.getPeerId(), Integer.parseInt(themeId));
+                ui.onChangeThemeReceived(socketClient.getPeerId(), themeId);
 
             } else if (messageProtocol instanceof Offline) {
                 ui.onOfflineReceived(((Offline) messageProtocol).getIdUser());
 
             } else if (messageProtocol instanceof MessageImage) {
-                ui.onMessageReceived((
-                        (MessageImage) messageProtocol).getIdUser(),
+                ui.onMessageReceived(((MessageImage) messageProtocol).getIdUser(),
                         ((MessageImage) messageProtocol).getIdMessage(),
                         false,
-                        true
-                );
+                        true);
             }
         });
 
     }
-
 
     @Override
     public void onClientDisconnected(SocketClient socketClient) {

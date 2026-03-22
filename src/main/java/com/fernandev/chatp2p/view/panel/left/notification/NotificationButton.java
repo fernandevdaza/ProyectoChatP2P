@@ -25,7 +25,7 @@ public class NotificationButton extends JButton implements StateListener {
         this.setFocusPainted(false);
         this.setFont(buttonTextFont);
 
-        this.setPreferredSize(new Dimension(50,40));
+        this.setPreferredSize(new Dimension(60,50));
         this.notificationPanel = new NotificationPanel();
         this.notificationPopUpMenu = new NotificationPopUpMenu(this.notificationPanel);
 
@@ -53,7 +53,7 @@ public class NotificationButton extends JButton implements StateListener {
         State state = stateManager.getCurrentState();
         int notificationsCount = state.getNotificationState().getUnreadNotificationsCount();
         if (notificationsCount > 0) {
-            this.setText("🔔 (" + notificationsCount + ")");
+            this.setText("🔔•");
         } else {
             this.setText("🔔");
         }

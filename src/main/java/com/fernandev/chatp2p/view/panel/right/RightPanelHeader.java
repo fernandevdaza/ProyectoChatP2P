@@ -44,10 +44,11 @@ public class RightPanelHeader extends JPanel implements StateListener {
 
         buildRightButtons();
 
+        enableRightButtons(isPeerConnected);
+
         this.add(peerNameLabel, BorderLayout.WEST);
         this.add(rightButtons, BorderLayout.EAST);
 
-        enableRightButtons(isPeerConnected);
     }
 
     public void buildPeerNameLabel() {
@@ -75,7 +76,7 @@ public class RightPanelHeader extends JPanel implements StateListener {
     }
 
     public void enableRightButtons(boolean enabled) {
-        SwingUtilities.invokeLater(() -> {
+//        SwingUtilities.invokeLater(() -> {
             if (changeThemeButton != null) {
                 changeThemeButton.setEnabled(enabled);
             }
@@ -85,7 +86,7 @@ public class RightPanelHeader extends JPanel implements StateListener {
 
             this.revalidate();
             this.repaint();
-        });
+//        });
     }
 
     public void applyTheme() {
@@ -97,5 +98,11 @@ public class RightPanelHeader extends JPanel implements StateListener {
         SelectedPeerState selectedPeerState = newState.getSelectedPeer();
 
         enableRightButtons(selectedPeerState.isConnected());
+
+        applyTheme();
+        this.setBackground(theme.getCOLOR_HEADER_BG());
+        this.setForeground(theme.getCOLOR_HEADER_FG());
+        this.revalidate();
+        this.repaint();
     }
 }

@@ -44,6 +44,7 @@ public class ChatPanel extends JPanel implements StateListener {
         this.scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
+        this.setVisible(false);
         this.add(scrollPane, BorderLayout.CENTER);
     }
 
@@ -55,6 +56,7 @@ public class ChatPanel extends JPanel implements StateListener {
         SwingUtilities.invokeLater(() -> {
             JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
             verticalBar.setValue(verticalBar.getMaximum());
+            this.setVisible(true);
         });
     }
 
@@ -80,7 +82,6 @@ public class ChatPanel extends JPanel implements StateListener {
             messagesContainer.add(Box.createVerticalStrut(4));
 
             refreshMessages();
-            scrollToBotom();
         } else {
             System.out.println("Mensaje recibido de " + peerId + " (en segundo plano)");
         }
@@ -152,7 +153,10 @@ public class ChatPanel extends JPanel implements StateListener {
                 addMessage(id, msg, meId, isLoading);
             }
 
+
         }
+        scrollToBotom();
+
     }
 
     @Override
@@ -160,6 +164,11 @@ public class ChatPanel extends JPanel implements StateListener {
         InputPanelState inputPanelState = newState.getInputPanelState();
         ChatPanelState chatPanelState = newState.getChatPanelState();
         SelectedPeerState selectedPeerState = newState.getSelectedPeer();
+
+        applyTheme();
+        messagesContainer.setBackground(theme.getCOLOR_BG_CHAT());
+        this.revalidate();
+        this.repaint();
 
         String meId = PeerController.getInstance().getMyself().getId();
 
@@ -188,6 +197,7 @@ public class ChatPanel extends JPanel implements StateListener {
 
             if (message != null) {
                 addMessage(selectedPeerId, message, meId, false);
+                scrollToBotom();
             }
 
             inputPanelState.setSendMessageButtonClicked(false);

@@ -60,6 +60,7 @@ public class PeerController {
            e.printStackTrace();
        }
     }
+    
 
     public String getPeerIdByIp(String ip) {
         Peer peer = peerDao.findByIp(ip);
@@ -110,6 +111,10 @@ public class PeerController {
     public void setPeerTheme(String peerId, int themeId){
         Peer peer = peerDao.findById(peerId);
         peer.setThemeId(themeId);
+        peerDao.update(peer);
+    }
+
+    public void updatePeer(Peer peer){
         peerDao.update(peer);
     }
 }

@@ -5,6 +5,7 @@ import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.controller.PeerController;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.network.ChatServer;
+import com.fernandev.chatp2p.model.network.NetworkUtils;
 import com.fernandev.chatp2p.model.repository.CachePeerDao;
 import com.fernandev.chatp2p.model.repository.DatabaseConnection;
 import com.fernandev.chatp2p.model.repository.IPeerDao;
@@ -71,6 +72,8 @@ public class Main {
                 System.exit(1);
             }
         }
+        myself.setLastIpAddr(NetworkUtils.getWifiLanIp());
+        PeerController.getInstance().updatePeer(myself);
 
         java.awt.EventQueue.invokeLater(() -> {
             Thread.currentThread().setName("UI-Thread");

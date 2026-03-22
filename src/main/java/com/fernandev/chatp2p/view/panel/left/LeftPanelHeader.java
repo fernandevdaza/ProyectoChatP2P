@@ -25,7 +25,7 @@ public class LeftPanelHeader extends JPanel implements StateListener {
     JPanel userLabelPanels;
     NotificationButton notificationButton;
 
-    public LeftPanelHeader(){
+    public LeftPanelHeader() {
         stateManager.subscribeToState(this);
 
         applyTheme();
@@ -33,7 +33,7 @@ public class LeftPanelHeader extends JPanel implements StateListener {
         this.setLayout(new BorderLayout());
         this.setBackground(theme.getCOLOR_GENERAL_BG());
         this.setLayout(new BorderLayout());
-        this.setPreferredSize(new Dimension(300, 40));
+        this.setPreferredSize(new Dimension(300, 50));
 
         this.notificationButton = new NotificationButton();
 
@@ -44,22 +44,22 @@ public class LeftPanelHeader extends JPanel implements StateListener {
 
     }
 
-    private void buildUserNameLabel(String name){
+    private void buildUserNameLabel(String name) {
         this.userNameLabel = new JLabel("Bienvenido, " + name + "!");
         this.userNameLabel.setLayout(new BorderLayout());
         this.userNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        this.userNameLabel.setPreferredSize(new Dimension(250, 25));
+        this.userNameLabel.setPreferredSize(new Dimension(240, 35));
     }
 
-    private void buildUserIpLabel(String ip){
+    private void buildUserIpLabel(String ip) {
         this.userIpLabel = new JLabel(ip);
         this.userIpLabel.setLayout(new BorderLayout());
-        this.userIpLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        this.userIpLabel.setPreferredSize(new Dimension(250, 15));
+        this.userIpLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        this.userIpLabel.setPreferredSize(new Dimension(240, 15));
 
     }
 
-    private void buildUserLabelPanel(){
+    private void buildUserLabelPanel() {
         this.userLabelPanels = new JPanel();
         Peer me = PeerController.getInstance().getMyself();
 
@@ -67,17 +67,23 @@ public class LeftPanelHeader extends JPanel implements StateListener {
         buildUserIpLabel(me.getLastIpAddr());
 
         this.userLabelPanels.setLayout(new BorderLayout());
-        this.userLabelPanels.setPreferredSize(new Dimension(250, 40));
+        this.userLabelPanels.setPreferredSize(new Dimension(240, 50));
         this.userLabelPanels.add(this.userNameLabel, BorderLayout.NORTH);
         this.userLabelPanels.add(this.userIpLabel, BorderLayout.SOUTH);
     }
 
-    private void applyTheme(){
+    private void applyTheme() {
         this.theme = stateManager.getCurrentState().getTheme().getLeftPanelTheme().getHeaderTheme();
     }
 
     @Override
     public void onChange(State newState) {
-
+        applyTheme();
+        this.setBackground(theme.getCOLOR_GENERAL_BG());
+        if (this.userLabelPanels != null) {
+            this.userLabelPanels.setBackground(theme.getCOLOR_GENERAL_BG());
+        }
+        this.revalidate();
+        this.repaint();
     }
 }

@@ -10,6 +10,7 @@ import lombok.Setter;
 public class Theme {
     RightPanelTheme rightPanelTheme = new RightPanelTheme();
     LeftPanelTheme leftPanelTheme = new LeftPanelTheme();;
+    boolean isThemeChanged = false;
 
     public Theme(){
     }

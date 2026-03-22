@@ -36,6 +36,7 @@ public class InputPanel extends JPanel implements StateListener {
     private MessageTextField messageTextField;
     private SendOneTimeMessageButton sendOneTimeMessageButton;
     private SendMessageButton sendMessageButton;
+    private JPanel sendButtonsPanel;
 
     public InputPanel() {
         stateManager.subscribeToState(this);
@@ -56,15 +57,15 @@ public class InputPanel extends JPanel implements StateListener {
         this.add(this.sendImageButton, BorderLayout.WEST);
         this.add(this.messageTextField, BorderLayout.CENTER);
 
-        JPanel sendButtonsPanel = new JPanel(new BorderLayout(5, 0));
+        sendButtonsPanel = new JPanel(new BorderLayout(5, 0));
         sendButtonsPanel.setBackground(theme.getCOLOR_INPUT_PANEL_BG());
         sendButtonsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         sendButtonsPanel.add(sendOneTimeMessageButton, BorderLayout.WEST);
         sendButtonsPanel.add(sendMessageButton, BorderLayout.EAST);
 
-        this.add(sendButtonsPanel, BorderLayout.EAST);
         this.enablePanel(isPeerConnected);
+        this.add(sendButtonsPanel, BorderLayout.EAST);
     }
 
     private void enviarMensaje() {
@@ -195,7 +196,7 @@ public class InputPanel extends JPanel implements StateListener {
 
     public void enablePanel(boolean enable) {
 
-        SwingUtilities.invokeLater(() -> {
+//        SwingUtilities.invokeLater(() -> {
             this.setVisible(enable);
 
             if (messageTextField != null) {
@@ -213,7 +214,7 @@ public class InputPanel extends JPanel implements StateListener {
 
             this.revalidate();
             this.repaint();
-        });
+//        });
 
     }
 
@@ -221,6 +222,14 @@ public class InputPanel extends JPanel implements StateListener {
     public void onChange(State newState) {
         InputPanelState inputPanelState = newState.getInputPanelState();
         SelectedPeerState selectedPeerState = newState.getSelectedPeer();
+
+        applyTheme();
+        this.setBackground(theme.getCOLOR_INPUT_PANEL_BG());
+        if (sendButtonsPanel != null) {
+            sendButtonsPanel.setBackground(theme.getCOLOR_INPUT_PANEL_BG());
+        }
+        this.revalidate();
+        this.repaint();
 
         enablePanel(selectedPeerState.isConnected());
 
