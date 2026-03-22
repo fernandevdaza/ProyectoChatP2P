@@ -284,9 +284,10 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
             if (onUpdateStatusPeer != null) {
 
-                if (Objects.equals(selectedPeerState.getPeerId(), onUpdateStatusPeer.getId())) {
-                    selectedPeerState.setConnected(isOnline);
-                }
+//                if (Objects.equals(selectedPeerState.getPeerId(), onUpdateStatusPeer.getId())) {
+                    onUpdateStatusPeer.setConnected(isOnline);
+                    PeerController.getInstance().updatePeer(onUpdateStatusPeer);
+//                }
 
                 stateManager.setNewState(state,
                         List.of(LeftPanelPeerList.class, RightPanelHeader.class, InputPanel.class));
