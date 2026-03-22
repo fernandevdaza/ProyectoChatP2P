@@ -15,9 +15,6 @@ public interface IView {
     RightPanel getRightPanel();
     void setLeftPanel(LeftPanel leftPanel);
     LeftPanel getLeftPanel();
-    DefaultListModel<Peer> getPeerDefaultListModel();
-    Map<String, List<BubbleData>> getChatHistory();
-    Map<String, MessageBubble> getBubblesByMessageId();
     void repaintRightPanel();
     void repaintLeftPanel();
     void onPinMessageReceived(boolean isVisible, String messageId);

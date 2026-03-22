@@ -12,6 +12,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="ChatP2P" />
         <module name="ChatUPB_V2" />
       </profile>
     </annotationProcessing>

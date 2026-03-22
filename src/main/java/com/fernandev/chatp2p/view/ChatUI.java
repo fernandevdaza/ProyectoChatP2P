@@ -44,37 +44,14 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
     private PeerController peerController;
     private MessageController messageController;
-    private long lastBuzzMillis = 0;
     private LeftPanel leftPanel;
     private RightPanel rightPanel;
 
-    DefaultListModel<Peer> peerDefaultListModel = new DefaultListModel<>();
-
-    private Map<String, List<BubbleData>> chatHistory = new HashMap<>();
-
-    private Map<String, MessageBubble> bubblesByMessageId = new HashMap<>();
-
-    private final List<String> notifications = new ArrayList<>();
-
-    private int unreadNotificationsCount = 0;
-
-    private Color COLOR_HEADER_BG = new Color(0, 168, 132);
-    private Color COLOR_HEADER_FG = Color.WHITE;
-    private Color COLOR_BG_CHAT = new Color(236, 229, 221);
-    private Color COLOR_INPUT_PANEL_BG = new Color(240, 242, 245);
-    private Color COLOR_SEND_BUTTON_BG = new Color(0, 168, 132);
-    private Color COLOR_SEND_BUTTON_FG = Color.WHITE;
-    private Color COLOR_BUBBLE_ME = new Color(220, 248, 198);
-    private Color COLOR_BUBBLE_PEER = new Color(255, 255, 255);
-    private Color COLOR_BUBBLE_TEXT_ME = Color.DARK_GRAY;
-    private Color COLOR_BUBBLE_TEXT_PEER = Color.DARK_GRAY;
-    private Color COLOR_GENERAL_BG = new Color(240, 242, 245);
-    private Color COLOR_CHECK = new Color(53, 162, 235);
 
     public ChatUI() {
         StateManager.getInstance().subscribeToState(this);
 
-        setTitle("Chat P2P");
+        setTitle("Handshake");
         setSize(1000, 700);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -194,15 +171,17 @@ public class ChatUI extends JFrame implements IView, StateListener {
 
     public void onBuzz(String peerId) {
         long now = System.currentTimeMillis();
-        if (now - lastBuzzMillis < 3000) {
+        State state = stateManager.getCurrentState();
+        if (now - state.getLastBuzzMillis() < 3000) {
             System.out.println("Buzz ignorado por anti-spam.");
             return;
         }
-        lastBuzzMillis = now;
+        state.setLastBuzzMillis(now);
 
         Peer peer = PeerController.getInstance().getPeerById(peerId);
         this.addNotification("Zumbido recibido de " + peer.getDisplayName());
         this.shakeWindow(this);
+        stateManager.setNewState(state, List.of());
     }
 
     public void onPinMessageReceived(boolean isVisible, String messageId) {
