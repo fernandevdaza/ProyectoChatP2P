@@ -19,10 +19,9 @@ public class MessageController {
     private final IPeerDao peerDao;
     private IView view;
 
-    public void setView(IView view){
+    public void setView(IView view) {
         this.view = view;
     }
-
 
     private MessageController() {
         this.conversationDao = ConversationDao.getInstance();
@@ -33,27 +32,27 @@ public class MessageController {
 
     }
 
-    public static MessageController getInstance(){
+    public static MessageController getInstance() {
         return instance;
     }
 
     public String createConversation() {
-       try {
-           String uuid = UUID.randomUUID().toString();
-           Conversation conversation = Conversation.builder()
-                   .id(uuid)
-                   .type(ConversationType.values()[1])
-                   .title(null)
-                   .createdAt(LocalDateTime.now())
-                   .updatedAt(LocalDateTime.now())
-                   .build();
+        try {
+            String uuid = UUID.randomUUID().toString();
+            Conversation conversation = Conversation.builder()
+                    .id(uuid)
+                    .type(ConversationType.values()[1])
+                    .title(null)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
 
-           conversationDao.save(conversation);
-           return conversation.getId();
-       } catch (Exception e){
-           e.printStackTrace();
-           return null;
-       }
+            conversationDao.save(conversation);
+            return conversation.getId();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void setPeerToConversation(String conversationId, String peerId) {
@@ -64,7 +63,7 @@ public class MessageController {
                     .build();
 
             directParticipantsDAO.save(directParticipants);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -86,7 +85,8 @@ public class MessageController {
         return dp.getConversationId();
     }
 
-    public void saveMessage(String id, String conversationId, String senderPeerId, String message, boolean isEphemeral) {
+    public void saveMessage(String id, String conversationId, String senderPeerId, String message, boolean isEphemeral,
+            boolean isImage) {
         try {
             if (id == null && conversationId == null && senderPeerId == null && message == null)
                 return;
@@ -100,18 +100,19 @@ public class MessageController {
                     .sentAt(LocalDateTime.now())
                     .receivedAt(LocalDateTime.now())
                     .isEphemeral(isEphemeral)
+                    .isImage(isImage)
                     .expiresAt(LocalDateTime.now())
                     .status(MessageStatusType.SENT)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
             messageDAO.save(mensaje);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void updateMessageStatus(String messageId, MessageStatusType messageStatusType){
+    public void updateMessageStatus(String messageId, MessageStatusType messageStatusType) {
         Message message = messageDAO.findMessageById(messageId);
         messageDAO.updateStatus(message, messageStatusType);
     }
@@ -120,7 +121,7 @@ public class MessageController {
         return messageDAO.findMessagesByConversationId(conversationId);
     }
 
-    public String getSenderPeerIdByMessageId(String messageId){
+    public String getSenderPeerIdByMessageId(String messageId) {
         Message message = messageDAO.findMessageById(messageId);
         return message.getSenderPeerId();
     }
@@ -140,89 +141,101 @@ public class MessageController {
     }
 
     public boolean hasReceipt(String messageId) {
+        Message msg = messageDAO.findMessageById(messageId);
+        if (msg != null && msg.getStatus() == MessageStatusType.RECEIVED) {
+            return true;
+        }
         return messageReceiptDAO.existsByMessageId(messageId);
     }
 
-    public void sendReceipt(String messageId){
+    public void sendReceipt(String messageId) {
         Message message = messageDAO.findMessageById(messageId);
         this.sendReceipt(message);
     }
 
-    public void sendReceipt(Message msg){
-        if(msg.getIsEphemeral() && !msg.getTextContent().equals("")) return;
+    public void sendReceipt(Message msg) {
+        if (msg.getIsEphemeral() && !msg.getTextContent().equals(""))
+            return;
         Recibido recibido = new Recibido(msg.getId());
-        ConnectionController.getInstance().sendMessage(msg.getSenderPeerId(), recibido);
+        String receiverId = this.getReceiverPeerIdByMessageID(msg.getId());
+        ConnectionController.getInstance().sendMessage(receiverId, recibido);
     }
 
-    public void setReceived(Message msg){
+    public void setReceived(Message msg) {
         messageDAO.updateStatus(msg, MessageStatusType.RECEIVED);
     }
 
-    public boolean deleteMessage(String messageId, boolean repaintPanel){
+    public boolean deleteMessage(String messageId, boolean repaintPanel) {
         try {
             boolean onExist = messageDAO.existById(messageId);
-            if(onExist){
+            if (onExist) {
                 messageDAO.deleteById(messageId);
-                if(repaintPanel) view.repaintRightPanel();
+                if (repaintPanel)
+                    view.repaintRightPanel();
                 return true;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean editMessage(String messageId, String textContent){
+    public boolean editMessage(String messageId, String textContent) {
         try {
             boolean onExist = messageDAO.existById(messageId);
-            if(onExist){
+            if (onExist) {
                 messageDAO.updateTextContent(messageId, textContent);
-//                view.repaintRightPanel();
+                // view.repaintRightPanel();
                 return true;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean pinMessage(String messageId, boolean isFixed, boolean paintFix){
-        try{
+    public boolean pinMessage(String messageId, boolean isFixed, boolean paintFix) {
+        try {
             boolean onExist = messageDAO.existById(messageId);
-            if(onExist){
+            if (onExist) {
+                if (isFixed) {
+                    Message message = messageDAO.findMessageById(messageId);
+                    messageDAO.unpinAllInConversation(message.getConversationId());
+                }
                 messageDAO.updateFixedStatus(messageId, isFixed);
-                Message message = messageDAO.findMessageById(messageId);
-                if(paintFix) view.setPinMessage(isFixed, messageId);
+                if (paintFix)
+                    view.onPinMessageReceived(isFixed, messageId);
                 return true;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
 
     }
 
-    public Message getMessageById(String messageId){
+    public Message getMessageById(String messageId) {
         try {
             return messageDAO.findMessageById(messageId);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public String getReceiverPeerIdByMessageID(String messageId){
-        try{
+    public String getReceiverPeerIdByMessageID(String messageId) {
+        try {
             Message message = messageDAO.findMessageById(messageId);
-            DirectParticipants directParticipants = directParticipantsDAO.findDirectParticipantsByConversationId(message.getConversationId());
+            DirectParticipants directParticipants = directParticipantsDAO
+                    .findDirectParticipantsByConversationId(message.getConversationId());
             return directParticipants.getPeerId();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public void onLoadMessagesByPeerId(String peerId){
+    public void onLoadMessagesByPeerId(String peerId) {
 
     }
 }

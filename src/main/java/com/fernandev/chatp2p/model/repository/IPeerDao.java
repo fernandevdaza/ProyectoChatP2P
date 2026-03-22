@@ -18,7 +18,7 @@ public interface IPeerDao {
     boolean existById(String id) throws ConnectException, SQLException;
     Peer findById(String id);
     void update(String query) throws Exception;
-    void save(Peer peer) throws Exception;
-    void update(Peer peer) throws Exception;
+    void save(Peer peer);
+    void update(Peer peer);
     void update(String query, String conditionWhere) throws Exception;
     }

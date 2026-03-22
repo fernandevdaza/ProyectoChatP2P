@@ -51,6 +51,7 @@ public class MessageReceiptDAO {
 
     public void save(MessageReceipt receipt) throws Exception {
         String query = "INSERT INTO message_receipts(message_id, peer_id, status, at_time) VALUES (?,?,?,?)";
+        System.out.println(query);
         QueryParameters params = new QueryParameters() {
             @Override
             public void setParameters(PreparedStatement pst) throws SQLException {

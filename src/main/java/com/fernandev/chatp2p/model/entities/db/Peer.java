@@ -27,6 +27,7 @@ public class Peer implements Serializable, Model {
         public static final String LAST_IP_ADDR = "last_ip_addr";
         public static final String LAST_PORT = "last_port";
         public static final String LAST_SEEN_AT = "last_seen_at";
+        public static final String THEME_ID = "theme_id";
         public static final String CREATED_AT = "created_at";
         public static final String UPDATED_AT = "updated_at";
     }
@@ -36,6 +37,7 @@ public class Peer implements Serializable, Model {
     private Integer isSelf;
     private String lastIpAddr;
     private Integer lastPort;
+    private Integer themeId;
     private LocalDateTime lastSeenAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

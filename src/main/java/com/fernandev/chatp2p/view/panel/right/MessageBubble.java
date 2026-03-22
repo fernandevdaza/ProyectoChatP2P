@@ -1,10 +1,13 @@
-package com.fernandev.chatp2p.view;
+package com.fernandev.chatp2p.view.panel.right;
 
 import com.fernandev.chatp2p.controller.ConnectionController;
 import com.fernandev.chatp2p.controller.MessageController;
 import com.fernandev.chatp2p.model.entities.protocol.messages.EliminarMensaje;
 import com.fernandev.chatp2p.model.entities.protocol.messages.FijarMensaje;
 import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
+import com.fernandev.chatp2p.view.state.State;
+import com.fernandev.chatp2p.view.state.StateListener;
+import com.fernandev.chatp2p.view.state.StateManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -19,21 +22,16 @@ import java.util.Date;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 
-public class BubbleBubble extends JPanel {
+public class MessageBubble extends JPanel implements StateListener {
     private final String text;
     private final boolean isMe;
     private final String idMessage;
     private final boolean isEphemeral;
     private JLabel checkLabel;
-    private static final Color COLOR_MY_BUBBLE = new Color(220, 248, 198);
-    private static final Color COLOR_THEIR_BUBBLE = new Color(255, 255, 255);
     private static final Color COLOR_CHECK = new Color(53, 162, 235);
 
-    public BubbleBubble(String content, boolean isMe, String idMessage, boolean isEphemeral) {
-        this(content, isMe, false, idMessage, isEphemeral);
-    }
-
-    public BubbleBubble(String content, boolean isMe, boolean isImage, String idMessage, boolean isEphemeral) {
+    public MessageBubble(String content, boolean isMe, String idMessage, boolean isEphemeral, boolean isImage) {
+        StateManager.getInstance().subscribeToState(this);
         this.text = content;
         this.isMe = isMe;
         this.idMessage = idMessage;
@@ -75,17 +73,17 @@ public class BubbleBubble extends JPanel {
                 errorLbl.setForeground(Color.RED);
                 add(errorLbl, BorderLayout.CENTER);
             }
-        } else if (isEphemeral){
+        } else if (isEphemeral) {
             JButton openMessage = new JButton("❶ Mensaje");
-            if (Objects.equals(text, "")){
+            if (Objects.equals(text, "")) {
                 openMessage.setEnabled(false);
             }
             openMessage.setFont(new Font("Segoe UI", Font.BOLD, 16));
             openMessage.setSize(new Dimension(350, 350));
-            if(!isMe){
+            if (!isMe) {
                 openMessage.addActionListener(e -> {
                     openMessage.setEnabled(false);
-                    SwingUtilities.invokeLater( ()-> {
+                    SwingUtilities.invokeLater(() -> {
                         JOptionPane.showMessageDialog(null, this.text);
                     });
                     MessageController.getInstance().editMessage(this.idMessage, "");
@@ -93,12 +91,15 @@ public class BubbleBubble extends JPanel {
                             MessageStatusType.RECEIVED);
                     MessageController.getInstance().sendReceipt(this.idMessage);
                 });
-            }else{
+            } else {
                 openMessage.setEnabled(false);
             }
             add(openMessage, BorderLayout.CENTER);
-        }else {
+        } else {
             JTextArea textArea = new JTextArea(content);
+            com.fernandev.chatp2p.view.state.theme.rightpanel.BubbleMessageTheme theme = StateManager.getInstance()
+                    .getCurrentState().getTheme().getRightPanelTheme().getBubbleMessageTheme();
+            textArea.setForeground(isMe ? theme.getCOLOR_BUBBLE_TEXT_ME() : theme.getCOLOR_BUBBLE_TEXT_PEER());
             textArea.setOpaque(false);
             textArea.setEditable(false);
             textArea.setLineWrap(true);
@@ -144,7 +145,7 @@ public class BubbleBubble extends JPanel {
 
     public void setReceived(boolean received) {
         if (checkLabel != null) {
-            checkLabel.setForeground(received ? ChatUI.getCOLOR_CHECK() : Color.LIGHT_GRAY);
+            checkLabel.setForeground(received ? COLOR_CHECK : Color.LIGHT_GRAY);
             checkLabel.repaint();
         }
     }
@@ -154,7 +155,9 @@ public class BubbleBubble extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        g2.setColor(isMe ? ChatUI.getCOLOR_BUBBLE_ME() : ChatUI.getCOLOR_BUBBLE_PEER());
+        com.fernandev.chatp2p.view.state.theme.rightpanel.BubbleMessageTheme theme = StateManager.getInstance()
+                .getCurrentState().getTheme().getRightPanelTheme().getBubbleMessageTheme();
+        g2.setColor(isMe ? theme.getCOLOR_BUBBLE_ME() : theme.getCOLOR_BUBBLE_PEER());
 
         g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
 
@@ -162,7 +165,7 @@ public class BubbleBubble extends JPanel {
         super.paintComponent(g);
     }
 
-    private void setupContextMenu(){
+    private void setupContextMenu() {
         JPopupMenu popupMenu = new JPopupMenu();
 
         JMenuItem deleteItem = new JMenuItem("Eliminar para mí");
@@ -174,9 +177,9 @@ public class BubbleBubble extends JPanel {
         pinItem.addActionListener(e -> {
             FijarMensaje fijarMensaje = new FijarMensaje();
             String senderPeerId = "";
-            if(isMe){
+            if (isMe) {
                 senderPeerId = MessageController.getInstance().getReceiverPeerIdByMessageID(this.idMessage);
-            }else{
+            } else {
                 senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
             }
             fijarMensaje.setIdMessage(this.idMessage);
@@ -185,19 +188,17 @@ public class BubbleBubble extends JPanel {
             MessageController.getInstance().pinMessage(this.idMessage, true, true);
         });
 
-
-
         popupMenu.add(deleteItem);
-        if(isMe){
+        if (isMe) {
             JMenuItem deleteEveryoneItem = new JMenuItem("Eliminar para todos");
 
             deleteEveryoneItem.addActionListener(e -> {
                 String senderPeerId = "";
                 EliminarMensaje eliminarMensaje = new EliminarMensaje();
 
-                if(isMe){
+                if (isMe) {
                     senderPeerId = MessageController.getInstance().getReceiverPeerIdByMessageID(this.idMessage);
-                }else{
+                } else {
                     senderPeerId = MessageController.getInstance().getSenderPeerIdByMessageId(this.idMessage);
                 }
                 eliminarMensaje.setIdMessage(this.idMessage);
@@ -206,13 +207,11 @@ public class BubbleBubble extends JPanel {
             });
 
             popupMenu.add(deleteEveryoneItem);
-            
 
         }
 
         popupMenu.add(new JSeparator());
         popupMenu.add(pinItem);
-
 
         this.addMouseListener(new MouseAdapter() {
             @Override
@@ -228,6 +227,7 @@ public class BubbleBubble extends JPanel {
                     showMenu(e);
                 }
             }
+
             private void showMenu(MouseEvent e) {
                 popupMenu.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -235,7 +235,20 @@ public class BubbleBubble extends JPanel {
 
     }
 
-    public String getIdMessage(){
+    public String getIdMessage() {
         return this.idMessage;
+    }
+
+    @Override
+    public void onChange(State newState) {
+        com.fernandev.chatp2p.view.state.theme.rightpanel.BubbleMessageTheme theme = newState.getTheme()
+                .getRightPanelTheme().getBubbleMessageTheme();
+        for (Component c : getComponents()) {
+            if (c instanceof JTextArea) {
+                c.setForeground(isMe ? theme.getCOLOR_BUBBLE_TEXT_ME() : theme.getCOLOR_BUBBLE_TEXT_PEER());
+            }
+        }
+        this.revalidate();
+        this.repaint();
     }
 }

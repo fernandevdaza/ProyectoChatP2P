@@ -1,7 +1,6 @@
 package com.fernandev.chatp2p.controller;
 
 import com.fernandev.chatp2p.controller.exception.UnreachableException;
-import com.fernandev.chatp2p.model.entities.db.MessageStatusType;
 import com.fernandev.chatp2p.model.entities.db.Peer;
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.MessageProtocol;
 import com.fernandev.chatp2p.model.entities.protocol.command.interfaces.ProtocolCommand;
@@ -18,7 +17,6 @@ import java.net.ConnectException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -35,11 +33,9 @@ public class ConnectionController implements SocketListener {
         return instance;
     }
 
-
     public boolean getOffline() {
         return this.isOffline;
     }
-
 
     public SocketClient connectToPeer(String ip) throws UnreachableException {
         try {
@@ -68,9 +64,8 @@ public class ConnectionController implements SocketListener {
         }
         ProtocolCommand protocolCommand = ProtocolCommandFactory.create(messageProtocol);
         protocolCommand.send(socketClient, messageProtocol);
-//        messageProtocol.execute(socketClient);
+        // messageProtocol.execute(socketClient);
     }
-
 
     public String getHostIpByPeerId(String peerId) {
         SocketClient socketClient = connections.get(peerId);
@@ -92,8 +87,6 @@ public class ConnectionController implements SocketListener {
             this.setOffline(true);
         }
     }
-
-
 
     public void closeConnectionWithPeer(String id) {
         SocketClient socketClient = connections.get(id);
@@ -139,100 +132,94 @@ public class ConnectionController implements SocketListener {
         SwingUtilities.invokeLater(() -> {
             if (messageProtocol instanceof Invitacion) {
 
-                    ui.onInvitationReceived(
-                            ((Invitacion) messageProtocol).getIdUsuario(),
-                            ((Invitacion) messageProtocol).getNombre()
-                    );
+                ui.onInvitationReceived(
+                        ((Invitacion) messageProtocol).getIdUsuario(),
+                        ((Invitacion) messageProtocol).getNombre());
 
             } else if (messageProtocol instanceof Aceptar) {
 
-                    ui.onInvitationAccepted(
-                            ((Aceptar) messageProtocol).getIdUsuario(),
-                            ((Aceptar) messageProtocol).getNombre()
-                    );
+                ui.onAcceptedReceived(
+                        ((Aceptar) messageProtocol).getIdUsuario(),
+                        ((Aceptar) messageProtocol).getNombre());
 
             } else if (messageProtocol instanceof Rechazar) {
 
-                    ui.onInvitationRejected(messageProtocol.getIp());
+                ui.onRejectReceived(messageProtocol.getIp());
 
             } else if (messageProtocol instanceof Hello) {
 
-                    ui.onHelloAccepted(
-                            ((Hello) messageProtocol).getIdUser(),
-                            socketClient.isRejected()
-                    );
+                ui.onHelloAcceptReceived(
+                        ((Hello) messageProtocol).getIdUser(),
+                        socketClient.isRejected());
 
             } else if (messageProtocol instanceof HelloAccept) {
 
-                    ui.onHelloAccepted(
-                            ((HelloAccept) messageProtocol).getIdUser(),
-                            socketClient.isRejected()
-                    );
+                ui.onHelloAcceptReceived(
+                        ((HelloAccept) messageProtocol).getIdUser(),
+                        socketClient.isRejected());
 
             } else if (messageProtocol instanceof HelloReject) {
 
-                    ui.onHelloRejected(messageProtocol.getIp());
+                ui.onHelloRejectReceived(messageProtocol.getIp());
 
             } else if (messageProtocol instanceof Mensaje) {
 
-                ui.onChatMessage(
+                ui.onMessageReceived(
                         ((Mensaje) messageProtocol).getIdUser(),
                         ((Mensaje) messageProtocol).getIdMessage(),
-                        ((Mensaje) messageProtocol).getMessage(),
-                        false
-                );
+                        false,
+                        false);
 
             } else if (messageProtocol instanceof Recibido) {
-                ui.onMessageReceived(
-                        ((Recibido) messageProtocol).getIdMessage()
-                );
+                ui.onReceiptReceived(
+                        ((Recibido) messageProtocol).getIdMessage());
 
             } else if (messageProtocol instanceof EliminarMensaje) {
-                ui.onMessageDeleted();
-            }
-            else if (messageProtocol instanceof Zumbido) {
+                ui.onDeleteMessageReceived(
+                        ((EliminarMensaje) messageProtocol).getIdMessage());
+            } else if (messageProtocol instanceof Zumbido) {
                 ui.onBuzz(
-                        ((Zumbido) messageProtocol).getIdUser()
-                );
+                        ((Zumbido) messageProtocol).getIdUser());
             } else if (messageProtocol instanceof FijarMensaje) {
 
-                ui.setPinMessage(
+                ui.onPinMessageReceived(
                         true,
-                        ((FijarMensaje) messageProtocol).getIdMessage()
-                );
+                        ((FijarMensaje) messageProtocol).getIdMessage());
 
             } else if (messageProtocol instanceof MensajeUnico) {
 
-                ui.onChatMessage(
+                ui.onMessageReceived(
                         ((MensajeUnico) messageProtocol).getIdUser(),
                         ((MensajeUnico) messageProtocol).getIdMessage(),
-                        ((MensajeUnico) messageProtocol).getMessage(),
-                        true
-                );
+                        true,
+                        false);
 
-            }else if (messageProtocol instanceof CambiarTema) {
-
-                ui.onThemeChanged(((CambiarTema) messageProtocol).getIdTema());
+            } else if (messageProtocol instanceof CambiarTema) {
+                String themeId = ((CambiarTema) messageProtocol).getIdTema();
+                PeerController.getInstance().setPeerTheme(socketClient.getPeerId(), Integer.parseInt(themeId));
+                ui.onChangeThemeReceived(socketClient.getPeerId(), themeId);
 
             } else if (messageProtocol instanceof Offline) {
                 ui.onOfflineReceived(((Offline) messageProtocol).getIdUser());
 
             } else if (messageProtocol instanceof MessageImage) {
-                ui.onChatImage(((MessageImage) messageProtocol).getIdUser(), ((MessageImage) messageProtocol).getIdMessage(), ((MessageImage) messageProtocol).getBase64Image());
+                ui.onMessageReceived(((MessageImage) messageProtocol).getIdUser(),
+                        ((MessageImage) messageProtocol).getIdMessage(),
+                        false,
+                        true);
             }
         });
 
     }
-
 
     @Override
     public void onClientDisconnected(SocketClient socketClient) {
         Peer peer = peerController.getPeerByIp(socketClient.getIp());
         this.removeConnection(socketClient.getPeerId(), true);
         if (peer == null) {
-            ui.onDisconnect(socketClient.getIp());
+            ui.onUnexpectedDisconnection(socketClient.getIp());
             return;
         }
-        ui.onUpdatePeerStatus(peer.getId());
+        ui.updatePeerStatus(peer.getId(), false);
     }
 }

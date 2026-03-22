@@ -69,7 +69,7 @@ public class MensajeUnico extends MessageProtocol {
 
         this.setIdUser(me.getId());
 
-        MessageController.getInstance().saveMessage(this.getIdMessage(), conversationId, me.getId(), this.getMessage(), true);
+        MessageController.getInstance().saveMessage(this.getIdMessage(), conversationId, me.getId(), this.getMessage(), true, false);
 
         client.send(this);
     }

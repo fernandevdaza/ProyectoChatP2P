@@ -18,7 +18,7 @@ public class MensajeUnicoCommand implements ProtocolCommand {
 
         String conversationId = MessageController.getInstance().getConversationIdByPeerId(userId);
         MessageController.getInstance().saveMessage(messageId, conversationId, userId,
-                message, true);
+                message, true, false);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class MensajeUnicoCommand implements ProtocolCommand {
 
         ((MensajeUnico) messageProtocol).setIdUser(me.getId());
 
-        MessageController.getInstance().saveMessage(((MensajeUnico) messageProtocol).getIdMessage(), conversationId, me.getId(), "", true);
+        MessageController.getInstance().saveMessage(((MensajeUnico) messageProtocol).getIdMessage(), conversationId, me.getId(), "", true, false);
 
         socketClient.send(messageProtocol);
     }
