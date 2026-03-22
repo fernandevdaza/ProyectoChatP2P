@@ -112,30 +112,4 @@ public class Main {
         }
     }
 
-    public static void printAudioMixers() {
-        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
-        System.out.println("=== MIXERS DISPONIBLES ===");
-
-        AudioFormat testFormat = new AudioFormat(
-                AudioFormat.Encoding.PCM_SIGNED,
-                22050.0f,
-                16,
-                1,
-                2,
-                22050.0f,
-                false);
-
-        DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, testFormat);
-
-        for (int i = 0; i < mixers.length; i++) {
-            Mixer.Info info = mixers[i];
-            Mixer mixer = AudioSystem.getMixer(info);
-            boolean supported = mixer.isLineSupported(lineInfo);
-
-            System.out.println("[" + i + "] " + info.getName());
-            System.out.println("    Vendor: " + info.getVendor());
-            System.out.println("    Desc:   " + info.getDescription());
-            System.out.println("    Soporta SourceDataLine(22050 mono 16-bit): " + supported);
-        }
-    }
 }
