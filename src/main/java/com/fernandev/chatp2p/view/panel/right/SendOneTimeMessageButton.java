@@ -20,7 +20,7 @@ public class SendOneTimeMessageButton extends JButton implements StateListener {
         this.setText("❶");
         this.setBackground(theme.getCOLOR_ONE_TIME_MESSAGE_BUTTON_BG());
         this.setForeground(theme.getCOLOR_ONE_TIME_MESSAGE_BUTTON_FG());
-        this.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        this.setFont(new Font(Font.DIALOG, Font.PLAIN, 20));
         this.setBorderPainted(false);
         this.setFocusPainted(false);
         this.setPreferredSize(new Dimension(60, 40));
