@@ -14,12 +14,12 @@ public class SendMessageButton extends JButton implements StateListener {
     private StateManager stateManager = StateManager.getInstance();
     private ChatInputPanelTheme theme;
 
-    public SendMessageButton(){
+    public SendMessageButton() {
         this.setText("➤");
         applyTheme();
         this.setBackground(theme.getCOLOR_SEND_BUTTON_BG());
         this.setForeground(theme.getCOLOR_SEND_BUTTON_FG());
-        this.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        this.setFont(new Font(Font.DIALOG, Font.BOLD, 20));
         this.setBorderPainted(false);
         this.setFocusPainted(false);
         this.setPreferredSize(new Dimension(60, 40));
@@ -31,7 +31,7 @@ public class SendMessageButton extends JButton implements StateListener {
         });
     }
 
-    public void applyTheme(){
+    public void applyTheme() {
         this.theme = stateManager.getCurrentState().getTheme().getRightPanelTheme().getChatInputPanelTheme();
     }
 

@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 public class NotificationButton extends JButton implements StateListener {
-    private Font buttonTextFont = new Font(Font.DIALOG, Font.PLAIN, 20);
+    private Font buttonTextFont = new Font(Font.DIALOG, Font.PLAIN, 18);
     private NotificationPanel notificationPanel;
     private NotificationPopUpMenu notificationPopUpMenu;
     private StateManager stateManager = StateManager.getInstance();

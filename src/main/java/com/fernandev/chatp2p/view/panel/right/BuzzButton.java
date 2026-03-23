@@ -15,12 +15,12 @@ public class BuzzButton extends JButton implements StateListener {
 
     private long lastSentBuzzMillis = 0;
 
-    public BuzzButton(){
+    public BuzzButton() {
         String peerId = stateManager.getCurrentState().getSelectedPeer().getPeerId();
         boolean isPeerConnected = stateManager.getCurrentState().getSelectedPeer().isConnected();
 
         this.setText("\uD83D\uDD0A");
-        this.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        this.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
         this.setPreferredSize(new Dimension(50, 50));
         this.addActionListener(e -> {
             long now = System.currentTimeMillis();
