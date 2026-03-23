@@ -182,10 +182,10 @@ jobs:
           $appVersion = "1.0.${{ github.run_number }}"
           $issContent = @"
           [Setup]
-          AppName=`$appName
-          AppVersion=`$appVersion
-          DefaultDirName={localappdata}\Programs\`$appName
-          DefaultGroupName=`$appName
+          AppName=$appName
+          AppVersion=$appVersion
+          DefaultDirName={localappdata}\Programs\$appName
+          DefaultGroupName=$appName
           OutputDir=release-assets
           OutputBaseFilename=ChatP2P-Windows-Setup
           Compression=lzma2
@@ -196,17 +196,17 @@ jobs:
           SetupIconFile=src\main\resources\view\favicon.ico
           
           [Files]
-          Source: `"dist\windows\`$appName\*`"; DestDir: `"{app}`"; Flags: ignoreversion recursesubdirs createallsubdirs
+          Source: `"dist\windows\$appName\*`"; DestDir: `"{app}`"; Flags: ignoreversion recursesubdirs createallsubdirs
 
           [Icons]
-          Name: `"{autoprograms}\`$appName`"; Filename: `"{app}\`$appName.exe`"
-          Name: `"{autodesktop}\`$appName`"; Filename: `"{app}\`$appName.exe`"; Tasks: desktopicon
+          Name: `"{autoprograms}\$appName`"; Filename: `"{app}\$appName.exe`"
+          Name: `"{autodesktop}\$appName`"; Filename: `"{app}\$appName.exe`"; Tasks: desktopicon
 
           [Tasks]
           Name: `"desktopicon`"; Description: `"Crear un acceso directo en el escritorio`"; GroupDescription: `"Iconos adicionales:`"
 
           [Run]
-          Filename: `"{app}\`$appName.exe`"; Description: `"Ejecutar `$appName`"; Flags: nowait postinstall skipifsilent
+          Filename: `"{app}\$appName.exe`"; Description: `"Ejecutar $appName`"; Flags: nowait postinstall skipifsilent
           "@
           Set-Content -Path "installer.iss" -Value $issContent
 
