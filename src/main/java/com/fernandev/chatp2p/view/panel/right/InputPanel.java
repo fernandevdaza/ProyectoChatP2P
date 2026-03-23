@@ -252,6 +252,8 @@ public class InputPanel extends JPanel implements StateListener {
         }
         if (inputPanelState.isSendImageButtonClicked()) {
             enviarImagen();
+            newState.getInputPanelState().setSendImageButtonClicked(false);
         }
+        stateManager.setNewState(newState, List.of());
     }
 }
