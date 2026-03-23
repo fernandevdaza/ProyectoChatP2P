@@ -55,6 +55,7 @@ jobs:
             --main-jar "${{ env.JAR_FILE }}" \
             --main-class "${{ env.MAIN_CLASS }}" \
             --dest dist/linux/deb \
+            --icon src/main/resources/view/favicon.png \
             --linux-shortcut \
             --vendor "UPB" \
             --app-version "1.0.${{ github.run_number }}"
@@ -69,6 +70,7 @@ jobs:
             --main-jar "${{ env.JAR_FILE }}" \
             --main-class "${{ env.MAIN_CLASS }}" \
             --dest dist/linux/rpm \
+            --icon src/main/resources/view/favicon.png \
             --linux-shortcut \
             --vendor "UPB" \
             --app-version "1.0.${{ github.run_number }}"
@@ -83,6 +85,7 @@ jobs:
             --main-jar "${{ env.JAR_FILE }}" \
             --main-class "${{ env.MAIN_CLASS }}" \
             --dest dist/linux/app-image \
+            --icon src/main/resources/view/favicon.png \
             --vendor "UPB" \
             --app-version "1.0.${{ github.run_number }}"
           
@@ -172,6 +175,7 @@ jobs:
             --main-jar "${{ env.JAR_FILE }}" `
             --main-class "${{ env.MAIN_CLASS }}" `
             --dest dist/windows `
+            --icon "src\main\resources\view\favicon.ico" `
             --vendor "UPB" `
             --app-version "1.0.${{ github.run_number }}"
 
