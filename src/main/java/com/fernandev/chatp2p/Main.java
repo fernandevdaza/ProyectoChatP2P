@@ -62,6 +62,7 @@ public class Main {
 
             try {
                 peerDao.save(selfPeer);
+                myself = selfPeer;
                 System.out.println("Se creó el peer propio: " + selfPeer.getDisplayName());
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null,
